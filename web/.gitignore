@@ -1,0 +1,14 @@
+.DS_Store
+node_modules
+/.svelte-kit
+/build
+/functions
+/src/lib/contracts.json
+.yalc
+yalc.lock
+.env
+/static/pwa
+.vscode/*
+!.vscode/*.default
+/src/app.html
+/static/robots.txt

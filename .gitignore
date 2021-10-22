@@ -1,0 +1,5 @@
+.env*
+!.env*.default
+.newsh.json
+node_modules
+jolly-roger.code-workspace
