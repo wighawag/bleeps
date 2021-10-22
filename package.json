@@ -1,7 +1,7 @@
 {
-  "name": "jolly-roger",
+  "name": "bleeps",
   "version": "0.0.1",
-  "description": "Jolly Roger",
+  "description": "Bleeps",
   "private": true,
   "devDependencies": {
     "change-name": "^0.2.6",
@@ -18,8 +18,8 @@
     "preinstall": "npx only-allow pnpm",
     "---------------------- setup ----------------------": "",
     "prepare": "node ./.setup.js",
-    "boot": "npx change-name jolly-roger && pnpm install",
-    "set-name": "npx change-name jolly-roger",
+    "boot": "npx change-name bleeps && pnpm install",
+    "set-name": "npx change-name bleeps",
     "---------------------- common lib ----------------------": "compile the common library",
     "common:dev": "npm --prefix common-lib run dev",
     "common:build": "npm --prefix common-lib run build",

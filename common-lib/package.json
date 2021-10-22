@@ -1,5 +1,5 @@
 {
-  "name": "jolly-roger-common",
+  "name": "bleeps-common",
   "description": "common library used by other modules",
   "private": true,
   "version": "0.0.1",

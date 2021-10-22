@@ -1,5 +1,5 @@
 import {expect} from './chai-setup';
-import {combine} from 'jolly-roger-common';
+import {combine} from 'bleeps-common';
 describe('common', function () {
   it('combine works', async function () {
     const result = combine('0x0000000000000000000000000000000000000000', 'hi');

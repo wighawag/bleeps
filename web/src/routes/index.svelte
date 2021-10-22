@@ -6,7 +6,7 @@
   import NavButton from '$lib/components/navigation/NavButton.svelte';
   import Feature from '$lib/components/Feature.svelte';
   import {url} from '$lib/utils/url';
-  const name = 'Jolly Roger';
+  const name = 'Bleeps';
 
   function _select(elem: HTMLElement) {
     const range = document.createRange();
@@ -45,7 +45,7 @@
         <NavButton
           blank={true}
           class="big secondary"
-          href="https://github.com/wighawag/jolly-roger"
+          href="https://github.com/wighawag/bleeps"
           label="Check it out on github!"
         >
           Github
@@ -55,12 +55,12 @@
 
     <div class="pt-3 pb-4 dark:bg-black bg-white">
       <h1 class="dark:text-gray-500 text-gray-500 m-4 font-semibold">Use it:</h1>
-      <code id="jolly-roger-command" on:click={select} class="mb-5 text-pink-600 font-black"
-        >npx degit wighawag/jolly-roger your-app-folder</code
+      <code id="bleeps-command" on:click={select} class="mb-5 text-pink-600 font-black"
+        >npx degit wighawag/bleeps your-app-folder</code
       >
       <p class="mt-6">
         Find out more on
-        <a class="underline" href="https://github.com/wighawag/jolly-roger#readme" target="_blank" rel="noopener"
+        <a class="underline" href="https://github.com/wighawag/bleeps#readme" target="_blank" rel="noopener"
           >github</a
         >
       </p>

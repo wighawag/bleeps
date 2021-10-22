@@ -1,6 +1,6 @@
 {
-  "name": "jolly-roger-subgraph",
-  "description": "Subgraph (thegraph.com) for Jolly Roger",
+  "name": "bleeps-subgraph",
+  "description": "Subgraph (thegraph.com) for Bleeps",
   "private": true,
   "version": "0.0.1",
   "devDependencies": {

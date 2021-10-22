@@ -1,5 +1,5 @@
 {
-  "name": "jolly-roger-web",
+  "name": "bleeps-web",
   "private": true,
   "version": "0.0.1",
   "type": "module",
@@ -39,7 +39,7 @@
     "hash.js": "^1.1.7",
     "ipfs-deploy": "^11.0.1",
     "ipfs-gateway-emulator": "4.2.1-ipfs.1",
-    "jolly-roger-common": "workspace:*",
+    "bleeps-common": "workspace:*",
     "postcss": "^8.3.9",
     "postcss-load-config": "^3.1.0",
     "prepare-for-web": "^0.1.7",
@@ -63,7 +63,7 @@
     "build": "svelte-kit build",
     "start": "svelte-kit start",
     "serve": "ipfs-emulator --only -d build -p 8080",
-    "deploy": "dotenv -- ipfs-deploy -p pinata -s jolly-roger build",
+    "deploy": "dotenv -- ipfs-deploy -p pinata -s bleeps build",
     "build:deploy": "run-s build deploy"
   }
 }

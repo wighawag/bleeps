@@ -1,13 +1,13 @@
 <!--- -------------------------------------------- -->
 
-# Jolly Roger
+# Bleeps
 
 This is a template to build a decentralised applicaiton using ethereum, hardhat, svelte and thegraph
 
 to make an app out of it, execute the following
 
 ```
-npx degit wighawag/jolly-roger <your-app-folder>
+npx degit wighawag/bleeps <your-app-folder>
 ```
 
 There also more templates available in branches:
@@ -16,7 +16,7 @@ There also more templates available in branches:
 ## NFT version (it includes eip-721-subgraph and a basic "my nfts" page):
 
 ```
-npx degit wighawag/jolly-roger#nft <your-app-folder>
+npx degit wighawag/bleeps#nft <your-app-folder>
 ```
 -->
 
@@ -118,12 +118,12 @@ As a standard lifecycle npm script, it is executed automatically upon install. I
 
 `pnpm setup`
 
-this will update name of the project (by default "jolly-roger") to be the name of the folder (See `set-name` command) and install the dependencies (`pnpm install`)
+this will update name of the project (by default "bleeps") to be the name of the folder (See `set-name` command) and install the dependencies (`pnpm install`)
 <br/><br/>
 
 `pnpm set-name [<new name>]`
 
-This will replace every instance of `jolly-roger` (or whatever name was set) to `new name` (if specified, otherwise it use the folder name)
+This will replace every instance of `bleeps` (or whatever name was set) to `new name` (if specified, otherwise it use the folder name)
 If your name is not unique and conflict with variable name, etc... this will not be safe to execute.
 <br/><br/>
 

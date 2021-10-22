@@ -1,5 +1,5 @@
 specVersion: 0.0.3
-description: Jolly Roger
+description: Bleeps
 schema:
   file: ./schema.graphql
 dataSources:

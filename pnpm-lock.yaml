@@ -70,7 +70,7 @@ importers:
       hardhat: ^2.6.4
       hardhat-deploy: ^0.9.4
       hardhat-gas-reporter: ^1.0.4
-      jolly-roger-common: workspace:*
+      bleeps-common: workspace:*
       mocha: ^9.1.2
       prettier: ^2.4.1
       prettier-plugin-solidity: ^1.0.0-beta.18
@@ -102,7 +102,7 @@ importers:
       hardhat: 2.6.5
       hardhat-deploy: 0.9.4_hardhat@2.6.5
       hardhat-gas-reporter: 1.0.4_hardhat@2.6.5
-      jolly-roger-common: link:../common-lib
+      bleeps-common: link:../common-lib
       mocha: 9.1.2
       prettier: 2.4.1
       prettier-plugin-solidity: 1.0.0-beta.18_prettier@2.4.1
@@ -165,7 +165,7 @@ importers:
       hash.js: ^1.1.7
       ipfs-deploy: ^11.0.1
       ipfs-gateway-emulator: 4.2.1-ipfs.1
-      jolly-roger-common: workspace:*
+      bleeps-common: workspace:*
       named-logs: ^0.1.0
       postcss: ^8.3.9
       postcss-load-config: ^3.1.0
@@ -215,7 +215,7 @@ importers:
       hash.js: 1.1.7
       ipfs-deploy: 11.0.1
       ipfs-gateway-emulator: 4.2.1-ipfs.1
-      jolly-roger-common: link:../common-lib
+      bleeps-common: link:../common-lib
       postcss: 8.3.9
       postcss-load-config: 3.1.0
       prepare-for-web: 0.1.7

@@ -36,7 +36,7 @@
       <div class="p-4">
         <div class="flex items-start">
           <div class="flex-shrink-0 pt-0.5">
-            <img class="h-10 w-10 rounded-full" src={`${base}/maskable_icon_512x512.png`} alt="Jolly Roger" />
+            <img class="h-10 w-10 rounded-full" src={`${base}/maskable_icon_512x512.png`} alt="Bleeps" />
           </div>
           <div class="ml-3 w-0 flex-1">
             <p class="text-sm font-medium dark:text-gray-100 text-black">
