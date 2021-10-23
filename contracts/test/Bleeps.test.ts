@@ -23,7 +23,7 @@ describe('Bleeps', function () {
   it('minting works', async function () {
     const {users, Bleeps} = await setup();
     const note = 0;
-    const instr = 7;
+    const instr = 6;
     const tokenID = note + instr * 64;
     await expect(users[0].Bleeps.mint(tokenID, users[0].address, {value: parseEther('3')}))
       .to.emit(Bleeps, 'Transfer')
