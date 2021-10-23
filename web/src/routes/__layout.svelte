@@ -40,6 +40,7 @@
     {href: url('create/'), title: 'Create Melodies'},
   ]}
 />
-
-<slot />
+<div class="text-white">
+  <slot />
+</div>
 <Notifications />

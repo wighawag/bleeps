@@ -134,7 +134,7 @@
   {/each}
 </div>
 
-<GreenNavButton class="w-32 mx-auto" label="Generate" on:click={fetchSound}>Generate</GreenNavButton>
+<GreenNavButton class="w-32 mx-auto" label="Generate" on:click={fetchSound} active={!sound}>Generate</GreenNavButton>
 
 <p>
   {data1}
@@ -152,6 +152,9 @@
       {:then metadata}
         <h1 class="text-green-400 text-2xl">{metadata.name}</h1>
         <audio src={metadata.animation_url} preload="auto" controls autoplay crossorigin="anonymous" />
+        <GreenNavButton class="m-4 w-32 mx-auto" label="Generate" active={false} disabled
+          >Put For Sale (Coming soon)</GreenNavButton
+        >
       {:catch error}
         <p style="color: red">{error}</p>
       {/await}

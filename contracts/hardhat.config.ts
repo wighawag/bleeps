@@ -29,6 +29,7 @@ const config: HardhatUserConfig = {
   namedAccounts: {
     deployer: 0,
     bleepsMaintainer: 1,
+    saleRecipient: 1,
   },
   networks: {
     hardhat: {

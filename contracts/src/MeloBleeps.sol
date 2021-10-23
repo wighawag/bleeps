@@ -8,7 +8,7 @@ import "./base/ERC721Base.sol";
 import "./MeloBleepsTokenURI.sol";
 
 contract MeloBleeps is ERC721Base {
-    // _maintainer onoy roles is to update the tokenURI contract, useful in case there are any bug, can be revoked
+    // _maintainer only roles is to update the tokenURI contract, useful in case there are any wav generation bug to fix or improvement to make, the plan is to revoke that role when the project has been time-tested
     address internal _maintainer;
     MeloBleepsTokenURI internal _tokenURIContract;
 
@@ -37,6 +37,16 @@ contract MeloBleeps is ERC721Base {
         bytes32 d1 = _melodies[id].data1;
         bytes32 d2 = _melodies[id].data2;
         return _tokenURIContract.wav(d1, d2);
+    }
+
+    function setTokenURIContract(MeloBleepsTokenURI newTokenURIContract) external {
+        require(msg.sender == _maintainer, "NOT_AUTHORIZED");
+        _tokenURIContract = newTokenURIContract;
+    }
+
+    function setMaintainer(address newMaintainer) external {
+        require(msg.sender == _maintainer, "NOT_AUTHORIZED");
+        _maintainer = newMaintainer;
     }
 
     function mint(

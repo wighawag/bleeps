@@ -6,14 +6,40 @@
   import WalletAccess from '$lib/WalletAccess.svelte';
   import NavButton from '$lib/components/navigation/NavButton.svelte';
   import GreenNavButton from '$lib/components/navigation/GreenNavButton.svelte';
-  import Blockie from '$lib/components/Blockie.svelte';
-  import {messages} from '$lib/stores/messages';
   import {wallet, flow, chain} from '$lib/stores/wallet';
-  import {onMount} from 'svelte';
-  import {combine} from 'bleeps-common';
-  import Melody from '$lib/components/Melody.svelte';
+  import {map} from 'wonka';
+  import Modal from '$lib/components/Modal.svelte';
+  import {formatError} from 'graphql';
 
   const name = 'Bleeps and The Bleeps DAO';
+
+  let selected = undefined;
+
+  function fetchURI(id: number): Promise<{image: string; animation_url: string}> {
+    if (!wallet.contracts) {
+      return Promise.reject('no contract');
+    }
+    return wallet.contracts.BleepsTokenURI.wav(id).then((v) => {
+      return JSON.parse(v.substr('data:application/json,'.length));
+    });
+  }
+
+  let sound;
+
+  function select(bleepId) {
+    console.log({bleepId});
+    selected = bleepId;
+    sound = fetchURI(bleepId);
+    // sound.then((s) => console.log(s.animation_url));
+  }
+
+  function formatError(error): string {
+    try {
+      return JSON.stringify(error, null, '  ');
+    } catch (e) {
+      return e.message || e;
+    }
+  }
 </script>
 
 <section class="py-8 px-4 text-center">
@@ -32,27 +58,45 @@
     <p class="m-6 text-gray-500 dark:text-gray-400 text-xl">Sound Generated entirely from Solidity</p>
 
     <p class="m-6 text-gray-500 dark:text-gray-200 text-xl">Mint the Primitive Sounds and be part of the Bleeps DAO</p>
+
+    <p class="m-6 text-gray-500 dark:text-gray-200 text-xl">
+      You ll then receive proceeds from the auction sale of melodies (WIP)
+    </p>
   </div>
 </section>
 
 <div class="w-full mx-auto text-center">
   <WalletAccess>
     {#if $wallet.state === 'Ready' && $chain.state === 'Ready'}
-      <GreenNavButton
+      <!-- <GreenNavButton
         class="w-24 mx-auto"
         label="Connect"
         disabled={$wallet.unlocking || $chain.connecting}
         on:click={() => flow.connect()}
       >
         Mint
-      </GreenNavButton>
-      <!-- <NavButton
-        label="Disconnect"
-        disabled={$wallet.unlocking || $chain.connecting}
-        on:click={() => wallet.disconnect()}
-      >
-        Disconnect
-      </NavButton> -->
+      </GreenNavButton> -->
+
+      <div class="max-w-2xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:max-w-7xl lg:px-8">
+        <h2 class="sr-only">Products</h2>
+
+        <div class="grid grid-cols-8 mx-auto">
+          {#each Array.from(Array(512)).map((v, i) => i) as bleepId}
+            <div>
+              <img
+                class="group mb-8 mx-auto"
+                src="images/logo.svg"
+                alt={'' + bleepId}
+                style="width:32px;height:32px;"
+                width="32px"
+                height="32px"
+              />
+              <GreenNavButton label="listen" on:click={() => select(bleepId)}>listen</GreenNavButton>{bleepId}
+              <!-- More products... -->
+            </div>
+          {/each}
+        </div>
+      </div>
     {:else}
       <p class="m-6 text-gray-500 dark:text-gray-400 text-xl">Please connect to interact</p>
 
@@ -67,3 +111,21 @@
     {/if}
   </WalletAccess>
 </div>
+
+{#if typeof selected !== 'undefined'}
+  <Modal on:close={() => (selected = undefined)}>
+    <div class="text-white">
+      {#if sound}
+        {#await sound}
+          ...
+        {:then metadata}
+          <h1 class="text-green-400 text-2xl">{metadata.name}</h1>
+          <audio src={metadata.animation_url} preload="auto" controls autoplay crossorigin="anonymous" />
+        {:catch error}
+          <p style="color: red">{formatError(error)}</p>
+        {/await}
+      {/if}
+      <GreenNavButton label="mint">mint</GreenNavButton>
+    </div>
+  </Modal>
+{/if}
