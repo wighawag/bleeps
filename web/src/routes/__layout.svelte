@@ -6,12 +6,10 @@
   import Notifications from '$lib/components/notification/Notifications.svelte';
   import NoInstallPrompt from '$lib/components/NoInstallPrompt.svelte';
   import NewVersionNotification from '$lib/components/NewVersionNotification.svelte';
-  // import Install from './components/Install.svelte';
-  import DarkSwitch from '$lib/components/DarkSwitch.svelte';
 
   import {appDescription, url as appUrl} from '../../application.json';
 
-  const title = 'Bleeps, Template for Decentralised Applications.';
+  const title = 'Bleeps, The Sound of NFT';
   const description = appDescription;
   const host = appUrl.endsWith('/') ? appUrl : appUrl + '/';
   const previewImage = host + 'preview.png';
@@ -39,13 +37,9 @@
 <NavBar
   links={[
     {href: url(''), title: 'Home'},
-    {href: url('demo/'), title: 'Demo'},
+    {href: url('create/'), title: 'Create Melodies'},
   ]}
 />
-
-<div class="absolute top-0 right-0 m-2">
-  <DarkSwitch />
-</div>
 
 <slot />
 <Notifications />

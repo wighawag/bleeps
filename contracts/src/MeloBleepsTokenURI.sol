@@ -42,16 +42,24 @@ contract MeloBleepsTokenURI {
     // 'data:application/json,{"name":"__________________________________","description":"A_sound_fully_generated_onchain","external_url":"?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????","image":"data:image/svg+xml,<svg viewBox=\'0 0 32 16\' ><text x=\'50%\' y=\'50%\' dominant-baseline=\'middle\' text-anchor=\'middle\' style=\'fill: rgb(219, 39, 119); font-size: 12px;\'>__________________________________</text></svg>","animation_url":"data:audio/wav;base64,UklGRgAAAABXQVZFZm10IBAAAAABAAEA+CoAAPBVAAACABAAZGF0YQAA'; // missing 2 zero bytes
 
     // sample rate: 11000 , bitsPerSample: 8bit
-    bytes internal constant metadataStart =
-        'data:application/json,{"name":"__________________________________","description":"A_sound_fully_generated_onchain","external_url":"?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????","image":"data:image/svg+xml,<svg viewBox=\'0 0 32 16\' ><text x=\'50%\' y=\'50%\' dominant-baseline=\'middle\' text-anchor=\'middle\' style=\'fill: rgb(219, 39, 119); font-size: 12px;\'>__________________________________</text></svg>","animation_url":"data:audio/wav;base64,UklGRgAAAABXQVZFZm10IBAAAAABAAEA+CoAAPBVAAABAAgAZGF0YQAA'; // missing 2 zero bytes
+    // bytes internal constant metadataStart =
+    //     'data:application/json,{"name":"__________________________________","description":"A_sound_fully_generated_onchain","external_url":"?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????","image":"data:image/svg+xml,<svg viewBox=\'0 0 32 16\' ><text x=\'50%\' y=\'50%\' dominant-baseline=\'middle\' text-anchor=\'middle\' style=\'fill: rgb(219, 39, 119); font-size: 12px;\'>__________________________________</text></svg>","animation_url":"data:audio/wav;base64,UklGRgAAAABXQVZFZm10IBAAAAABAAEA+CoAAPBVAAABAAgAZGF0YQAA'; // missing 2 zero bytes
 
     function wav(bytes32 d1, bytes32 d2) external view returns (string memory) {
         return _generateWav(d1, d2);
     }
 
-    function _prepareBuffer(bytes memory buffer) internal pure {
-        bytes memory start = metadataStart;
-        uint256 len = metadataStart.length;
+    function _prepareBuffer(bytes memory buffer) internal pure returns (uint256 l) {
+        bytes memory start = bytes.concat(
+            'data:application/json,{"name":"',
+            "hello",
+            '","description":"A_sound_fully_generated_onchain","external_url":"',
+            "https://hello",
+            "\",\"image\":\"data:image/svg+xml,<svg viewBox='0 0 32 16' ><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' style='fill: rgb(219, 39, 119); font-size: 12px;'>",
+            "hello",
+            '</text></svg>","animation_url":"data:audio/wav;base64,UklGRgAAAABXQVZFZm10IBAAAAABAAEA+CoAAPBVAAABAAgAZGF0YQAA'
+        ); // missing 2 zero bytes
+        uint256 len = start.length;
         uint256 src;
         uint256 dest;
         // solhint-disable-next-line no-inline-assembly
@@ -75,6 +83,7 @@ contract MeloBleepsTokenURI {
             let destpart := and(mload(dest), mask)
             mstore(dest, or(destpart, srcpart))
         }
+        return start.length;
     }
 
     function _finishBuffer(
@@ -82,7 +91,7 @@ contract MeloBleepsTokenURI {
         uint256 resultPtr,
         uint256 tablePtr,
         uint256 numSamplesPlusOne,
-        uint256 initialLength
+        uint256 startLength
     ) internal pure {
         // write ends + size in buffer
         // solhint-disable-next-line no-inline-assembly
@@ -99,7 +108,7 @@ contract MeloBleepsTokenURI {
         uint256 chunkSize = filesizeMinus8 + 8 - 44;
 
         // filesize // 46 00 00
-        resultPtr = initialLength + 32 - 52;
+        resultPtr = startLength + 32 - 52;
         assembly {
             resultPtr := add(buffer, resultPtr)
             let v := shl(40, 0x46)
@@ -127,7 +136,7 @@ contract MeloBleepsTokenURI {
         }
 
         // // // chunksize // 61 00 00
-        resultPtr = metadataStart.length + 32 - 4;
+        resultPtr = startLength + 32 - 4;
         assembly {
             resultPtr := add(buffer, resultPtr)
             let v := shl(40, 0x61)
@@ -156,12 +165,12 @@ contract MeloBleepsTokenURI {
     }
 
     function _generateWav(bytes32 d1, bytes32 d2) internal view returns (string memory) {
-        bytes memory buffer = new bytes(metadataStart.length + 500000); // + 2000000);
-        _prepareBuffer(buffer);
+        bytes memory buffer = new bytes(500000);
+        uint256 startLength = _prepareBuffer(buffer);
 
         string memory table = TABLE_ENCODE;
         uint256 tablePtr;
-        uint256 resultPtr = metadataStart.length + 32;
+        uint256 resultPtr = startLength + 32;
         assembly {
             // prepare the lookup table
             tablePtr := add(table, 1)
@@ -318,7 +327,7 @@ contract MeloBleepsTokenURI {
             }
         }
 
-        _finishBuffer(buffer, resultPtr, tablePtr, numSamplesPlusOne, metadataStart.length);
+        _finishBuffer(buffer, resultPtr, tablePtr, numSamplesPlusOne, startLength);
 
         return string(buffer);
     }

@@ -4,6 +4,7 @@
   // import {AddressZero} from '@ethersproject/constants';
   import {wallet} from '$lib/stores/wallet';
   import {BigNumber} from '@ethersproject/bignumber';
+  import GreenNavButton from './navigation/GreenNavButton.svelte';
 
   function encodeNote(bn: BigNumber, step: {note: number; vol: number; index: number; shape: number}): BigNumber {
     const shift = BigNumber.from(2).pow(241 - step.index * 15);
@@ -133,7 +134,7 @@
   {/each}
 </div>
 
-<button on:click={fetchSound}>PLAY</button>
+<GreenNavButton class="w-32 mx-auto" label="Generate" on:click={fetchSound}>Generate</GreenNavButton>
 
 <p>
   {data1}
@@ -143,21 +144,47 @@
   {data2}
 </p>
 
-<p>
-  {#if sound}
-    {#await sound}
-      ...
-    {:then metadata}
-      <audio src={metadata.animation_url} preload="auto" controls autoplay crossorigin="anonymous" />
-    {:catch error}
-      <p style="color: red">{error}</p>
-    {/await}
-  {/if}
-</p>
+<div class="flex justify-center items-center">
+  <p class="mx-auto">
+    {#if sound}
+      {#await sound}
+        ...
+      {:then metadata}
+        <h1 class="text-green-400 text-2xl">{metadata.name}</h1>
+        <audio src={metadata.animation_url} preload="auto" controls autoplay crossorigin="anonymous" />
+      {:catch error}
+        <p style="color: red">{error}</p>
+      {/await}
+    {/if}
+  </p>
+</div>
 
 <style>
   input[type='range'][orient='vertical'] {
     writing-mode: bt-lr; /* IE */
     -webkit-appearance: slider-vertical; /* WebKit */
+    background-color: #333333;
+  }
+
+  input[type='range']::-webkit-slider-runnable-track {
+    background-color: #333333;
+  }
+
+  input[type='range']::-webkit-slider-thumb {
+    background-color: #333333;
+  }
+  /** FF*/
+  input[type='range']::-moz-range-progress {
+    background-color: #333333;
+  }
+  input[type='range']::-moz-range-track {
+    background-color: #333333;
+  }
+  /* IE*/
+  input[type='range']::-ms-fill-lower {
+    background-color: #333333;
+  }
+  input[type='range']::-ms-fill-upper {
+    background-color: #333333;
   }
 </style>
