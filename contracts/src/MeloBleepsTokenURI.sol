@@ -213,11 +213,6 @@ contract MeloBleepsTokenURI {
                     SAMPLE_RATE
                 )
 
-                if gt(pos, 0) {
-                    // skip first value as it pertain to the double bytes for chunksize
-                    pos := add(pos, posStep)
-                }
-
                 let v := 0
                 for {
                     let c := 0
@@ -308,9 +303,9 @@ contract MeloBleepsTokenURI {
                                 )
                             )
                         }
-                        intValue := add(sdiv(mul(intValue, 255), ONE), 128) // TODO never go negative
                     }
                     intValue := sdiv(mul(intValue, vol), 7) // getValue(pos, instr)
+                    intValue := add(sdiv(mul(intValue, 256), ONE), 128) // TODO never go negative
                     v := add(v, shl(sub(16, mul(c, 8)), intValue))
                     pos := add(pos, posStep)
                 }

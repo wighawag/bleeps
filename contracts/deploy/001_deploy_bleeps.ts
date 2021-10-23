@@ -29,7 +29,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       saleRecipient,
       tokenURIContract.address,
       parseEther('2'),
-      7 * 24 * 3600,
+      2 * 24 * 3600,
       parseEther('0.05'),
     ],
     log: true,

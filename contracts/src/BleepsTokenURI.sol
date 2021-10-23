@@ -45,7 +45,7 @@ contract BleepsTokenURI {
     // bytes internal constant metadataStart =
     //     'data:application/json,{"name":"__________________________________","description":"A_sound_fully_generated_onchain","external_url":"?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????","image":"data:image/svg+xml,<svg viewBox=\'0 0 32 16\' ><text x=\'50%\' y=\'50%\' dominant-baseline=\'middle\' text-anchor=\'middle\' style=\'fill: rgb(219, 39, 119); font-size: 12px;\'>__________________________________</text></svg>","animation_url":"data:audio/wav;base64,UklGRgAAAABXQVZFZm10IBAAAAABAAEA+CoAAPBVAAABAAgAZGF0YQAA'; // missing 2 zero bytes
 
-    function wav(uint16 id) external view returns (string memory) {
+    function wav(uint256 id) external view returns (string memory) {
         return _generateWav(id);
     }
 
@@ -73,43 +73,47 @@ contract BleepsTokenURI {
         }
     }
 
-    function _prepareBuffer(uint16 id, bytes memory buffer) internal pure returns (uint256 l) {
-        bytes memory note = "";
-        bytes memory start = bytes.concat(
-            'data:application/json,{"name":"',
-            note,
-            '","description":"A_sound_fully_generated_onchain","external_url":"',
-            "https://bleeps.eth.link/#bleep=",
-            bytes(uint2str(id)),
-            "\",\"image\":\"data:image/svg+xml,<svg viewBox='0 0 32 16' ><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' style='fill: rgb(219, 39, 119); font-size: 12px;'>",
-            note,
-            '</text></svg>","animation_url":"data:audio/wav;base64,UklGRgAAAABXQVZFZm10IBAAAAABAAEA+CoAAPBVAAABAAgAZGF0YQAA'
-        ); // missing 2 zero bytes
-        uint256 len = start.length;
-        uint256 src;
-        uint256 dest;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            src := add(start, 0x20)
-            dest := add(buffer, 0x20)
-        }
-        for (; len >= 32; len -= 32) {
+    function _prepareBuffer(uint256 id, bytes memory buffer) internal pure returns (uint256 l) {
+        unchecked {
+            bytes memory note = "";
+            bytes memory start = bytes.concat(
+                'data:application/json,{"name":"',
+                note,
+                '","description":"A_sound_fully_generated_onchain","external_url":"',
+                "https://bleeps.eth.link/#bleep=",
+                bytes(uint2str(id)),
+                "\",\"image\":\"data:image/svg+xml,<svg viewBox='0 0 32 16' ><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' style='fill: rgb(219, 39, 119); font-size: 12px;'>",
+                note,
+                '</text></svg>","animation_url":"data:audio/wav;base64,UklGRgAAAABXQVZFZm10IBAAAAABAAEA+CoAAPBVAAABAAgAZGF0YQAA'
+            ); // missing 2 zero bytes
+            uint256 len = start.length;
+            uint256 src;
+            uint256 dest;
             // solhint-disable-next-line no-inline-assembly
             assembly {
-                mstore(dest, mload(src))
+                src := add(start, 0x20)
+                dest := add(buffer, 0x20)
             }
-            dest += 32;
-            src += 32;
+
+            for (; len >= 32; len -= 32) {
+                // solhint-disable-next-line no-inline-assembly
+                assembly {
+                    mstore(dest, mload(src))
+                }
+                dest += 32;
+                src += 32;
+            }
+
+            // TODO remove that step by ensuring the length is a multiple of 32 bytes
+            uint256 mask = 256**(32 - len) - 1;
+            // solhint-disable-next-line no-inline-assembly
+            assembly {
+                let srcpart := and(mload(src), not(mask))
+                let destpart := and(mload(dest), mask)
+                mstore(dest, or(destpart, srcpart))
+            }
+            return start.length;
         }
-        // TODO remove that step by ensuring the length is a multiple of 32 bytes
-        uint256 mask = 256**(32 - len) - 1;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            let srcpart := and(mload(src), not(mask))
-            let destpart := and(mload(dest), mask)
-            mstore(dest, or(destpart, srcpart))
-        }
-        return start.length;
     }
 
     function _finishBuffer(
@@ -190,18 +194,19 @@ contract BleepsTokenURI {
         }
     }
 
-    function _generateWav(uint16 id) internal view returns (string memory) {
+    function _generateWav(uint256 id) internal view returns (string memory) {
         bytes memory buffer = new bytes(100000);
         uint256 startLength = _prepareBuffer(id, buffer);
 
         uint256 note = uint256(id) % 64;
         uint256 instr = (uint256(id) >> 6) % 64;
 
-        uint256 vol = 5;
+        uint256 vol = 500;
 
         string memory table = TABLE_ENCODE;
         uint256 tablePtr;
         uint256 resultPtr = startLength + 32;
+
         assembly {
             // prepare the lookup table
             tablePtr := add(table, 1)
@@ -219,12 +224,23 @@ contract BleepsTokenURI {
         int256 posStep = 0; // computed later
         int256 pos = 0;
 
-        for (uint256 i = 0; i < 4383; i += 3) {
+        vol = 0;
+        for (uint256 i = 0; i < 8766 + 3000; i += 3) {
+            if (i > 8766) {
+                if (i % 2 == 0 && (vol > 0)) {
+                    vol -= 1;
+                }
+            } else if (i % 3 == 0) {
+                if (vol < 500) {
+                    vol += 1;
+                }
+            }
+
             assembly {
                 function abs(a) -> b {
                     b := a
-                    if lt(b, 0) {
-                        b := mul(b, MINUS)
+                    if slt(b, 0) {
+                        b := sub(0, b)
                     }
                 }
 
@@ -232,11 +248,6 @@ contract BleepsTokenURI {
                     mul(and(shr(232, mload(add(freqTable, add(32, mul(note, 3))))), 0xFFFFFF), 10000),
                     SAMPLE_RATE
                 )
-
-                if gt(pos, 0) {
-                    // skip first value as it pertain to the double bytes for chunksize
-                    pos := add(pos, posStep)
-                }
 
                 let v := 0
                 for {
@@ -248,13 +259,19 @@ contract BleepsTokenURI {
                     // skip first value as it pertain to the double bytes for chunksize
                     if gt(pos, 0) {
                         // tri
+                        // return (Math.abs((x % 1) * 2 - 1) * 2 - 1) * 0.5 // 0.7 in picolove
+                        // return floor(((Math.abs((x % ONE) * 2 - ONE) * 2 - ONE) * HALF) / ONE);
                         if eq(instr, 0) {
-                            intValue := sub(mul(smod(pos, ONE), 2), ONE)
-                            if slt(intValue, 0) {
-                                intValue := sub(0, intValue)
-                            }
+                            // intValue := sub(mul(smod(pos, ONE), 2), ONE)
+                            // if slt(intValue, 0) {
+                            //     intValue := sub(0, intValue)
+                            // }
+                            // intValue := sub(mul(intValue, 2), ONE)
+                            // intValue := sdiv(mul(intValue, HALF), ONE)
+
+                            intValue := abs(sub(mul(mod(pos, ONE), 2), ONE))
                             intValue := sub(mul(intValue, 2), ONE)
-                            intValue := sdiv(mul(intValue, HALF), ONE)
+                            intValue := sdiv(intValue, 2)
                         }
                         if eq(instr, 1) {
                             // uneven_tri
@@ -317,6 +334,11 @@ contract BleepsTokenURI {
                         if eq(instr, 6) {
                             intValue := sub(shr(232, mload(add(32, add(noiseTable, mod(pos, 8976))))), ONE)
                         }
+
+                        // x = x * 2;
+                        // return floor(
+                        //     Math.abs((x % TWO) - ONE) - HALF + floor((Math.abs((floor((x * 127) / 128) % TWO) - ONE) - HALF) / 2) - ONE / 4
+                        // );
                         if eq(instr, 7) {
                             // detuned_tri
                             intValue := mul(pos, 2)
@@ -328,9 +350,9 @@ contract BleepsTokenURI {
                                 )
                             )
                         }
-                        intValue := add(sdiv(mul(intValue, 255), ONE), 128) // TODO never go negative
+                        intValue := sdiv(mul(intValue, vol), 700) // getValue(pos, instr)
+                        intValue := add(sdiv(mul(intValue, 256), TWO), 128) // TODO never go negative
                     }
-                    intValue := sdiv(mul(intValue, vol), 7) // getValue(pos, instr)
                     v := add(v, shl(sub(16, mul(c, 8)), intValue))
                     pos := add(pos, posStep)
                 }
@@ -347,7 +369,7 @@ contract BleepsTokenURI {
             }
         }
 
-        _finishBuffer(buffer, resultPtr, tablePtr, 4383, startLength);
+        _finishBuffer(buffer, resultPtr, tablePtr, 8766 + 3000, startLength);
 
         return string(buffer);
     }
