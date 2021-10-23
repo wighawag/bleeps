@@ -8,13 +8,19 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const {deployer, bleepsMaintainer} = await getNamedAccounts();
 
-  await deploy('Bleeps', {
+  const tokenURIContract = await deploy('MeloBleepsTokenURI', {
     from: deployer,
-    args: [bleepsMaintainer],
+    log: true,
+    autoMine: true,
+  });
+
+  await deploy('MeloBleeps', {
+    from: deployer,
+    args: [bleepsMaintainer, tokenURIContract.address],
     log: true,
     autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
   });
-  // await deployments.save('Bleeps', {...deployment, linkedData: {bytecode: deployment.bytecode}});
+  // await deployments.save('MeloBleeps', {...deployment, linkedData: {bytecode: deployment.bytecode}});
 };
 export default func;
-func.tags = ['Bleeps'];
+func.tags = ['MeloBleeps'];

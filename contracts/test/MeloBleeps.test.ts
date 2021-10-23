@@ -1,6 +1,6 @@
 import {expect} from './chai-setup';
 import {ethers, deployments, getUnnamedAccounts} from 'hardhat';
-import {Bleeps} from '../typechain';
+import {MeloBleeps} from '../typechain';
 import {setupUsers} from './utils';
 import {BigNumber, constants} from 'ethers';
 import {solidityKeccak256} from 'ethers/lib/utils';
@@ -9,9 +9,9 @@ const {AddressZero} = constants;
 // import fs from 'fs';
 
 const setup = deployments.createFixture(async () => {
-  await deployments.fixture('Bleeps');
+  await deployments.fixture('MeloBleeps');
   const contracts = {
-    Bleeps: <Bleeps>await ethers.getContract('Bleeps'),
+    MeloBleeps: <MeloBleeps>await ethers.getContract('MeloBleeps'),
   };
   const users = await setupUsers(await getUnnamedAccounts(), contracts);
   return {
@@ -19,9 +19,9 @@ const setup = deployments.createFixture(async () => {
     users,
   };
 });
-describe('Bleeps', function () {
+describe('MeloBleeps', function () {
   it('minting works', async function () {
-    const {users, Bleeps} = await setup();
+    const {users, MeloBleeps} = await setup();
     // TODO :
     // let tokenID = BigNumber.from(0);
     // for (let i = 0; i < 16; i++) {
@@ -33,17 +33,17 @@ describe('Bleeps', function () {
 
     const tokenID = solidityKeccak256(['bytes32', 'bytes32'], [data1, data2]);
 
-    await expect(users[0].Bleeps.mint(data1, data2, users[0].address))
-      .to.emit(Bleeps, 'Transfer')
+    await expect(users[0].MeloBleeps.mint(data1, data2, users[0].address))
+      .to.emit(MeloBleeps, 'Transfer')
       .withArgs(AddressZero, users[0].address, tokenID);
-    const tokenURI = await Bleeps.tokenURI(tokenID);
+    const tokenURI = await MeloBleeps.tokenURI(tokenID);
     // console.log(tokenURI);
     const metadataStr = tokenURI.substr('data:application/json,'.length);
     // console.log(metadataStr);
     const metadata = JSON.parse(metadataStr);
     // console.log(JSON.stringify(metadata, null, '  '));
     console.log(metadata.animation_url);
-    console.log(`gas ${(await Bleeps.estimateGas.tokenURI(tokenID)).toNumber().toLocaleString('en')}`);
+    console.log(`gas ${(await MeloBleeps.estimateGas.tokenURI(tokenID)).toNumber().toLocaleString('en')}`);
     // const data = new Buffer(metadata.animation_url, 'base64');
     // write buffer to file
     // fs.writeFileSync('tmp.wav', data);

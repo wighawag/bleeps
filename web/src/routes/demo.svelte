@@ -10,7 +10,7 @@
 
   let message = '';
   async function setMessage() {
-    await flow.execute((contracts) => contracts.Bleeps.mint(message));
+    await flow.execute((contracts) => contracts.MeloBleeps.mint(message));
   }
 
   onMount(() => {

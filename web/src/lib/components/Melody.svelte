@@ -25,7 +25,7 @@
       return Promise.reject('waiting...');
     } else {
       lastTime = Date.now();
-      prom = wallet.contracts.Bleeps.wav(data1, data2).then((v) => {
+      prom = wallet.contracts.MeloBleeps.wav(data1, data2).then((v) => {
         return JSON.parse(v.substr('data:application/json,'.length));
       });
     }
@@ -49,8 +49,8 @@
     }
   }
 
-  // let Bleeps = contractsInfo.contracts.Bleeps;
-  // let virtualBleep = new VirtualContract(Bleeps.abi, Bleeps.linkedData.bytecode, AddressZero);
+  // let MeloBleeps = contractsInfo.contracts.MeloBleeps;
+  // let virtualBleep = new VirtualContract(MeloBleeps.abi, MeloBleeps.linkedData.bytecode, AddressZero);
 
   $: data1 =
     '0x' +
