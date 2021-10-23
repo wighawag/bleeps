@@ -39,7 +39,7 @@
   });
 
   let notes = Array.from(Array(32)).map((v, i) => {
-    return {note: i * 2 + 2, index: i, shape: 6};
+    return {note: i * 2 + 2, index: i, shape: 0};
   });
 
   let steps = [];
@@ -89,9 +89,12 @@
         return 'background-color: black';
     }
   }
+
+  let global = 0;
 </script>
 
 <div>
+  <p class="mx-auto">Notes</p>
   {#each notes as note}
     <input
       class="m-1 w-4 h-96"
@@ -107,10 +110,22 @@
   {/each}
 </div>
 
-<div>
+<div class="mt-3">
+  <p class="mx-auto">
+    Instruments (<button
+      class="inline"
+      on:click={() => {
+        for (let i = 0; i < 32; i++) {
+          notes[i].shape = global;
+        }
+        global = (global + 1) % 8;
+        sound = null;
+      }}>change all : {global}</button
+    >)
+  </p>
   {#each notes as note}
     <button
-      class="m-1 w-4 h-20"
+      class="my-0 mx-1 w-4 h-20"
       on:click={() => {
         note.shape = (note.shape + 1) % 8;
         sound = null;
@@ -119,7 +134,8 @@
   {/each}
 </div>
 
-<div>
+<div class="mt-3">
+  <p class="mx-auto">Volumes</p>
   {#each volumes as volume}
     <input
       class="m-1 w-4 h-20"

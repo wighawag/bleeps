@@ -223,7 +223,7 @@ contract BleepsTokenURI {
 
         int256 pos = 0;
 
-        uint256 noise_handler;
+        uint256[] memory noise_handler = new uint256[](4);
 
         vol = 0;
         for (uint256 i = 0; i < 8766 + 3000; i += 3) {
@@ -366,10 +366,11 @@ contract BleepsTokenURI {
                             //     );
                             // };
 
-                            let rand := mod(noise_handler, 0xFFFFFFFFFFFFFFFF)
-                            let lastx := mod(shr(64, noise_handler), 0xFFFFFFFFFFFFFFFF)
-                            let sample := mod(shr(128, noise_handler), 0xFFFFFFFFFFFFFFFF)
-                            let lsample := mod(shr(196, noise_handler), 0xFFFFFFFFFFFFFFFF)
+                            let rand := mload(add(noise_handler, 32))
+                            let lastx := mload(add(noise_handler, 64))
+                            let sample := mload(add(noise_handler, 96))
+                            let lsample := mload(add(noise_handler, 128))
+
                             rand := mod(add(mul(1103515245, rand), 12345), 0x80000000)
                             let scale := div(mul(sub(pos, lastx), ONE), 160000) // 2489  = note_to_hz(63)  => 2489 * 10000000 / 11000 (sample rate) => 2262727 (160000 is from js)
                             lsample := sample
@@ -378,15 +379,19 @@ contract BleepsTokenURI {
                                 add(ONE, scale)
                             )
                             lastx := pos
-                            intValue := sdiv(mul(sdiv(mul(add(lsample, sample), 4), 3), sub(2, scale)), ONE)
+                            intValue := sdiv(mul(sdiv(mul(add(lsample, sample), 4), 3), sub(2, scale)), ONE) // 2 => 1.75
                             if slt(intValue, MINUS_ONE) {
                                 intValue := MINUS_ONE
                             }
                             if sgt(intValue, ONE) {
                                 intValue := ONE
                             }
-                            intValue := sdiv(mul(intValue, 7), 10)
-                            noise_handler := add(rand, add(shl(64, lastx), add(shl(128, sample), shl(196, lsample))))
+                            intValue := sdiv(mul(intValue, 5), 10)
+                            // noise_handler := or(rand, or(shl(64, lastx), add(shl(128, sample), shl(196, lsample))))
+                            mstore(add(noise_handler, 32), rand)
+                            mstore(add(noise_handler, 64), lastx)
+                            mstore(add(noise_handler, 96), sample)
+                            mstore(add(noise_handler, 128), lsample)
 
                             // let rand := mod(noise_handler, 0xFFFFFFFFFFFFFFFF)
                             // let lastx := mod(shr(64, noise_handler), 0xFFFFFFFFFFFFFFFF)

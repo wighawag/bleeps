@@ -21,7 +21,7 @@
 </script>
 
 <section class="py-8 px-4 text-center">
-  <h2 class="text-5xl mb-2 font-heading text-black dark:text-white">Melody creation coming soon!</h2>
+  <h2 class="text-5xl mb-2 font-heading text-black dark:text-white">Melody creation (in progress!)</h2>
   <p class="m-6 text-gray-500 dark:text-gray-400 text-xl">Bleeps DAO member get a share of each melody auction</p>
 </section>
 

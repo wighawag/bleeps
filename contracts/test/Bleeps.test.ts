@@ -32,6 +32,6 @@ describe('Bleeps', function () {
     const metadataStr = tokenURI.substr('data:application/json,'.length);
     const metadata = JSON.parse(metadataStr);
     console.log(metadata.animation_url);
-    console.log(`gas ${(await Bleeps.estimateGas.tokenURI(tokenID)).toNumber().toLocaleString('en')}`);
+    // console.log(`gas ${(await Bleeps.estimateGas.tokenURI(tokenID)).toNumber().toLocaleString('en')}`);
   });
 });
