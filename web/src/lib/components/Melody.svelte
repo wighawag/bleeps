@@ -5,10 +5,11 @@
   import {wallet} from '$lib/stores/wallet';
   import {BigNumber} from '@ethersproject/bignumber';
 
-  function encodeNote(bn: BigNumber, step: {note: number; index: number}): BigNumber {
-    const shift = BigNumber.from(2).pow(242 - step.index * 14);
-    const value = shift.mul(step.note);
-    return bn.add(value);
+  function encodeNote(bn: BigNumber, step: {note: number; vol: number; index: number; shape: number}): BigNumber {
+    const shift = BigNumber.from(2).pow(241 - step.index * 15);
+    const value = step.note + step.shape * 64 + step.vol * 64 * 8;
+    const extra = shift.mul(value);
+    return bn.add(extra);
   }
 
   let prom: Promise<{image: string; animation_url: string}>;
@@ -32,9 +33,21 @@
     return prom;
   }
 
-  let steps = Array.from(Array(32)).map((v, i) => {
-    return {note: i * 2 + 2, index: i};
+  let volumes = Array.from(Array(32)).map((v, i) => {
+    return {vol: 5, index: i};
   });
+
+  let notes = Array.from(Array(32)).map((v, i) => {
+    return {note: i * 2 + 2, index: i, shape: 0};
+  });
+
+  let steps = [];
+  $: {
+    steps = [];
+    for (let i = 0; i < 32; i++) {
+      steps.push({vol: volumes[i].vol, note: notes[i].note, index: i, shape: notes[i].shape});
+    }
+  }
 
   // let Bleeps = contractsInfo.contracts.Bleeps;
   // let virtualBleep = new VirtualContract(Bleeps.abi, Bleeps.linkedData.bytecode, AddressZero);
@@ -51,7 +64,11 @@
     '0x' +
     steps
       .slice(16)
-      .reduce((prev, curr, index) => encodeNote(prev, {note: curr.note, index: curr.index - 16}), BigNumber.from(0))
+      .reduce(
+        (prev, curr, index) =>
+          encodeNote(prev, {note: curr.note, index: curr.index - 16, vol: curr.vol, shape: curr.shape}),
+        BigNumber.from(0)
+      )
       .toHexString()
       .slice(2)
       .padStart(64, '0');
@@ -62,11 +79,41 @@
     sound = fetchURI(data1, data2);
     sound.then((s) => console.log(s.animation_url));
   }
+
+  function getColor(note: {note: number; shape: number}): string {
+    switch (note.shape) {
+      case 0:
+        return 'background-color: red';
+      default:
+        return 'background-color: black';
+    }
+  }
 </script>
 
 <div>
-  {#each steps as step}
-    <input class="m-1 w-4 h-96" step="1" min="0" bind:value={step.note} max="64" type="range" orient="vertical" />
+  {#each notes as note}
+    <input
+      class="m-1 w-4 h-96"
+      style={`${getColor(note)}`}
+      step="1"
+      min="0"
+      bind:value={note.note}
+      max="64"
+      type="range"
+      orient="vertical"
+    />
+  {/each}
+</div>
+
+<div>
+  {#each notes as note}
+    <button class="m-1 w-4 h-20" on:click={() => (note.shape = (note.shape + 1) % 8)}>{note.shape}</button>
+  {/each}
+</div>
+
+<div>
+  {#each volumes as volume}
+    <input class="m-1 w-4 h-20" step="1" min="0" bind:value={volume.vol} max="7" type="range" orient="vertical" />
   {/each}
 </div>
 

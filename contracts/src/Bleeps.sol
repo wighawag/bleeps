@@ -284,13 +284,16 @@ contract Bleeps is ERC721Base {
                 }
                 let meloIndex := div(i, div(numSamplesPlusOne, 32)) // TODO numSamples
                 // let meloIndex := div(mul(i, 32), numSamplesPlusOne) // TODO numSamples
-                let data := 0x00080040018008002800c003801000480140058018006801c007802000000000
+                let data := d1
                 if gt(meloIndex, 15) {
-                    data := 0x0088024009802800a802c00b803000c803400d803800e803c00f804000000000
+                    data := d2
                     meloIndex := sub(meloIndex, 16)
                 }
-                data := and(shr(add(32, mul(sub(15, meloIndex), 14)), data), 0x3FFF)
+                data := and(shr(add(16, mul(sub(15, meloIndex), 15)), data), 0x3FFF) // sub(15) is to divide the data in 2
                 let note := and(data, 0x3F)
+                let instr := and(shr(6, data), 0x07)
+                // let instr := 3
+                let vol := and(shr(9, data), 0x07)
 
                 // int256 posStep = (440 * ONE) / int256(SAMPLE_RATE); // 440 = frequency
                 // return floor(ONE * 440 * 2 ** floor((note - 33) / 12));
@@ -300,57 +303,18 @@ contract Bleeps is ERC721Base {
                     SAMPLE_RATE
                 )
 
-                // posStep := sdiv(mul(meloIndex, 1000000), SAMPLE_RATE)
-                //  posStep := sdiv(
-                //     mul(and(shr(232, mload(add(freqTable, add(32, mul(note, 3))))), 0xFFFFFF), 4400000),
-                //     SAMPLE_RATE
-                // )
-
-                // let instr := and(shr(12, data), 0x07)
-                let instr := 3
-
-                let intValue := getValue(pos, instr)
+                let intValue := sdiv(mul(getValue(pos, instr), vol), 7) // getValue(pos, instr)
                 if gt(pos, 0) {
                     // skip first value as it pertain to the double bytes for chunksize
                     pos := add(pos, posStep)
                 }
 
-                // 16 bits:
-                // let v := shl(40, and(intValue, 255))
-                // v := add(v, shl(32, and(shr(8, intValue), 255)))
-                // intValue := getValue(pos, instr)
-                // pos := add(pos, posStep)
-                // v := add(v, shl(24, and(intValue, 255)))
-                // v := add(v, shl(16, and(shr(8, intValue), 255)))
-                // intValue := getValue(pos, instr)
-                // pos := add(pos, posStep)
-                // v := add(v, shl(8, and(intValue, 255)))
-                // v := add(v, and(shr(8, intValue), 255))
-
-                // // write 8 characters
-                // mstore8(resultPtr, mload(add(tablePtr, and(shr(42, v), 0x3F))))
-                // resultPtr := add(resultPtr, 1)
-                // mstore8(resultPtr, mload(add(tablePtr, and(shr(36, v), 0x3F))))
-                // resultPtr := add(resultPtr, 1)
-                // mstore8(resultPtr, mload(add(tablePtr, and(shr(30, v), 0x3F))))
-                // resultPtr := add(resultPtr, 1)
-                // mstore8(resultPtr, mload(add(tablePtr, and(shr(24, v), 0x3F))))
-                // resultPtr := add(resultPtr, 1)
-                // mstore8(resultPtr, mload(add(tablePtr, and(shr(18, v), 0x3F))))
-                // resultPtr := add(resultPtr, 1)
-                // mstore8(resultPtr, mload(add(tablePtr, and(shr(12, v), 0x3F))))
-                // resultPtr := add(resultPtr, 1)
-                // mstore8(resultPtr, mload(add(tablePtr, and(shr(6, v), 0x3F))))
-                // resultPtr := add(resultPtr, 1)
-                // mstore8(resultPtr, mload(add(tablePtr, and(v, 0x3F))))
-                // resultPtr := add(resultPtr, 1)
-
                 // 8 bits:
                 let v := shl(16, intValue)
-                intValue := getValue(pos, instr)
+                intValue := sdiv(mul(getValue(pos, instr), vol), 7) // getValue(pos, instr)
                 pos := add(pos, posStep)
                 v := add(v, shl(8, intValue))
-                intValue := getValue(pos, instr)
+                intValue := sdiv(mul(getValue(pos, instr), vol), 7) // getValue(pos, instr)
                 pos := add(pos, posStep)
                 v := add(v, intValue)
 
@@ -366,8 +330,7 @@ contract Bleeps is ERC721Base {
             }
         }
 
-        // console.log("chunkSIze %i ", chunkSize);
-        // console.log("filesizeMinus8 %i ", filesizeMinus8);
+        // write ends + size in buffer
         // solhint-disable-next-line no-inline-assembly
         assembly {
             mstore8(resultPtr, 0x22) // "
@@ -377,11 +340,7 @@ contract Bleeps is ERC721Base {
             mstore(buffer, sub(sub(resultPtr, buffer), 32))
         }
 
-        // console.log(buffer.length);
-        // console.logUint(uint8(buffer[buffer.length - 3]));
-        // console.logUint(uint8(buffer[buffer.length - 2]));
-        // console.logUint(uint8(buffer[buffer.length - 1]));
-
+        // compute chnksize (TODO hardcode)
         uint256 filesizeMinus8 = ((numSamplesPlusOne - 1) * 2 + 44) - 8;
         uint256 chunkSize = filesizeMinus8 + 8 - 44;
 
@@ -412,9 +371,6 @@ contract Bleeps is ERC721Base {
             resultPtr := add(resultPtr, 1)
             mstore8(resultPtr, mload(add(tablePtr, and(v, 0x3F))))
         }
-        // buffer[startIndex - 42 + 4] = filesizeMinus8[0];
-        // buffer[startIndex - 42 + 5] = filesizeMinus8[1];
-        // buffer[startIndex - 42 + 6] = filesizeMinus8[2];
 
         // // // chunksize // 61 00 00
         resultPtr = metadataStart.length + 32 - 4;
@@ -443,10 +399,6 @@ contract Bleeps is ERC721Base {
             resultPtr := add(resultPtr, 1)
             mstore8(resultPtr, mload(add(tablePtr, and(v, 0x3F))))
         }
-        // buffer[startIndex - 42 + 40] = chunkSize[0];
-        // buffer[startIndex - 42 + 41] = chunkSize[1];
-        // buffer[startIndex - 42 + 42] = chunkSize[2];
-
         return string(buffer);
     }
 
