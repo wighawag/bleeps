@@ -28,8 +28,8 @@ describe('MeloBleeps', function () {
     //   tokenID = tokenID.add(BigNumber.from(i * 2 ** (3 + 3 + 3)).mul(BigNumber.from(2).pow(i * (6 + 3 + 3 + 3))));
     // }
     // const tokenID = '0x00020406080a0c0e10121416181a1c1e'; //'0x0000000000000000000000000001010101010101010101010101010101010101';
-    const data1 = '0x00080040018008002800c003801000480140058018006801c007802000000000';
-    const data2 = '0x0088024009802800a802c00b803000c803400d803800e803c00f804000000000';
+    const data1 = '0x17842f105e30bc817942f305e70bd017a42f505eb0bd817b42e705cf0ba00000';
+    const data2 = '0x17442e905d30ba817542eb05d70bb017642ed05db0bb817742ef05df0bc00000';
 
     const tokenID = solidityKeccak256(['bytes32', 'bytes32'], [data1, data2]);
 

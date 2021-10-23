@@ -5,12 +5,12 @@ pragma experimental ABIEncoderV2;
 /* solhint-disable quotes */
 
 import "./base/ERC721Base.sol";
-import "./interfaces/IWavTokenURI.sol";
+import "./MeloBleepsTokenURI.sol";
 
 contract MeloBleeps is ERC721Base {
     // _maintainer onoy roles is to update the tokenURI contract, useful in case there are any bug, can be revoked
     address internal _maintainer;
-    IWavTokenURI internal _tokenURIContract;
+    MeloBleepsTokenURI internal _tokenURIContract;
 
     struct Melody {
         bytes32 data1;
@@ -18,19 +18,19 @@ contract MeloBleeps is ERC721Base {
     }
     mapping(uint256 => Melody) internal _melodies;
 
-    constructor(address maintainer, IWavTokenURI tokenURIContract) {
+    constructor(address maintainer, MeloBleepsTokenURI tokenURIContract) {
         _maintainer = maintainer;
         _tokenURIContract = tokenURIContract;
     }
 
     /// @notice A descriptive name for a collection of NFTs in this contract
     function name() external pure returns (string memory) {
-        return "Bleeps, The Sound of NFT";
+        return "MeloBleeps, Melodies of Bleeps";
     }
 
     /// @notice An abbreviated name for NFTs in this contract
     function symbol() external pure returns (string memory) {
-        return "BLEEP";
+        return "MBLEEP";
     }
 
     function tokenURI(uint256 id) external view returns (string memory) {

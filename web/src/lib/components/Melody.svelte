@@ -25,7 +25,7 @@
       return Promise.reject('waiting...');
     } else {
       lastTime = Date.now();
-      prom = wallet.contracts.MeloBleeps.wav(data1, data2).then((v) => {
+      prom = wallet.contracts.MeloBleepsTokenURI.wav(data1, data2).then((v) => {
         return JSON.parse(v.substr('data:application/json,'.length));
       });
     }
@@ -38,7 +38,7 @@
   });
 
   let notes = Array.from(Array(32)).map((v, i) => {
-    return {note: i * 2 + 2, index: i, shape: 0};
+    return {note: i * 2 + 2, index: i, shape: 6};
   });
 
   let steps = [];
@@ -49,8 +49,8 @@
     }
   }
 
-  // let MeloBleeps = contractsInfo.contracts.MeloBleeps;
-  // let virtualBleep = new VirtualContract(MeloBleeps.abi, MeloBleeps.linkedData.bytecode, AddressZero);
+  // let MeloBleepsTokenURI = contractsInfo.contracts.MeloBleepsTokenURI;
+  // let virtualBleep = new VirtualContract(MeloBleepsTokenURI.abi, MeloBleepsTokenURI.linkedData.bytecode, AddressZero);
 
   $: data1 =
     '0x' +
@@ -98,6 +98,7 @@
       step="1"
       min="0"
       bind:value={note.note}
+      on:change={() => (sound = null)}
       max="64"
       type="range"
       orient="vertical"
@@ -107,13 +108,28 @@
 
 <div>
   {#each notes as note}
-    <button class="m-1 w-4 h-20" on:click={() => (note.shape = (note.shape + 1) % 8)}>{note.shape}</button>
+    <button
+      class="m-1 w-4 h-20"
+      on:click={() => {
+        note.shape = (note.shape + 1) % 8;
+        sound = null;
+      }}>{note.shape}</button
+    >
   {/each}
 </div>
 
 <div>
   {#each volumes as volume}
-    <input class="m-1 w-4 h-20" step="1" min="0" bind:value={volume.vol} max="7" type="range" orient="vertical" />
+    <input
+      class="m-1 w-4 h-20"
+      step="1"
+      min="0"
+      bind:value={volume.vol}
+      on:change={() => (sound = null)}
+      max="7"
+      type="range"
+      orient="vertical"
+    />
   {/each}
 </div>
 

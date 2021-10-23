@@ -40,10 +40,10 @@ contract BleepsTokenURI {
 
     // sample rate: 11000 , bitsPerSample: 8bit
     bytes internal constant metadataStart =
-        'data:application/json,{"name":"__________________________________","description":"A_sound_fully_generated_onchain","external_url":"?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????","image":"data:image/svg+xml,<svg viewBox=\'0 0 32 16\' ><text x=\'50%\' y=\'50%\' dominant-baseline=\'middle\' text-anchor=\'middle\' style=\'fill: rgb(219, 39, 119); font-size: 12px;\'>__________________________________</text></svg>","animation_url":"data:audio/wav;base64,UklGRgAAAABXQVZFZm10IBAAAAABAAEA+CoAAPBVAAABAAgAZGF0YQAA'; // missing 2 zero bytes
+        'data:application/json,{"name":"C#0 square","description":"A%20sound%20fully%20generated%20on-chain","external_url":"https://bleeps.eth.limo/#bleep=000000000","image":"data:image/svg+xml,<svg viewBox=\'0 0 32 16\' ><text x=\'50%\' y=\'50%\' dominant-baseline=\'middle\' text-anchor=\'middle\' style=\'fill: rgb(219, 39, 119); font-size: 12px;\'>C#0 square</text></svg>","animation_url":"data:audio/wav;base64,UklGRgAAAABXQVZFZm10IBAAAAABAAEA+CoAAPBVAAABAAgAZGF0YQAA'; // missing 2 zero bytes
 
-    function wav(bytes32 d1, bytes32 d2) external view returns (string memory) {
-        return _generateWav(d1, d2);
+    function wav(uint16 id) external view returns (string memory) {
+        return _generateWav(id);
     }
 
     function _prepareBuffer(bytes memory buffer) internal pure {
@@ -74,7 +74,7 @@ contract BleepsTokenURI {
         }
     }
 
-    function _generateWav(bytes32 d1, bytes32 d2) internal view returns (string memory) {
+    function _generateWav(uint16 id) internal view returns (string memory) {
         bytes memory buffer = new bytes(metadataStart.length + 500000); // + 2000000);
         _prepareBuffer(buffer);
 
@@ -111,7 +111,6 @@ contract BleepsTokenURI {
             //     break;
             //     }
             // }
-
             // if (Math.floor(offset / ONE) > lastStep) {
             //     lastBleep = bleep;
             //     bleepSampleIndex = 0;
@@ -119,151 +118,145 @@ contract BleepsTokenURI {
             //     bleep = sound.bleeps[lastStep];
             //     posOffset = pos;
             // }
-
-            assembly {
-                function abs(a) -> b {
-                    b := a
-                    if lt(b, 0) {
-                        b := mul(b, MINUS)
-                    }
-                }
-                // floor(((Math.abs((x % ONE) * 2 - ONE) * 2 - ONE) * HALF) / ONE);
-                function getValue(p, instrument) -> intValue {
-                    // skip first value as it pertain to the double bytes for chunksize
-                    if gt(p, 0) {
-                        // tri
-                        if eq(instrument, 0) {
-                            intValue := sub(mul(smod(p, ONE), 2), ONE)
-                            if slt(intValue, 0) {
-                                intValue := sub(0, intValue)
-                            }
-                            intValue := sub(mul(intValue, 2), ONE)
-                            intValue := sdiv(mul(intValue, HALF), ONE)
-                        }
-                        if eq(instrument, 1) {
-                            // uneven_tri
-                            let tmp := smod(p, ONE)
-                            if slt(tmp, ZERO8750) {
-                                intValue := sdiv(mul(tmp, 16), 7)
-                            }
-                            if sgt(tmp, ZERO8750) {
-                                intValue := mul(sub(ONE, tmp), 16)
-                            }
-                            if eq(tmp, ZERO8750) {
-                                intValue := mul(sub(ONE, tmp), 16)
-                            }
-                            intValue := sdiv(mul(sub(intValue, ONE), HALF), ONE)
-                        }
-                        if eq(instrument, 2) {
-                            // saw
-                            intValue := sdiv(mul(sub(smod(p, ONE), HALF), ZERO7), ONE)
-                        }
-                        if eq(instrument, 3) {
-                            // square
-                            let tmp := smod(p, ONE)
-                            intValue := MINUS_ONE
-                            if lt(tmp, HALF) {
-                                intValue := ONE
-                            }
-                            intValue := sdiv(intValue, 4)
-                        }
-                        if eq(instrument, 4) {
-                            // pulse
-                            let tmp := smod(p, ONE)
-                            intValue := MINUS_ONE
-                            if lt(tmp, ZERO3125) {
-                                intValue := ONE
-                            }
-                        }
-                        if eq(instrument, 5) {
-                            // tri2
-                            intValue := mul(p, 4)
-                            intValue := sdiv(
-                                mul(
-                                    sub(
-                                        sub(
-                                            add(
-                                                abs(sub(smod(intValue, TWO), ONE)),
-                                                sdiv(
-                                                    sub(abs(sub(smod(sdiv(mul(intValue, HALF), ONE), TWO), ONE)), HALF),
-                                                    2
-                                                )
-                                            ),
-                                            HALF
-                                        ),
-                                        ZERO1
-                                    ),
-                                    HALF
-                                ),
-                                ONE
-                            )
-                        }
-                        if eq(instrument, 6) {
-                            // TODO
-                        }
-                        if eq(instrument, 7) {
-                            // detuned_tri
-                            intValue := mul(p, 2)
-                            intValue := add(
-                                sub(abs(sub(smod(intValue, TWO), ONE)), HALF),
-                                sub(
-                                    sdiv(sub(abs(sub(smod(sdiv(mul(intValue, 127), 128), TWO), ONE)), HALF), 2),
-                                    sdiv(ONE, 4)
-                                )
-                            )
-                        }
-
-                        // 16 bit:
-                        // intValue := sdiv(mul(intValue, 32768), ONE)
-                        intValue := add(sdiv(mul(intValue, 255), ONE), 128) // TODO never go negative
-                    }
-                }
-                let meloIndex := div(i, div(numSamplesPlusOne, 32)) // TODO numSamples
-                // let meloIndex := div(mul(i, 32), numSamplesPlusOne) // TODO numSamples
-                let data := d1
-                if gt(meloIndex, 15) {
-                    data := d2
-                    meloIndex := sub(meloIndex, 16)
-                }
-                data := and(shr(add(16, mul(sub(15, meloIndex), 15)), data), 0x3FFF) // sub(15) is to divide the data in 2
-                let note := and(data, 0x3F)
-                let instr := and(shr(6, data), 0x07)
-                // let instr := 3
-                let vol := and(shr(9, data), 0x07)
-
-                // int256 posStep = (440 * ONE) / int256(SAMPLE_RATE); // 440 = frequency
-                // return floor(ONE * 440 * 2 ** floor((note - 33) / 12));
-                // posStep := sdiv(mul(exp(2, sdiv(sub(note, 33), 12)), 440000000), SAMPLE_RATE)
-                posStep := div(
-                    mul(and(shr(232, mload(add(freqTable, add(32, mul(note, 3))))), 0xFFFFFF), 10000),
-                    SAMPLE_RATE
-                )
-
-                let intValue := sdiv(mul(getValue(pos, instr), vol), 7) // getValue(pos, instr)
-                if gt(pos, 0) {
-                    // skip first value as it pertain to the double bytes for chunksize
-                    pos := add(pos, posStep)
-                }
-
-                // 8 bits:
-                let v := shl(16, intValue)
-                intValue := sdiv(mul(getValue(pos, instr), vol), 7) // getValue(pos, instr)
-                pos := add(pos, posStep)
-                v := add(v, shl(8, intValue))
-                intValue := sdiv(mul(getValue(pos, instr), vol), 7) // getValue(pos, instr)
-                pos := add(pos, posStep)
-                v := add(v, intValue)
-
-                // write 4 characters
-                mstore8(resultPtr, mload(add(tablePtr, and(shr(18, v), 0x3F))))
-                resultPtr := add(resultPtr, 1)
-                mstore8(resultPtr, mload(add(tablePtr, and(shr(12, v), 0x3F))))
-                resultPtr := add(resultPtr, 1)
-                mstore8(resultPtr, mload(add(tablePtr, and(shr(6, v), 0x3F))))
-                resultPtr := add(resultPtr, 1)
-                mstore8(resultPtr, mload(add(tablePtr, and(v, 0x3F))))
-                resultPtr := add(resultPtr, 1)
-            }
+            //     assembly {
+            //         function abs(a) -> b {
+            //             b := a
+            //             if lt(b, 0) {
+            //                 b := mul(b, MINUS)
+            //             }
+            //         }
+            //         // floor(((Math.abs((x % ONE) * 2 - ONE) * 2 - ONE) * HALF) / ONE);
+            //         function getValue(p, instrument) -> intValue {
+            //             // skip first value as it pertain to the double bytes for chunksize
+            //             if gt(p, 0) {
+            //                 // tri
+            //                 if eq(instrument, 0) {
+            //                     intValue := sub(mul(smod(p, ONE), 2), ONE)
+            //                     if slt(intValue, 0) {
+            //                         intValue := sub(0, intValue)
+            //                     }
+            //                     intValue := sub(mul(intValue, 2), ONE)
+            //                     intValue := sdiv(mul(intValue, HALF), ONE)
+            //                 }
+            //                 if eq(instrument, 1) {
+            //                     // uneven_tri
+            //                     let tmp := smod(p, ONE)
+            //                     if slt(tmp, ZERO8750) {
+            //                         intValue := sdiv(mul(tmp, 16), 7)
+            //                     }
+            //                     if sgt(tmp, ZERO8750) {
+            //                         intValue := mul(sub(ONE, tmp), 16)
+            //                     }
+            //                     if eq(tmp, ZERO8750) {
+            //                         intValue := mul(sub(ONE, tmp), 16)
+            //                     }
+            //                     intValue := sdiv(mul(sub(intValue, ONE), HALF), ONE)
+            //                 }
+            //                 if eq(instrument, 2) {
+            //                     // saw
+            //                     intValue := sdiv(mul(sub(smod(p, ONE), HALF), ZERO7), ONE)
+            //                 }
+            //                 if eq(instrument, 3) {
+            //                     // square
+            //                     let tmp := smod(p, ONE)
+            //                     intValue := MINUS_ONE
+            //                     if lt(tmp, HALF) {
+            //                         intValue := ONE
+            //                     }
+            //                     intValue := sdiv(intValue, 4)
+            //                 }
+            //                 if eq(instrument, 4) {
+            //                     // pulse
+            //                     let tmp := smod(p, ONE)
+            //                     intValue := MINUS_ONE
+            //                     if lt(tmp, ZERO3125) {
+            //                         intValue := ONE
+            //                     }
+            //                 }
+            //                 if eq(instrument, 5) {
+            //                     // tri2
+            //                     intValue := mul(p, 4)
+            //                     intValue := sdiv(
+            //                         mul(
+            //                             sub(
+            //                                 sub(
+            //                                     add(
+            //                                         abs(sub(smod(intValue, TWO), ONE)),
+            //                                         sdiv(
+            //                                             sub(abs(sub(smod(sdiv(mul(intValue, HALF), ONE), TWO), ONE)), HALF),
+            //                                             2
+            //                                         )
+            //                                     ),
+            //                                     HALF
+            //                                 ),
+            //                                 ZERO1
+            //                             ),
+            //                             HALF
+            //                         ),
+            //                         ONE
+            //                     )
+            //                 }
+            //                 if eq(instrument, 6) {
+            //                     // TODO
+            //                 }
+            //                 if eq(instrument, 7) {
+            //                     // detuned_tri
+            //                     intValue := mul(p, 2)
+            //                     intValue := add(
+            //                         sub(abs(sub(smod(intValue, TWO), ONE)), HALF),
+            //                         sub(
+            //                             sdiv(sub(abs(sub(smod(sdiv(mul(intValue, 127), 128), TWO), ONE)), HALF), 2),
+            //                             sdiv(ONE, 4)
+            //                         )
+            //                     )
+            //                 }
+            //                 // 16 bit:
+            //                 // intValue := sdiv(mul(intValue, 32768), ONE)
+            //                 intValue := add(sdiv(mul(intValue, 255), ONE), 128) // TODO never go negative
+            //             }
+            //         }
+            //         let meloIndex := div(i, div(numSamplesPlusOne, 32)) // TODO numSamples
+            //         // let meloIndex := div(mul(i, 32), numSamplesPlusOne) // TODO numSamples
+            //         let data := d1
+            //         if gt(meloIndex, 15) {
+            //             data := d2
+            //             meloIndex := sub(meloIndex, 16)
+            //         }
+            //         data := and(shr(add(16, mul(sub(15, meloIndex), 15)), data), 0x3FFF) // sub(15) is to divide the data in 2
+            //         let note := and(data, 0x3F)
+            //         let instr := and(shr(6, data), 0x07)
+            //         // let instr := 3
+            //         let vol := and(shr(9, data), 0x07)
+            //         // int256 posStep = (440 * ONE) / int256(SAMPLE_RATE); // 440 = frequency
+            //         // return floor(ONE * 440 * 2 ** floor((note - 33) / 12));
+            //         // posStep := sdiv(mul(exp(2, sdiv(sub(note, 33), 12)), 440000000), SAMPLE_RATE)
+            //         posStep := div(
+            //             mul(and(shr(232, mload(add(freqTable, add(32, mul(note, 3))))), 0xFFFFFF), 10000),
+            //             SAMPLE_RATE
+            //         )
+            //         let intValue := sdiv(mul(getValue(pos, instr), vol), 7) // getValue(pos, instr)
+            //         if gt(pos, 0) {
+            //             // skip first value as it pertain to the double bytes for chunksize
+            //             pos := add(pos, posStep)
+            //         }
+            //         // 8 bits:
+            //         let v := shl(16, intValue)
+            //         intValue := sdiv(mul(getValue(pos, instr), vol), 7) // getValue(pos, instr)
+            //         pos := add(pos, posStep)
+            //         v := add(v, shl(8, intValue))
+            //         intValue := sdiv(mul(getValue(pos, instr), vol), 7) // getValue(pos, instr)
+            //         pos := add(pos, posStep)
+            //         v := add(v, intValue)
+            //         // write 4 characters
+            //         mstore8(resultPtr, mload(add(tablePtr, and(shr(18, v), 0x3F))))
+            //         resultPtr := add(resultPtr, 1)
+            //         mstore8(resultPtr, mload(add(tablePtr, and(shr(12, v), 0x3F))))
+            //         resultPtr := add(resultPtr, 1)
+            //         mstore8(resultPtr, mload(add(tablePtr, and(shr(6, v), 0x3F))))
+            //         resultPtr := add(resultPtr, 1)
+            //         mstore8(resultPtr, mload(add(tablePtr, and(v, 0x3F))))
+            //         resultPtr := add(resultPtr, 1)
+            //     }
         }
 
         // write ends + size in buffer
