@@ -6,14 +6,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, getNamedAccounts} = hre;
   const {deploy} = deployments;
 
-  const {deployer, simpleERC20Beneficiary} = await getNamedAccounts();
+  const {deployer, bleepsMaintainer} = await getNamedAccounts();
 
-  await deploy('SimpleERC20', {
+  const deployment = await deploy('Bleeps', {
     from: deployer,
-    args: [simpleERC20Beneficiary, parseEther('1000000000')],
+    args: [bleepsMaintainer],
     log: true,
     autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
   });
+  await deployments.save('Bleeps', {...deployment, linkedData: {bytecode: deployment.bytecode}});
 };
 export default func;
-func.tags = ['SimpleERC20'];
+func.tags = ['Bleeps'];

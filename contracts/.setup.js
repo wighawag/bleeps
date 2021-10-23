@@ -19,6 +19,9 @@ fs.copySync('node_modules/@openzeppelin/contracts', '_lib/openzeppelin/contracts
 fs.emptyDirSync('_lib/hardhat');
 fs.copySync('node_modules/hardhat/console.sol', '_lib/hardhat/console.sol', {dereference: true});
 
+fs.emptyDirSync('_lib/base64-sol');
+fs.copySync('node_modules/base64-sol', '_lib/base64-sol', {dereference: true});
+
 fs.emptyDirSync('_lib/hardhat-deploy/solc_0.6');
 fs.copySync('node_modules/hardhat-deploy/solc_0.6', '_lib/hardhat-deploy/solc_0.6', {dereference: true});
 fs.emptyDirSync('_lib/hardhat-deploy/solc_0.7');

@@ -1,5 +1,6 @@
 # Make dependencies available
 export DAPP_REMAPPINGS="hardhat/=_lib/hardhat/
+base64-sol/=_lib/base64-sol/
 @openzeppelin/=_lib/openzeppelin/
 hardhat-deploy/=_lib/hardhat-deploy/"
 export DAPP_SRC=dapp_test/

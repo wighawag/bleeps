@@ -20,6 +20,7 @@
     ],
     "const-name-snakecase": "off",
     "func-name-mixedcase": "off",
+    "var-name-mixedcase": "off",
     "constructor-syntax": "error",
     "func-visibility": [
       "error",

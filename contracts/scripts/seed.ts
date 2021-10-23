@@ -12,13 +12,13 @@ async function waitFor<T>(p: Promise<{wait: () => Promise<T>}>): Promise<T> {
 
 async function main() {
   const others = await getUnnamedAccounts();
-  for (let i = 0; i < messages.length; i++) {
-    const sender = others[i];
-    if (sender) {
-      const greetingsRegistryContract = await ethers.getContract('GreetingsRegistry', sender);
-      await waitFor(greetingsRegistryContract.setMessage(messages[i]));
-    }
-  }
+  // for (let i = 0; i < messages.length; i++) {
+  //   const sender = others[i];
+  //   if (sender) {
+  //     const greetingsRegistryContract = await ethers.getContract('GreetingsRegistry', sender);
+  //     await waitFor(greetingsRegistryContract.setMessage(messages[i]));
+  //   }
+  // }
 }
 
 main()
