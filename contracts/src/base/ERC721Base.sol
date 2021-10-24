@@ -21,6 +21,8 @@ abstract contract ERC721Base is IERC165, IERC721 {
     mapping(address => mapping(address => bool)) internal _operatorsForAll;
     mapping(uint256 => address) internal _operators;
 
+    function name() public pure virtual returns (string memory);
+
     /// @notice Count NFTs tracked by this contract
     /// @return A count of valid NFTs tracked by this contract, where each one of
     ///  them has an assigned and queryable owner not equal to the zero address
@@ -106,7 +108,7 @@ abstract contract ERC721Base is IERC165, IERC721 {
     /// @notice Get the number of tokens owned by an address.
     /// @param owner The address to look for.
     /// @return balance The number of tokens owned by the address.
-    function balanceOf(address owner) external view override returns (uint256 balance) {
+    function balanceOf(address owner) public view override returns (uint256 balance) {
         require(owner != address(0), "ZERO_ADDRESS_OWNER");
         balance = _holderTokens[owner].length();
     }
@@ -188,11 +190,18 @@ abstract contract ERC721Base is IERC165, IERC721 {
         }
     }
 
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 id
+    ) internal virtual {}
+
     function _transferFrom(
         address from,
         address to,
         uint256 id
     ) internal {
+        _beforeTokenTransfer(from, to, id);
         _holderTokens[to].add(id);
         _owners[id] = uint256(uint160(to));
         emit Transfer(from, to, id);

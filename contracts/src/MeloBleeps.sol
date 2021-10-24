@@ -24,7 +24,7 @@ contract MeloBleeps is ERC721Base {
     }
 
     /// @notice A descriptive name for a collection of NFTs in this contract
-    function name() external pure returns (string memory) {
+    function name() public pure override returns (string memory) {
         return "MeloBleeps, Melodies of Bleeps";
     }
 

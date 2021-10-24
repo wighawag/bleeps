@@ -4,10 +4,11 @@ pragma experimental ABIEncoderV2;
 
 /* solhint-disable quotes */
 
-import "./base/ERC721Base.sol";
+import "./base/ERC721Checkpointable.sol";
 import "./BleepsTokenURI.sol";
+import "hardhat-deploy/solc_0.8/proxy/Proxied.sol";
 
-contract Bleeps is ERC721Base {
+contract Bleeps is ERC721Checkpointable, Proxied {
     // _maintainer only roles is to update the tokenURI contract, useful in case there are any wav generation bug to fix or improvement to make, the plan is to revoke that role when the project has been time-tested
     address internal _maintainer;
     address payable internal _recipient;
@@ -19,20 +20,29 @@ contract Bleeps is ERC721Base {
     uint256 internal immutable _lastPrice;
 
     constructor(
-        address maintainer,
-        address payable recipient,
-        BleepsTokenURI tokenURIContract,
         uint256 initPrice,
         uint256 delay,
-        uint256 lastPrice
+        uint256 lastPrice,
+        uint256 startTime,
+        address maintainer,
+        address payable recipient,
+        BleepsTokenURI tokenURIContract
     ) {
-        _maintainer = maintainer;
-        _recipient = recipient;
-        _tokenURIContract = tokenURIContract;
-        _startTime = block.timestamp;
+        _startTime = startTime;
         _initPrice = initPrice;
         _delay = delay;
         _lastPrice = lastPrice;
+        init(maintainer, recipient, tokenURIContract);
+    }
+
+    function init(
+        address maintainer,
+        address payable recipient,
+        BleepsTokenURI tokenURIContract
+    ) public proxied {
+        _maintainer = maintainer;
+        _recipient = recipient;
+        _tokenURIContract = tokenURIContract;
     }
 
     function priceInfo()
@@ -49,8 +59,8 @@ contract Bleeps is ERC721Base {
     }
 
     /// @notice A descriptive name for a collection of NFTs in this contract
-    function name() external pure returns (string memory) {
-        return "Bleeps, The Sound of NFT";
+    function name() public pure override returns (string memory) {
+        return "Bleeps";
     }
 
     /// @notice An abbreviated name for NFTs in this contract
