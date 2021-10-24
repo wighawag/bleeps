@@ -1,8 +1,4 @@
 <script lang="ts">
-  // import {VirtualContract} from '$lib/utils/ethereum';
-  // import contractsInfo from '$lib/contracts.json';
-  // import {AddressZero} from '@ethersproject/constants';
-  import {localdev} from '$lib/config';
   import {wallet} from '$lib/stores/wallet';
   import {BigNumber} from '@ethersproject/bignumber';
   import GreenNavButton from './navigation/GreenNavButton.svelte';
@@ -121,13 +117,13 @@
   //   return {vol: 5, index: i};
   // });
 
-  let volumes = extractVolumes(song2);
+  let volumes = extractVolumes(song1);
 
   // let notes = Array.from(Array(32)).map((v, i) => {
   //   return {note: i * 2 + 2, index: i, shape: 0};
   // });
 
-  let notes = extractNotes(song2);
+  let notes = extractNotes(song1);
 
   let steps = [];
   $: {
@@ -237,14 +233,14 @@
   {/each}
 </div>
 
-{#if localdev}
-  <GreenNavButton class="w-32 mx-auto" label="Generate" on:click={fetchSound} active={!sound}>Generate</GreenNavButton>
-{:else}
+<!-- {#if localdev} -->
+<GreenNavButton class="w-32 mx-auto" label="Generate" on:click={fetchSound} active={!sound}>Generate</GreenNavButton>
+<!-- {:else}
   <p>Work In Progress</p>
   <GreenNavButton class="w-32 mx-auto" label="Generate" on:click={fetchSound} active={false} disabled
     >Generate</GreenNavButton
   >
-{/if}
+{/if} -->
 <!-- <p>
   {data1}
 </p>
