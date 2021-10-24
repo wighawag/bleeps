@@ -86,7 +86,11 @@
       You ll then receive proceeds from the auction sale of melodies (WIP)
     </p>
 
-    {#if $ownersState?.expectedValue}
+    <p class="text-yellow-400">
+      Sale Comming Soon... follow :<a class="underline" href="https://twitter.com/wighawag">wighawag</a>
+    </p>
+
+    <!-- {#if $ownersState?.expectedValue}
       <p class="text-yellow-400">
         Current Price: {$ownersState?.expectedValue.div('1000000000000000').toNumber() / 1000}
       </p>
@@ -94,7 +98,7 @@
 
     {#if $ownersState?.numLeft !== undefined}
       <p class="text-yellow-400">{$ownersState?.numLeft} / 512 left</p>
-    {/if}
+    {/if} -->
   </div>
 </section>
 
@@ -110,7 +114,7 @@
         Mint
       </GreenNavButton> -->
 
-      <div class="max-w-2xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:max-w-7xl lg:px-8">
+      <!-- <div class="max-w-2xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:max-w-7xl lg:px-8">
         <div class="grid grid-cols-8 mx-auto">
           {#each Array.from(Array(512))
             .map((v, i) => i)
@@ -134,11 +138,10 @@
                 <GreenNavButton label="listen" on:click={() => select(bleepId)}>listen</GreenNavButton>
               {/if}
 
-              <!-- More products... -->
             </div>
           {/each}
         </div>
-      </div>
+      </div> -->
     {:else}
       <p class="m-6 text-gray-500 dark:text-gray-400 text-xl">Please connect to interact</p>
 
