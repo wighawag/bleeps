@@ -7,6 +7,88 @@
   import {BigNumber} from '@ethersproject/bignumber';
   import GreenNavButton from './navigation/GreenNavButton.svelte';
 
+  const song1 = [
+    {vol: 7, note: 1, shape: 7},
+    {vol: 0, note: 0, shape: 0},
+    {vol: 7, note: 1, shape: 7},
+    {vol: 0, note: 0, shape: 0},
+    {vol: 5, note: 26, shape: 6},
+    {vol: 7, note: 1, shape: 7},
+    {vol: 0, note: 0, shape: 0},
+    {vol: 0, note: 0, shape: 0},
+    {vol: 7, note: 1, shape: 7},
+    {vol: 0, note: 0, shape: 0},
+    {vol: 0, note: 0, shape: 0},
+    {vol: 0, note: 0, shape: 0},
+    {vol: 5, note: 26, shape: 6},
+    {vol: 0, note: 0, shape: 0},
+    {vol: 7, note: 1, shape: 7},
+    {vol: 0, note: 0, shape: 0},
+    {vol: 7, note: 1, shape: 7},
+    {vol: 0, note: 0, shape: 0},
+    {vol: 7, note: 1, shape: 7},
+    {vol: 0, note: 0, shape: 0},
+    {vol: 5, note: 26, shape: 6},
+    {vol: 7, note: 1, shape: 7},
+    {vol: 0, note: 0, shape: 0},
+    {vol: 0, note: 0, shape: 0},
+    {vol: 7, note: 1, shape: 7},
+    {vol: 0, note: 0, shape: 0},
+    {vol: 0, note: 0, shape: 0},
+    {vol: 0, note: 0, shape: 0},
+    {vol: 5, note: 26, shape: 6},
+    {vol: 0, note: 0, shape: 0},
+    {vol: 7, note: 1, shape: 7},
+    {vol: 5, note: 26, shape: 6},
+  ];
+
+  const song2 = [
+    {vol: 5, note: 46, shape: 7},
+    {vol: 5, note: 55, shape: 7},
+    {vol: 3, note: 46, shape: 7},
+    {vol: 3, note: 55, shape: 7},
+    {vol: 2, note: 46, shape: 7},
+    {vol: 2, note: 55, shape: 7},
+    {vol: 1, note: 46, shape: 7},
+    {vol: 1, note: 55, shape: 7},
+    {vol: 5, note: 34, shape: 7},
+    {vol: 5, note: 44, shape: 7},
+    {vol: 3, note: 44, shape: 7},
+    {vol: 3, note: 34, shape: 7},
+    {vol: 5, note: 31, shape: 7},
+    {vol: 5, note: 36, shape: 7},
+    {vol: 3, note: 31, shape: 7},
+    {vol: 3, note: 36, shape: 7},
+    {vol: 5, note: 33, shape: 7},
+    {vol: 5, note: 40, shape: 7},
+    {vol: 3, note: 33, shape: 7},
+    {vol: 3, note: 40, shape: 7},
+    {vol: 2, note: 33, shape: 7},
+    {vol: 2, note: 40, shape: 7},
+    {vol: 5, note: 42, shape: 7},
+    {vol: 5, note: 50, shape: 7},
+    {vol: 3, note: 42, shape: 7},
+    {vol: 3, note: 50, shape: 7},
+    {vol: 2, note: 42, shape: 7},
+    {vol: 2, note: 50, shape: 7},
+    {vol: 1, note: 42, shape: 7},
+    {vol: 1, note: 50, shape: 7},
+    {vol: 1, note: 42, shape: 7},
+    {vol: 1, note: 50, shape: 7},
+  ];
+
+  function extractVolumes(song: {vol: number; note: number; shape: number}[]) {
+    return song.map((v, i) => {
+      return {vol: v.vol, index: i};
+    });
+  }
+
+  function extractNotes(song: {vol: number; note: number; shape: number}[]) {
+    return song.map((v, i) => {
+      return {note: v.note, shape: v.shape, index: i};
+    });
+  }
+
   function encodeNote(bn: BigNumber, step: {note: number; vol: number; index: number; shape: number}): BigNumber {
     const shift = BigNumber.from(2).pow(241 - step.index * 15);
     const value = step.note + step.shape * 64 + step.vol * 64 * 8;
@@ -35,13 +117,17 @@
     return prom;
   }
 
-  let volumes = Array.from(Array(32)).map((v, i) => {
-    return {vol: 5, index: i};
-  });
+  // let volumes = Array.from(Array(32)).map((v, i) => {
+  //   return {vol: 5, index: i};
+  // });
 
-  let notes = Array.from(Array(32)).map((v, i) => {
-    return {note: i * 2 + 2, index: i, shape: 0};
-  });
+  let volumes = extractVolumes(song2);
+
+  // let notes = Array.from(Array(32)).map((v, i) => {
+  //   return {note: i * 2 + 2, index: i, shape: 0};
+  // });
+
+  let notes = extractNotes(song2);
 
   let steps = [];
   $: {

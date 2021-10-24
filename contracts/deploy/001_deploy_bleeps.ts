@@ -8,6 +8,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const {deployer, bleepsMaintainer, saleRecipient} = await getNamedAccounts();
 
+  const mandalasAddress = '0xDaCa87395f3b1Bbc46F3FA187e996E03a5dCc985';
+
   const tokenURIContract = await deploy('BleepsTokenURI', {
     from: deployer,
     log: true,
@@ -30,6 +32,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       2 * 24 * 3600,
       parseEther('0.05'),
       Math.floor(Date.now() / 1000), // TODO double check
+      mandalasAddress,
       bleepsMaintainer,
       saleRecipient,
       tokenURIContract.address,

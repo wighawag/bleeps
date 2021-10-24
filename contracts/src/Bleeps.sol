@@ -6,6 +6,7 @@ pragma experimental ABIEncoderV2;
 
 import "./lib/ERC721Checkpointable.sol";
 import "./BleepsTokenURI.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 contract Bleeps is ERC721Checkpointable {
     // _maintainer only roles is to update the tokenURI contract, useful in case there are any wav generation bug to fix or improvement to make, the plan is to revoke that role when the project has been time-tested
@@ -18,19 +19,23 @@ contract Bleeps is ERC721Checkpointable {
     uint256 internal immutable _delay;
     uint256 internal immutable _lastPrice;
 
+    IERC721 internal immutable _mandalas;
+
     constructor(
         uint256 initPrice,
         uint256 delay,
         uint256 lastPrice,
         uint256 startTime,
+        IERC721 mandalas,
         address maintainer,
         address payable recipient,
-        BleepsTokenURI tokenURIContract
+        BleepsTokenURI tokenURIContract,
     ) ERC721("Bleeps", "BLEEP") {
         _initPrice = initPrice;
         _delay = delay;
         _lastPrice = lastPrice;
         _startTime = startTime;
+        _mandalas = mandalas;
         _maintainer = maintainer;
         _recipient = recipient;
         _tokenURIContract = tokenURIContract;
@@ -103,6 +108,13 @@ contract Bleeps is ERC721Checkpointable {
                 expectedValue = _lastPrice;
             } else {
                 expectedValue = _lastPrice + (priceDiff * (_delay - timePassed)) / _delay;
+            }
+            uint256 numMandalas;
+            try _mandalas.balanceOf(msg.sender) returns (uint256 num) {
+                numMandalas = num;
+            } catch {}
+            if (numMandalas > 0) {
+                expectedValue = (expectedValue * 2) / 10;
             }
             require(msg.value >= expectedValue, "NOT_ENOUGH");
             payable(msg.sender).transfer(msg.value - expectedValue);
