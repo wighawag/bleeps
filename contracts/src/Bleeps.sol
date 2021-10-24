@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 
 /* solhint-disable quotes */
 
-import "./base/ERC721Checkpointable.sol";
+import "./lib/ERC721Checkpointable.sol";
 import "./BleepsTokenURI.sol";
 import "hardhat-deploy/solc_0.8/proxy/Proxied.sol";
 
@@ -27,7 +27,7 @@ contract Bleeps is ERC721Checkpointable, Proxied {
         address maintainer,
         address payable recipient,
         BleepsTokenURI tokenURIContract
-    ) {
+    ) ERC721("Bleeps", "BLEEP") {
         _startTime = startTime;
         _initPrice = initPrice;
         _delay = delay;
@@ -58,17 +58,7 @@ contract Bleeps is ERC721Checkpointable, Proxied {
         return (_startTime, _initPrice, _delay, _lastPrice);
     }
 
-    /// @notice A descriptive name for a collection of NFTs in this contract
-    function name() public pure override returns (string memory) {
-        return "Bleeps";
-    }
-
-    /// @notice An abbreviated name for NFTs in this contract
-    function symbol() external pure returns (string memory) {
-        return "BLEEP";
-    }
-
-    function tokenURI(uint256 id) external view returns (string memory) {
+    function tokenURI(uint256 id) public view override returns (string memory) {
         return _tokenURIContract.wav(uint16(id));
     }
 
@@ -102,8 +92,7 @@ contract Bleeps is ERC721Checkpointable, Proxied {
 
         require(to != address(0), "NOT_TO_ZEROADDRESS");
         require(to != address(this), "NOT_TO_THIS");
-        address owner = _ownerOf(id);
-        require(owner == address(0), "ALREADY_CREATED");
-        _safeTransferFrom(address(0), to, id, "");
+        require(!_exists(id), "ALREADY_CREATED");
+        _mint(to, id);
     }
 }
