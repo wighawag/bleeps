@@ -16,14 +16,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   await deploy('Bleeps', {
     from: deployer,
-    proxy: {
-      execute: {
-        init: {
-          methodName: 'init',
-          args: [bleepsMaintainer, saleRecipient, tokenURIContract.address], // modifiable
-        },
-      },
-    },
+    // proxy: {
+    //   execute: {
+    //     init: {
+    //       methodName: 'init',
+    //       args: [bleepsMaintainer, saleRecipient, tokenURIContract.address], // modifiable
+    //     },
+    //   },
+    // },
     args: [
       // immutables
       parseEther('2'),

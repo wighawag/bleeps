@@ -12,6 +12,7 @@ if (chainId !== '1') {
   finality = 5; // TODO
 }
 
+let localdev = false;
 if (chainId === '1337' || chainId === '31337') {
   const localEthNode = import.meta.env.VITE_ETH_NODE_URI_LOCALHOST as string;
   if (localEthNode && localEthNode !== '') {
@@ -21,6 +22,7 @@ if (chainId === '1337' || chainId === '31337') {
   }
   finality = 2;
   blockTime = 5;
+  localdev = true;
 }
 
 const chainNames: {[chainId: string]: string} = {
@@ -51,4 +53,4 @@ if (!nodeUrl) {
 const graphNodeURL = import.meta.env.VITE_THE_GRAPH_HTTP as string;
 
 const globalQueryParams = ['debug', 'log', 'subgraph', 'ethnode', '_d_eruda'];
-export {finality, nodeUrl, chainId, blockTime, chainName, graphNodeURL, globalQueryParams};
+export {finality, nodeUrl, chainId, blockTime, chainName, graphNodeURL, globalQueryParams, localdev};

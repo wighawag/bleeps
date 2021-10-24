@@ -2,6 +2,7 @@
   // import {VirtualContract} from '$lib/utils/ethereum';
   // import contractsInfo from '$lib/contracts.json';
   // import {AddressZero} from '@ethersproject/constants';
+  import {localdev} from '$lib/config';
   import {wallet} from '$lib/stores/wallet';
   import {BigNumber} from '@ethersproject/bignumber';
   import GreenNavButton from './navigation/GreenNavButton.svelte';
@@ -150,15 +151,21 @@
   {/each}
 </div>
 
-<GreenNavButton class="w-32 mx-auto" label="Generate" on:click={fetchSound} active={!sound}>Generate</GreenNavButton>
-
-<p>
+{#if localdev}
+  <GreenNavButton class="w-32 mx-auto" label="Generate" on:click={fetchSound} active={!sound}>Generate</GreenNavButton>
+{:else}
+  <p>Work In Progress</p>
+  <GreenNavButton class="w-32 mx-auto" label="Generate" on:click={fetchSound} active={false} disabled
+    >Generate</GreenNavButton
+  >
+{/if}
+<!-- <p>
   {data1}
 </p>
 
 <p>
   {data2}
-</p>
+</p> -->
 
 <div class="flex justify-center items-center">
   <p class="mx-auto">

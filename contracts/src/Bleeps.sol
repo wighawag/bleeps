@@ -6,9 +6,8 @@ pragma experimental ABIEncoderV2;
 
 import "./lib/ERC721Checkpointable.sol";
 import "./BleepsTokenURI.sol";
-import "hardhat-deploy/solc_0.8/proxy/Proxied.sol";
 
-contract Bleeps is ERC721Checkpointable, Proxied {
+contract Bleeps is ERC721Checkpointable {
     // _maintainer only roles is to update the tokenURI contract, useful in case there are any wav generation bug to fix or improvement to make, the plan is to revoke that role when the project has been time-tested
     address internal _maintainer;
     address payable internal _recipient;
@@ -28,18 +27,10 @@ contract Bleeps is ERC721Checkpointable, Proxied {
         address payable recipient,
         BleepsTokenURI tokenURIContract
     ) ERC721("Bleeps", "BLEEP") {
-        _startTime = startTime;
         _initPrice = initPrice;
         _delay = delay;
         _lastPrice = lastPrice;
-        init(maintainer, recipient, tokenURIContract);
-    }
-
-    function init(
-        address maintainer,
-        address payable recipient,
-        BleepsTokenURI tokenURIContract
-    ) public proxied {
+        _startTime = startTime;
         _maintainer = maintainer;
         _recipient = recipient;
         _tokenURIContract = tokenURIContract;
@@ -77,22 +68,50 @@ contract Bleeps is ERC721Checkpointable, Proxied {
         _recipient = newRecipient;
     }
 
-    function mint(uint16 id, address to) external payable {
-        uint256 expectedValue = _initPrice;
-        uint256 timePassed = (block.timestamp - _startTime);
-        if (timePassed > _delay) {
-            expectedValue = _lastPrice;
-        } else {
-            expectedValue = _lastPrice + (_initPrice - _lastPrice) / (_delay - timePassed);
+    function ownersAndPriceInfo(uint256[] calldata ids)
+        external
+        view
+        returns (
+            address[] memory addresses,
+            uint256 startTime,
+            uint256 initPrice,
+            uint256 delay,
+            uint256 lastPrice
+        )
+    {
+        addresses = new address[](ids.length);
+        for (uint256 i = 0; i < ids.length; i++) {
+            uint256 id = ids[i];
+            addresses[i] = _exists(id) ? ownerOf(id) : address(0);
         }
+        startTime = _startTime;
+        initPrice = _initPrice;
+        delay = _delay;
+        lastPrice = _lastPrice;
+    }
 
-        require(msg.value >= expectedValue, "NOT_ENOUGH");
-        payable(msg.sender).transfer(msg.value - expectedValue);
-        _recipient.transfer(expectedValue);
+    function mint(uint16 id, address to) external payable {
+        uint256 instr = (uint256(id) >> 6) % 64;
+
+        if (instr == 6) {
+            require(msg.sender == _recipient, "Noise's bleeps are reserved");
+        } else {
+            uint256 expectedValue = _initPrice;
+            uint256 timePassed = (block.timestamp - _startTime);
+            uint256 priceDiff = _initPrice - _lastPrice;
+            if (timePassed >= _delay) {
+                expectedValue = _lastPrice;
+            } else {
+                expectedValue = _lastPrice + (priceDiff * (_delay - timePassed)) / _delay;
+            }
+            require(msg.value >= expectedValue, "NOT_ENOUGH");
+            payable(msg.sender).transfer(msg.value - expectedValue);
+            _recipient.transfer(expectedValue);
+        }
 
         require(to != address(0), "NOT_TO_ZEROADDRESS");
         require(to != address(this), "NOT_TO_THIS");
         require(!_exists(id), "ALREADY_CREATED");
-        _mint(to, id);
+        _safeMint(to, id);
     }
 }
