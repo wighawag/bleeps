@@ -9,7 +9,7 @@ type OwnersState = {
   state: 'Idle' | 'Loading' | 'Ready';
   error?: unknown;
   tokenOwners?: {[id: string]: string};
-  soldout?: boolean;
+  numLeft?: number;
   priceInfo?: {
     startTime: BigNumber;
     initPrice: BigNumber;
@@ -60,17 +60,17 @@ class OwnersStateStore extends BaseStore<OwnersState> {
       }
     } else {
       const tokenOwners = {};
-      let soldout = true;
+      let numLeft = 0;
       for (let i = 0; i < result.addresses.length; i++) {
         tokenOwners[i] = result.addresses[i];
-        if ((i < 6 * 64 || i >= 7 * 64) && result[i] === '0x0000000000000000000000000000000000000000') {
-          soldout = false;
+        if ((i < 6 * 64 || i >= 7 * 64) && result.addresses[i] === '0x0000000000000000000000000000000000000000') {
+          numLeft++;
         }
       }
 
       this.setPartial({
         tokenOwners,
-        soldout,
+        numLeft,
         state: 'Ready',
         priceInfo: {
           startTime: result.startTime,

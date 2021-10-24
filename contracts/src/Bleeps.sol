@@ -110,13 +110,13 @@ contract Bleeps is ERC721Checkpointable {
                 expectedValue = _lastPrice + (priceDiff * (_delay - timePassed)) / _delay;
             }
 
-            // uint256 numMandalas;
-            // try _mandalas.balanceOf(msg.sender) returns (uint256 num) {
-            //     numMandalas = num;
-            // } catch {}
-            // if (numMandalas > 0) {
-            //     expectedValue = (expectedValue * 2) / 10;
-            // }
+            (bool success, bytes memory returnData) = address(_mandalas).staticcall(
+                abi.encodeWithSignature("balanceOf(address)", msg.sender)
+            );
+            uint256 numMandalas = success && returnData.length > 0 ? abi.decode(returnData, (uint256)) : 0;
+            if (numMandalas > 0) {
+                expectedValue = (expectedValue * 8) / 10;
+            }
             require(msg.value >= expectedValue, "NOT_ENOUGH");
             payable(msg.sender).transfer(msg.value - expectedValue);
             _recipient.transfer(expectedValue);

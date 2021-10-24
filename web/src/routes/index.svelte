@@ -65,7 +65,7 @@
 </script>
 
 {$ownersState.state}
-<section class="py-8 px-4 text-center">
+<section class="py-2 px-4 text-center">
   <div class="max-w-auto md:max-w-lg mx-auto">
     <img
       class="mb-8 mx-auto"
@@ -87,7 +87,13 @@
     </p>
 
     {#if $ownersState?.expectedValue}
-      <p>Current Price: {$ownersState?.expectedValue.div('1000000000000000').toNumber() / 1000}</p>
+      <p class="text-yellow-400">
+        Current Price: {$ownersState?.expectedValue.div('1000000000000000').toNumber() / 1000}
+      </p>
+    {/if}
+
+    {#if $ownersState?.numLeft !== undefined}
+      <p class="text-yellow-400">{$ownersState?.numLeft} / 512 left</p>
     {/if}
   </div>
 </section>
@@ -105,8 +111,6 @@
       </GreenNavButton> -->
 
       <div class="max-w-2xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:max-w-7xl lg:px-8">
-        <h2 class="sr-only">Products</h2>
-
         <div class="grid grid-cols-8 mx-auto">
           {#each Array.from(Array(512))
             .map((v, i) => i)
@@ -122,12 +126,12 @@
               />
               {#if $ownersState.tokenOwners && $ownersState.tokenOwners[bleepId]}
                 {#if $ownersState.tokenOwners[bleepId] !== '0x0000000000000000000000000000000000000000'}
-                  <NavButton label="listen" on:click={() => select(bleepId)}>listen</NavButton>{bleepId}
+                  <NavButton label="listen" on:click={() => select(bleepId)}>listen</NavButton>
                 {:else}
-                  <GreenNavButton label="listen" on:click={() => select(bleepId)}>listen</GreenNavButton>{bleepId}
+                  <GreenNavButton label="listen" on:click={() => select(bleepId)}>listen</GreenNavButton>
                 {/if}
               {:else}
-                <GreenNavButton label="listen" on:click={() => select(bleepId)}>listen</GreenNavButton>{bleepId}
+                <GreenNavButton label="listen" on:click={() => select(bleepId)}>listen</GreenNavButton>
               {/if}
 
               <!-- More products... -->

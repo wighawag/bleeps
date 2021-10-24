@@ -20,7 +20,7 @@ const setup = deployments.createFixture(async () => {
   };
 });
 describe('Bleeps', function () {
-  it('minting works', async function () {
+  it('tokenURI works', async function () {
     const {users, Bleeps} = await setup();
     const note = 3;
     const instr = 6;
@@ -34,5 +34,22 @@ describe('Bleeps', function () {
     // const metadata = JSON.parse(metadataStr);
     // console.log(metadata);
     // console.log(`gas ${(await Bleeps.estimateGas.tokenURI(tokenID)).toNumber().toLocaleString('en')}`);
+  });
+
+  it('minting works', async function () {
+    const {users, Bleeps} = await setup();
+    const note = 3;
+    const instr = 5;
+    const tokenID = note + instr * 64;
+
+    await expect(users[0].Bleeps.mint(tokenID, users[0].address, {value: parseEther('2')}))
+      .to.emit(Bleeps, 'Transfer')
+      .withArgs(AddressZero, users[0].address, tokenID);
+
+    // after getting a mandala
+    // console.log('first work');
+    // await expect(users[0].Bleeps.mint(tokenID + 1, users[0].address, {value: parseEther('1.9')}))
+    //   .to.emit(Bleeps, 'Transfer')
+    //   .withArgs(AddressZero, users[0].address, tokenID + 1);
   });
 });

@@ -34,7 +34,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       // immutables
       parseEther('2'),
       2 * 24 * 3600,
-      parseEther('0.05'),
+      parseEther('0.1'),
       Math.floor(Date.now() / 1000), // TODO double check
       mandalasAddress,
       bleepsMaintainer,

@@ -38,6 +38,7 @@
   links={[
     {href: url(''), title: 'Home'},
     {href: url('create/'), title: 'Create Melodies'},
+    {href: url('about/'), title: 'About Bleeps'},
   ]}
 />
 <div class="text-white">
