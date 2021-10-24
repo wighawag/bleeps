@@ -12,7 +12,7 @@ contract Bleeps is ERC721Checkpointable {
     // _maintainer only roles is to update the tokenURI contract, useful in case there are any wav generation bug to fix or improvement to make, the plan is to revoke that role when the project has been time-tested
     address internal _maintainer;
     address payable internal _recipient;
-    BleepsTokenURI internal _tokenURIContract;
+    BleepsTokenURI public tokenURIContract;
 
     uint256 internal immutable _startTime;
     uint256 internal immutable _initPrice;
@@ -29,7 +29,7 @@ contract Bleeps is ERC721Checkpointable {
         IERC721 mandalas,
         address maintainer,
         address payable recipient,
-        BleepsTokenURI tokenURIContract
+        BleepsTokenURI initialTokenURIContract
     ) ERC721("Bleeps", "BLEEP") {
         _initPrice = initPrice;
         _delay = delay;
@@ -38,7 +38,7 @@ contract Bleeps is ERC721Checkpointable {
         _mandalas = mandalas;
         _maintainer = maintainer;
         _recipient = recipient;
-        _tokenURIContract = tokenURIContract;
+        tokenURIContract = initialTokenURIContract;
     }
 
     function priceInfo()
@@ -55,12 +55,12 @@ contract Bleeps is ERC721Checkpointable {
     }
 
     function tokenURI(uint256 id) public view override returns (string memory) {
-        return _tokenURIContract.wav(uint16(id));
+        return tokenURIContract.wav(uint16(id));
     }
 
     function setTokenURIContract(BleepsTokenURI newTokenURIContract) external {
         require(msg.sender == _maintainer, "NOT_AUTHORIZED");
-        _tokenURIContract = newTokenURIContract;
+        tokenURIContract = newTokenURIContract;
     }
 
     function setMaintainer(address newMaintainer) external {

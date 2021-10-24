@@ -262,10 +262,10 @@ contract BleepsTokenURI {
         vol = 0;
         for (uint256 i = 0; i < 8766 + 3000; i += 3) {
             if (i > 8766) {
-                if (i % 2 == 0 && (vol > 0)) {
+                if ((vol > 0)) {
                     vol -= 1;
                 }
-            } else if (i % 3 == 0) {
+            } else if (i % 2 == 0) {
                 if (vol < 500) {
                     vol += 1;
                 }
@@ -297,6 +297,8 @@ contract BleepsTokenURI {
                         // return (Math.abs((x % 1) * 2 - 1) * 2 - 1) * 0.5 // 0.7 in picolove
                         // return floor(((Math.abs((x % ONE) * 2 - ONE) * 2 - ONE) * HALF) / ONE);
                         if eq(instr, 0) {
+                            // triangle
+
                             // intValue := sub(mul(smod(pos, ONE), 2), ONE)
                             // if slt(intValue, 0) {
                             //     intValue := sub(0, intValue)
@@ -309,7 +311,7 @@ contract BleepsTokenURI {
                             intValue := sdiv(intValue, 2)
                         }
                         if eq(instr, 1) {
-                            // uneven_tri
+                            // tilted saw (uneven_tri)
                             let tmp := smod(pos, ONE)
                             if slt(tmp, ZERO8750) {
                                 intValue := sdiv(mul(tmp, 16), 7)
@@ -342,9 +344,10 @@ contract BleepsTokenURI {
                             if lt(tmp, ZERO3125) {
                                 intValue := ONE
                             }
+                            intValue := sdiv(intValue, 4)
                         }
                         if eq(instr, 5) {
-                            // tri2
+                            // organ (tri2)
                             intValue := mul(pos, 4)
                             intValue := sdiv(
                                 mul(
@@ -367,6 +370,8 @@ contract BleepsTokenURI {
                             )
                         }
                         if eq(instr, 6) {
+                            // noise
+
                             // intValue := sub(shr(232, mload(add(32, add(noiseTable, mod(pos, 8976))))), ONE)
                             // export function noise(sampleRate: number): (x: number) => number {
                             //     let rand = 0;
@@ -455,7 +460,7 @@ contract BleepsTokenURI {
                         //     Math.abs((x % TWO) - ONE) - HALF + floor((Math.abs((floor((x * 127) / 128) % TWO) - ONE) - HALF) / 2) - ONE / 4
                         // );
                         if eq(instr, 7) {
-                            // detuned_tri
+                            // phaser (detuned_tri)
                             intValue := mul(pos, 2)
                             intValue := add(
                                 sub(abs(sub(smod(intValue, TWO), ONE)), HALF),

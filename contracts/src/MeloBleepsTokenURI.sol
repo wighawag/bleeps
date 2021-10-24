@@ -265,6 +265,7 @@ contract MeloBleepsTokenURI {
                             if lt(tmp, ZERO3125) {
                                 intValue := ONE
                             }
+                            intValue := sdiv(intValue, 4)
                         }
                         if eq(instr, 5) {
                             // tri2

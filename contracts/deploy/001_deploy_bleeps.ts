@@ -4,7 +4,7 @@ import {parseEther} from 'ethers/lib/utils';
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, getNamedAccounts} = hre;
-  const {deploy} = deployments;
+  const {deploy, execute} = deployments;
 
   const {deployer, bleepsMaintainer, saleRecipient} = await getNamedAccounts();
 
@@ -15,6 +15,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     log: true,
     autoMine: true,
   });
+
+  if ((await deployments.getOrNull('Bleeps')) && tokenURIContract.newlyDeployed) {
+    await execute('Bleeps', {from: bleepsMaintainer, log: true}, 'setTokenURIContract', tokenURIContract.address);
+  }
 
   await deploy('Bleeps', {
     from: deployer,
@@ -37,6 +41,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       saleRecipient,
       tokenURIContract.address,
     ],
+    skipIfAlreadyDeployed: true,
     log: true,
     autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
   });

@@ -18,6 +18,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     from: deployer,
     args: [bleepsMaintainer, tokenURIContract.address],
     log: true,
+    skipIfAlreadyDeployed: true,
     autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
   });
   // await deployments.save('MeloBleeps', {...deployment, linkedData: {bytecode: deployment.bytecode}});

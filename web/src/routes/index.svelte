@@ -120,7 +120,7 @@
                 width="32px"
                 height="32px"
               />
-              {#if $ownersState.tokenOwners[bleepId]}
+              {#if $ownersState.tokenOwners && $ownersState.tokenOwners[bleepId]}
                 {#if $ownersState.tokenOwners[bleepId] !== '0x0000000000000000000000000000000000000000'}
                   <NavButton label="listen" on:click={() => select(bleepId)}>listen</NavButton>{bleepId}
                 {:else}
@@ -165,10 +165,15 @@
       {/if}
       <GreenNavButton
         label="mint"
-        active={$ownersState.tokenOwners[selected] === '0x0000000000000000000000000000000000000000'}
-        disabled={$ownersState.tokenOwners[selected] !== '0x0000000000000000000000000000000000000000'}
+        active={$ownersState.tokenOwners &&
+          $ownersState.tokenOwners[selected] === '0x0000000000000000000000000000000000000000'}
+        disabled={$ownersState.tokenOwners &&
+          $ownersState.tokenOwners[selected] !== '0x0000000000000000000000000000000000000000'}
         on:click={() => {
-          if ($ownersState.tokenOwners[selected] === '0x0000000000000000000000000000000000000000') {
+          if (
+            $ownersState.tokenOwners &&
+            $ownersState.tokenOwners[selected] === '0x0000000000000000000000000000000000000000'
+          ) {
             mint(selected);
             selected = undefined;
           }
