@@ -29,7 +29,7 @@ contract Bleeps is ERC721Checkpointable {
         IERC721 mandalas,
         address maintainer,
         address payable recipient,
-        BleepsTokenURI tokenURIContract,
+        BleepsTokenURI tokenURIContract
     ) ERC721("Bleeps", "BLEEP") {
         _initPrice = initPrice;
         _delay = delay;
