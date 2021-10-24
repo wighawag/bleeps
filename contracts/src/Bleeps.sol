@@ -109,13 +109,14 @@ contract Bleeps is ERC721Checkpointable {
             } else {
                 expectedValue = _lastPrice + (priceDiff * (_delay - timePassed)) / _delay;
             }
-            uint256 numMandalas;
-            try _mandalas.balanceOf(msg.sender) returns (uint256 num) {
-                numMandalas = num;
-            } catch {}
-            if (numMandalas > 0) {
-                expectedValue = (expectedValue * 2) / 10;
-            }
+
+            // uint256 numMandalas;
+            // try _mandalas.balanceOf(msg.sender) returns (uint256 num) {
+            //     numMandalas = num;
+            // } catch {}
+            // if (numMandalas > 0) {
+            //     expectedValue = (expectedValue * 2) / 10;
+            // }
             require(msg.value >= expectedValue, "NOT_ENOUGH");
             payable(msg.sender).transfer(msg.value - expectedValue);
             _recipient.transfer(expectedValue);
