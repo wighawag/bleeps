@@ -1,7 +1,46 @@
 <script lang="ts">
+  import {hashParams} from '$lib/config';
+
   import {wallet} from '$lib/stores/wallet';
   import {BigNumber} from '@ethersproject/bignumber';
+  import {onMount} from 'svelte';
   import GreenNavButton from './navigation/GreenNavButton.svelte';
+
+  const testShape = 0;
+  const testSong = [
+    {vol: 5, note: 1, shape: testShape},
+    {vol: 5, note: 3, shape: testShape},
+    {vol: 5, note: 5, shape: testShape},
+    {vol: 5, note: 7, shape: testShape},
+    {vol: 5, note: 9, shape: testShape},
+    {vol: 5, note: 11, shape: testShape},
+    {vol: 5, note: 13, shape: testShape},
+    {vol: 5, note: 15, shape: testShape},
+    {vol: 5, note: 17, shape: testShape},
+    {vol: 5, note: 19, shape: testShape},
+    {vol: 5, note: 21, shape: testShape},
+    {vol: 5, note: 23, shape: testShape},
+    {vol: 5, note: 25, shape: testShape},
+    {vol: 5, note: 27, shape: testShape},
+    {vol: 5, note: 29, shape: testShape},
+    {vol: 5, note: 31, shape: testShape},
+    {vol: 5, note: 33, shape: testShape},
+    {vol: 5, note: 35, shape: testShape},
+    {vol: 5, note: 37, shape: testShape},
+    {vol: 5, note: 39, shape: testShape},
+    {vol: 5, note: 41, shape: testShape},
+    {vol: 5, note: 43, shape: testShape},
+    {vol: 5, note: 45, shape: testShape},
+    {vol: 5, note: 47, shape: testShape},
+    {vol: 5, note: 49, shape: testShape},
+    {vol: 5, note: 51, shape: testShape},
+    {vol: 5, note: 53, shape: testShape},
+    {vol: 5, note: 55, shape: testShape},
+    {vol: 5, note: 57, shape: testShape},
+    {vol: 5, note: 59, shape: testShape},
+    {vol: 5, note: 61, shape: testShape},
+    {vol: 5, note: 63, shape: testShape},
+  ];
 
   const song1 = [
     {vol: 7, note: 1, shape: 7},
@@ -117,13 +156,27 @@
   //   return {vol: 5, index: i};
   // });
 
-  let volumes = extractVolumes(song1);
+  onMount(() => {
+    let song = testSong;
+    const songNum = hashParams['song'];
+    if (songNum) {
+      if (songNum === '1') {
+        song = song1;
+      } else if (songNum === '2') {
+        song = song2;
+      }
+    }
+    volumes = extractVolumes(song);
+    notes = extractNotes(song);
+  });
+
+  let volumes = extractVolumes(testSong);
 
   // let notes = Array.from(Array(32)).map((v, i) => {
   //   return {note: i * 2 + 2, index: i, shape: 0};
   // });
 
-  let notes = extractNotes(song1);
+  let notes = extractNotes(testSong);
 
   let steps = [];
   $: {
