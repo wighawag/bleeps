@@ -64,7 +64,7 @@
   }
 </script>
 
-{$ownersState.state}
+<!-- {$ownersState.state} -->
 <section class="py-2 px-4 text-center">
   <div class="max-w-auto md:max-w-lg mx-auto">
     <img
