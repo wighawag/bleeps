@@ -4,11 +4,11 @@ pragma experimental ABIEncoderV2;
 
 /* solhint-disable quotes */
 
-import "./lib/ERC721Checkpointable.sol";
+import "./base/ERC721BaseWithPermit.sol";
 import "./BleepsTokenURI.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-contract Bleeps is ERC721Checkpointable {
+contract Bleeps is ERC721BaseWithPermit {
     // _maintainer only roles is to update the tokenURI contract, useful in case there are any wav generation bug to fix or improvement to make, the plan is to revoke that role when the project has been time-tested
     address internal _maintainer;
     address payable internal _recipient;
@@ -30,7 +30,7 @@ contract Bleeps is ERC721Checkpointable {
         address maintainer,
         address payable recipient,
         BleepsTokenURI initialTokenURIContract
-    ) ERC721("Bleeps", "BLEEP") {
+    ) {
         _initPrice = initPrice;
         _delay = delay;
         _lastPrice = lastPrice;
@@ -54,7 +54,24 @@ contract Bleeps is ERC721Checkpointable {
         return (_startTime, _initPrice, _delay, _lastPrice);
     }
 
-    function tokenURI(uint256 id) public view override returns (string memory) {
+    /// @notice Count NFTs tracked by this contract
+    /// @return A count of valid NFTs tracked by this contract, where each one of
+    ///  them has an assigned and queryable owner not equal to the zero address
+    function totalSupply() external pure returns (uint256) {
+        return 512;
+    }
+
+    /// @notice A descriptive name for a collection of NFTs in this contract
+    function name() public pure override returns (string memory) {
+        return "Bleeps";
+    }
+
+    /// @notice An abbreviated name for NFTs in this contract
+    function symbol() external pure returns (string memory) {
+        return "BLEEP";
+    }
+
+    function tokenURI(uint256 id) external view returns (string memory) {
         return tokenURIContract.wav(uint16(id));
     }
 
@@ -87,7 +104,7 @@ contract Bleeps is ERC721Checkpointable {
         addresses = new address[](ids.length);
         for (uint256 i = 0; i < ids.length; i++) {
             uint256 id = ids[i];
-            addresses[i] = _exists(id) ? ownerOf(id) : address(0);
+            addresses[i] = address(uint160(_owners[id]));
         }
         startTime = _startTime;
         initPrice = _initPrice;
@@ -124,7 +141,8 @@ contract Bleeps is ERC721Checkpointable {
 
         require(to != address(0), "NOT_TO_ZEROADDRESS");
         require(to != address(this), "NOT_TO_THIS");
-        require(!_exists(id), "ALREADY_CREATED");
-        _safeMint(to, id);
+        address owner = _ownerOf(id);
+        require(owner == address(0), "ALREADY_CREATED");
+        _safeTransferFrom(address(0), to, id, "");
     }
 }
