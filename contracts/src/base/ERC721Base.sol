@@ -12,14 +12,16 @@ abstract contract ERC721Base is IERC165, IERC721 {
     bytes4 internal constant ERC721_RECEIVED = 0x150b7a02;
     bytes4 internal constant ERC165ID = 0x01ffc9a7;
 
-    uint256 internal constant OPERATOR_FLAG = (2**255);
+    uint256 internal constant OPERATOR_FLAG = 1 << 255;
 
     mapping(uint256 => uint256) internal _owners;
     mapping(address => uint256) internal _balances;
     mapping(address => mapping(address => bool)) internal _operatorsForAll;
     mapping(uint256 => address) internal _operators;
 
-    function name() public pure virtual returns (string memory) {}
+    function name() public pure virtual returns (string memory) {
+        revert("NOT_IMPLEMENTED");
+    }
 
     /// @notice Approve an operator to spend tokens on the senders behalf.
     /// @param operator The address receiving the approval.
