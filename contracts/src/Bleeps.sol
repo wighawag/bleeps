@@ -4,11 +4,11 @@ pragma experimental ABIEncoderV2;
 
 /* solhint-disable quotes */
 
-import "./base/ERC721Base.sol";
+import "./base/ERC721BaseWithPermit.sol";
 import "./BleepsTokenURI.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-contract Bleeps is ERC721Base {
+contract Bleeps is ERC721BaseWithPermit {
     // _maintainer only roles is to update the tokenURI contract, useful in case there are any wav generation bug to fix or improvement to make, the plan is to revoke that role when the project has been time-tested
     address internal _maintainer;
     address payable internal _recipient;
