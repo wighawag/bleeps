@@ -102,10 +102,10 @@
   </div>
 </section>
 
-<div class="w-full mx-auto text-center">
+<!-- <div class="w-full mx-auto text-center">
   <WalletAccess>
-    {#if $wallet.state === 'Ready' && $chain.state === 'Ready'}
-      <!-- <GreenNavButton
+    {#if $wallet.state === 'Ready' && $chain.state === 'Ready'} -->
+<!-- <GreenNavButton
         class="w-24 mx-auto"
         label="Connect"
         disabled={$wallet.unlocking || $chain.connecting}
@@ -114,7 +114,7 @@
         Mint
       </GreenNavButton> -->
 
-      <!-- <div class="max-w-2xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:max-w-7xl lg:px-8">
+<!-- <div class="max-w-2xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:max-w-7xl lg:px-8">
         <div class="grid grid-cols-8 mx-auto">
           {#each Array.from(Array(512))
             .map((v, i) => i)
@@ -142,7 +142,7 @@
           {/each}
         </div>
       </div> -->
-    {:else}
+<!-- {:else}
       <p class="m-6 text-gray-500 dark:text-gray-400 text-xl">Please connect to interact</p>
 
       <NavButton
@@ -155,7 +155,7 @@
       </NavButton>
     {/if}
   </WalletAccess>
-</div>
+</div> -->
 
 {#if typeof selected !== 'undefined'}
   <Modal on:close={() => (selected = undefined)}>
