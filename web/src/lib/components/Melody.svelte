@@ -157,7 +157,7 @@
   // });
 
   onMount(() => {
-    let song = testSong;
+    let song = song1;
     const songNum = hashParams['song'];
     if (songNum) {
       if (songNum === '1') {
