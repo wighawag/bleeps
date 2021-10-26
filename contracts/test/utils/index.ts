@@ -60,9 +60,12 @@ export class EIP712SignerFactory {
         if (domainToUse.chainId === 0) {
           domainToUse.chainId = await user.signer.getChainId();
         }
-        console.log(domainToUse, types, value);
         return user.signer._signTypedData(domainToUse, types, value);
       },
     };
   }
+}
+
+export function waitFor<T>(p: Promise<{wait: () => Promise<T>}>): Promise<T> {
+  return p.then((t) => t.wait());
 }

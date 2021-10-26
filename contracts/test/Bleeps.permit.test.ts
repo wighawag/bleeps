@@ -1,7 +1,7 @@
 import {expect} from './chai-setup';
 import {ethers, deployments, getUnnamedAccounts} from 'hardhat';
 import {Bleeps} from '../typechain';
-import {setupUsers} from './utils';
+import {setupUsers, waitFor} from './utils';
 import {BigNumber, constants} from 'ethers';
 import {parseEther, solidityKeccak256} from 'ethers/lib/utils';
 import {PermitSignerFactory, PermitForAllSignerFactory} from './utils/eip712';
@@ -34,8 +34,9 @@ describe('Bleeps Permit', function () {
     const {users, BleepsPermitSigner} = await setup();
 
     const tokenId = 1;
-    const tx = await users[0].Bleeps.mint(tokenId, users[0].address, {value: parseEther('2')});
-    await tx.wait();
+    await waitFor(users[0].Bleeps.mint(tokenId, users[0].address, {value: parseEther('2')}));
+    await waitFor(users[0].Bleeps.mint(2, users[0].address, {value: parseEther('2')}));
+    await waitFor(users[0].Bleeps.mint(3, users[0].address, {value: parseEther('2')}));
 
     const signer = users[0].address;
     const spender = users[1].address;
@@ -49,15 +50,28 @@ describe('Bleeps Permit', function () {
       deadline,
     });
 
+    await expect(users[1].Bleeps.transferFrom(users[0].address, users[2].address, tokenId)).to.be.revertedWith(
+      'UNAUTHORIZED_TRANSFER'
+    );
+
     await users[1].Bleeps.permit(signer, spender, tokenId, deadline, nonce, signature, 0);
+
+    await expect(users[1].Bleeps.transferFrom(users[0].address, users[2].address, 2)).to.be.revertedWith(
+      'UNAUTHORIZED_TRANSFER'
+    );
+
+    await users[1].Bleeps.transferFrom(users[0].address, users[2].address, tokenId);
+    await expect(users[1].Bleeps.transferFrom(users[2].address, users[3].address, tokenId)).to.be.revertedWith(
+      'UNAUTHORIZED_TRANSFER'
+    );
   });
 
   it('permitForAll works', async function () {
     const {users, BleepsPermitForAllSigner} = await setup();
 
-    const tokenId = 1;
-    const tx = await users[0].Bleeps.mint(tokenId, users[0].address, {value: parseEther('2')});
-    await tx.wait();
+    await waitFor(users[0].Bleeps.mint(1, users[0].address, {value: parseEther('2')}));
+    await waitFor(users[0].Bleeps.mint(2, users[0].address, {value: parseEther('2')}));
+    await waitFor(users[0].Bleeps.mint(3, users[0].address, {value: parseEther('2')}));
 
     const signer = users[0].address;
     const spender = users[1].address;
@@ -70,6 +84,13 @@ describe('Bleeps Permit', function () {
       deadline,
     });
 
+    await expect(users[1].Bleeps.transferFrom(users[0].address, users[2].address, 1)).to.be.revertedWith(
+      'UNAUTHORIZED_TRANSFER'
+    );
+
     await users[1].Bleeps.permitForAll(signer, spender, deadline, nonce, signature, 0);
+
+    await users[1].Bleeps.transferFrom(users[0].address, users[2].address, 1);
+    await users[1].Bleeps.transferFrom(users[0].address, users[2].address, 2);
   });
 });
