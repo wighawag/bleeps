@@ -9,7 +9,7 @@
 
   import {appDescription, url as appUrl} from '../../application.json';
 
-  const title = 'Bleeps, The Sound of NFT';
+  const title = 'Bleeps And The Bleeps DAO"';
   const description = appDescription;
   const host = appUrl.endsWith('/') ? appUrl : appUrl + '/';
   const previewImage = host + 'preview.png';
