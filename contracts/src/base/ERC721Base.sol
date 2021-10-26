@@ -5,11 +5,9 @@ import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/interfaces/IERC165.sol";
-import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 abstract contract ERC721Base is IERC165, IERC721 {
     using Address for address;
-    using EnumerableSet for EnumerableSet.UintSet;
 
     bytes4 internal constant ERC721_RECEIVED = 0x150b7a02;
     bytes4 internal constant ERC165ID = 0x01ffc9a7;
@@ -17,40 +15,11 @@ abstract contract ERC721Base is IERC165, IERC721 {
     uint256 internal constant OPERATOR_FLAG = (2**255);
 
     mapping(uint256 => uint256) internal _owners;
-    mapping(address => EnumerableSet.UintSet) internal _holderTokens;
+    mapping(address => uint256) internal _balances;
     mapping(address => mapping(address => bool)) internal _operatorsForAll;
     mapping(uint256 => address) internal _operators;
 
-    function name() public pure virtual returns (string memory);
-
-    /// @notice Count NFTs tracked by this contract
-    /// @return A count of valid NFTs tracked by this contract, where each one of
-    ///  them has an assigned and queryable owner not equal to the zero address
-    function totalSupply() external pure returns (uint256) {
-        return 2**160 - 1; // do not count token with id zero whose owner would otherwise be the zero address
-    }
-
-    /// @notice Enumerate valid NFTs
-    /// @dev Throws if `index` >= `totalSupply()`.
-    /// @param index A counter less than `totalSupply()`
-    /// @return The token identifier for the `_index`th NFT,
-    ///  (sort order not specified)
-    function tokenByIndex(uint256 index) external pure returns (uint256) {
-        require(index < 2**160 - 1, "NONEXISTENT_TOKEN");
-        return index + 1; // skip zero as we do not count token with id zero whose owner would otherwise be the zero address
-    }
-
-    /// @notice Enumerate NFTs assigned to an owner
-    /// @dev Throws if `index` >= `balanceOf(owner)` or if
-    ///  `owner` is the zero address, representing invalid NFTs.
-    /// @param owner An address where we are interested in NFTs owned by them
-    /// @param index A counter less than `balanceOf(owner)`
-    /// @return The token identifier for the `index`th NFT assigned to `owner`,
-    ///   (sort order not specified)
-    function tokenOfOwnerByIndex(address owner, uint256 index) external view returns (uint256) {
-        require(owner != address(0), "ZERO_ADDRESS_OWNER");
-        return _holderTokens[owner].at(index);
-    }
+    function name() public pure virtual returns (string memory) {}
 
     /// @notice Approve an operator to spend tokens on the senders behalf.
     /// @param operator The address receiving the approval.
@@ -72,7 +41,6 @@ abstract contract ERC721Base is IERC165, IERC721 {
         uint256 id
     ) external override {
         (address owner, bool operatorEnabled) = _ownerAndOperatorEnabledOf(id);
-        (id);
         require(owner != address(0), "NONEXISTENT_TOKEN");
         require(owner == from, "NOT_OWNER");
         require(to != address(0), "NOT_TO_ZEROADDRESS");
@@ -110,7 +78,7 @@ abstract contract ERC721Base is IERC165, IERC721 {
     /// @return balance The number of tokens owned by the address.
     function balanceOf(address owner) public view override returns (uint256 balance) {
         require(owner != address(0), "ZERO_ADDRESS_OWNER");
-        balance = _holderTokens[owner].length();
+        balance = _balances[owner];
     }
 
     /// @notice Get the owner of a token.
@@ -171,11 +139,10 @@ abstract contract ERC721Base is IERC165, IERC721 {
     /// 0x01ffc9a7 is ERC165.
     /// 0x80ac58cd is ERC721
     /// 0x5b5e139f is for ERC721 metadata
-    /// 0x780e9d63 is for ERC721 enumerable
     /// @param id The id of the interface.
     /// @return Whether the interface is supported.
     function supportsInterface(bytes4 id) public pure virtual override returns (bool) {
-        return id == 0x01ffc9a7 || id == 0x80ac58cd || id == 0x5b5e139f || id == 0x780e9d63;
+        return id == 0x01ffc9a7 || id == 0x80ac58cd || id == 0x5b5e139f;
     }
 
     function _safeTransferFrom(
@@ -202,7 +169,10 @@ abstract contract ERC721Base is IERC165, IERC721 {
         uint256 id
     ) internal {
         _beforeTokenTransfer(from, to, id);
-        _holderTokens[to].add(id);
+        _balances[to]++;
+        if (from != address(0)) {
+            _balances[from]--;
+        }
         _owners[id] = uint256(uint160(to));
         emit Transfer(from, to, id);
     }
@@ -263,9 +233,6 @@ abstract contract ERC721Base is IERC165, IERC721 {
     function _ownerAndOperatorEnabledOf(uint256 id) internal view returns (address owner, bool operatorEnabled) {
         uint256 data = _owners[id];
         owner = address(uint160(data));
-        if (owner == address(0) && id < 2**160) {
-            owner = address(uint160(id));
-        }
         operatorEnabled = (data & OPERATOR_FLAG) == OPERATOR_FLAG;
     }
 }

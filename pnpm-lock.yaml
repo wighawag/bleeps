@@ -50,6 +50,9 @@ importers:
 
   contracts:
     specifiers:
+      '@ethersproject/bytes': ^5.4.0
+      '@ethersproject/solidity': ^5.4.0
+      '@ethersproject/wallet': ^5.4.0
       '@nomiclabs/hardhat-ethers': npm:hardhat-deploy-ethers@0.3.0-beta.11
       '@openzeppelin/contracts': ^4.3.2
       '@typechain/ethers-v5': ^7.1.2
@@ -67,6 +70,7 @@ importers:
       dotenv: ^10.0.0
       eslint: ^7.32.0
       eslint-config-prettier: ^8.3.0
+      ethereum-contracts-test-suite: ^0.1.0
       ethers: ^5.4.7
       fs-extra: ^10.0.0
       hardhat: ^2.6.4
@@ -83,9 +87,12 @@ importers:
       typechain: ^5.1.2
       typescript: ^4.4.3
     devDependencies:
+      '@ethersproject/bytes': 5.5.0
+      '@ethersproject/solidity': 5.4.0
+      '@ethersproject/wallet': 5.4.0
       '@nomiclabs/hardhat-ethers': /hardhat-deploy-ethers/0.3.0-beta.11_ethers@5.4.7+hardhat@2.6.5
       '@openzeppelin/contracts': 4.3.2
-      '@typechain/ethers-v5': 7.2.0_dc7e7861abec6e73a454b31cbd0ee444
+      '@typechain/ethers-v5': 7.2.0_136b9a3c5a2b15e5a2d071c37c820622
       '@typechain/hardhat': 2.3.1_hardhat@2.6.5+typechain@5.2.0
       '@types/chai': 4.2.22
       '@types/mocha': 9.0.0
@@ -100,6 +107,7 @@ importers:
       dotenv: 10.0.0
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0_eslint@7.32.0
+      ethereum-contracts-test-suite: 0.1.0
       ethers: 5.4.7
       fs-extra: 10.0.0
       hardhat: 2.6.5
@@ -551,7 +559,6 @@ packages:
       '@ethersproject/bytes': 5.5.0
       '@ethersproject/logger': 5.5.0
       bn.js: 4.12.0
-    dev: false
 
   /@ethersproject/bytes/5.1.0:
     resolution: {integrity: sha512-sGTxb+LVjFxJcJeUswAIK6ncgOrh3D8c192iEJd7mLr95V6du119rRfYT/b87WPkZ5I3gRBUYIYXtdgCWACe8g==}
@@ -568,7 +575,6 @@ packages:
     resolution: {integrity: sha512-ABvc7BHWhZU9PNM/tANm/Qx4ostPGadAuQzWTr3doklZOhDlmcBqclrQe/ZXUIj3K8wC28oYeuRa+A37tX9kog==}
     dependencies:
       '@ethersproject/logger': 5.5.0
-    dev: false
 
   /@ethersproject/constants/5.1.0:
     resolution: {integrity: sha512-0/SuHrxc8R8k+JiLmJymxHJbojUDWBQqO+b+XFdwaP0jGzqC09YDy/CAlSZB6qHsBifY8X3I89HcK/oMqxRdBw==}
@@ -733,7 +739,6 @@ packages:
 
   /@ethersproject/logger/5.5.0:
     resolution: {integrity: sha512-rIY/6WPm7T8n3qS2vuHTUBPdXHl+rGxWxW5okDfo9J4Z0+gRRZT0msvUdIJkE4/HS29GUMziwGaaKO2bWONBrg==}
-    dev: false
 
   /@ethersproject/networks/5.1.0:
     resolution: {integrity: sha512-A/NIrIED/G/IgU1XUukOA3WcFRxn2I4O5GxsYGA5nFlIi+UZWdGojs85I1VXkR1gX9eFnDXzjE6OtbgZHjFhIA==}
@@ -1002,13 +1007,13 @@ packages:
       '@ethersproject/abstract-provider': 5.4.1
       '@ethersproject/abstract-signer': 5.4.1
       '@ethersproject/address': 5.4.0
-      '@ethersproject/bignumber': 5.4.2
-      '@ethersproject/bytes': 5.4.0
+      '@ethersproject/bignumber': 5.5.0
+      '@ethersproject/bytes': 5.5.0
       '@ethersproject/hash': 5.4.0
       '@ethersproject/hdnode': 5.4.0
       '@ethersproject/json-wallets': 5.4.0
       '@ethersproject/keccak256': 5.4.0
-      '@ethersproject/logger': 5.4.1
+      '@ethersproject/logger': 5.5.0
       '@ethersproject/properties': 5.4.1
       '@ethersproject/random': 5.4.0
       '@ethersproject/signing-key': 5.4.0
@@ -1816,7 +1821,7 @@ packages:
     resolution: {integrity: sha512-eZxlbI8GZscaGS7kkc/trHTT5xgrjH3/1n2JDwusC9iahPKWMRvRjJSAN5mCXviuTGQ/lHnhvv8Q1YTpnfz9gA==}
     dev: true
 
-  /@typechain/ethers-v5/7.2.0_dc7e7861abec6e73a454b31cbd0ee444:
+  /@typechain/ethers-v5/7.2.0_136b9a3c5a2b15e5a2d071c37c820622:
     resolution: {integrity: sha512-jfcmlTvaaJjng63QsT49MT6R1HFhtO/TBMWbyzPFSzMmVIqb2tL6prnKBs4ZJrSvmgIXWy+ttSjpaxCTq8D/Tw==}
     peerDependencies:
       '@ethersproject/abi': ^5.0.0
@@ -1826,6 +1831,7 @@ packages:
       typechain: ^5.0.0
       typescript: '>=4.0.0'
     dependencies:
+      '@ethersproject/bytes': 5.5.0
       ethers: 5.4.7
       lodash: 4.17.21
       ts-essentials: 7.0.3_typescript@4.4.4
@@ -5858,6 +5864,10 @@ packages:
     resolution: {integrity: sha512-rxJ5OFN3RwjQxDcFP2Z5+Q9ho4eIdEmSc2ht0fCu8Se9nbXjZ7/031uXoUYJ87KHCOdVeiUuwSnoS7hmYAGVHA==}
     dependencies:
       js-sha3: 0.8.0
+    dev: true
+
+  /ethereum-contracts-test-suite/0.1.0:
+    resolution: {integrity: sha512-oggoifytuDMEGWmaTFmKLrUMDyGqv6ieNzUbmz6Oha5+vmhT4/qGMwJXbJlFlPOKF+4HGjO48zqehZ3QjHLYsQ==}
     dev: true
 
   /ethereum-cryptography/0.1.3:
