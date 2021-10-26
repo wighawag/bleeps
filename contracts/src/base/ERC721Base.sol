@@ -169,9 +169,11 @@ abstract contract ERC721Base is IERC165, IERC721 {
         uint256 id
     ) internal {
         _beforeTokenTransfer(from, to, id);
-        _balances[to]++;
-        if (from != address(0)) {
-            _balances[from]--;
+        unchecked {
+            _balances[to]++;
+            if (from != address(0)) {
+                _balances[from]--;
+            }
         }
         _owners[id] = uint256(uint160(to));
         emit Transfer(from, to, id);
