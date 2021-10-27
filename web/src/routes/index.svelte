@@ -90,6 +90,10 @@
       Sale Comming Soon... follow :<a class="underline" href="https://twitter.com/wighawag">wighawag</a>
     </p>
 
+    <p class="text-green-400">
+      Checkout the <a class="underline" href="https://bleeps-test.on.fleek.co/">DEMO</a>
+    </p>
+
     <!-- {#if $ownersState?.expectedValue}
       <p class="text-yellow-400">
         Current Price: {$ownersState?.expectedValue.div('1000000000000000').toNumber() / 1000}
