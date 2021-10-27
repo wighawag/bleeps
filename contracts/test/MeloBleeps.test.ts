@@ -138,7 +138,42 @@ describe('MeloBleeps tokenURI', function () {
       {vol: 5, note: 26, shape: 6},
     ];
 
-    const {data1, data2} = createData(testSong1);
+    const testSong3 = [
+      {vol: 7, note: 1, shape: 7},
+      {vol: 0, note: 0, shape: 0},
+      {vol: 7, note: 1, shape: 7},
+      {vol: 0, note: 0, shape: 0},
+      {vol: 5, note: 63, shape: 6},
+      {vol: 7, note: 1, shape: 7},
+      {vol: 0, note: 0, shape: 0},
+      {vol: 0, note: 0, shape: 0},
+      {vol: 7, note: 1, shape: 7},
+      {vol: 0, note: 0, shape: 0},
+      {vol: 0, note: 0, shape: 0},
+      {vol: 0, note: 0, shape: 0},
+      {vol: 5, note: 63, shape: 6},
+      {vol: 0, note: 0, shape: 0},
+      {vol: 7, note: 1, shape: 7},
+      {vol: 0, note: 0, shape: 0},
+      {vol: 7, note: 1, shape: 7},
+      {vol: 0, note: 0, shape: 0},
+      {vol: 7, note: 1, shape: 7},
+      {vol: 0, note: 0, shape: 0},
+      {vol: 5, note: 63, shape: 6},
+      {vol: 7, note: 1, shape: 7},
+      {vol: 0, note: 0, shape: 0},
+      {vol: 0, note: 0, shape: 0},
+      {vol: 7, note: 1, shape: 7},
+      {vol: 0, note: 0, shape: 0},
+      {vol: 0, note: 0, shape: 0},
+      {vol: 0, note: 0, shape: 0},
+      {vol: 5, note: 63, shape: 6},
+      {vol: 0, note: 0, shape: 0},
+      {vol: 7, note: 1, shape: 7},
+      {vol: 5, note: 63, shape: 6},
+    ];
+
+    const {data1, data2} = createData(testSong3);
 
     const tokenID = solidityKeccak256(['bytes32', 'bytes32'], [data1, data2]);
 

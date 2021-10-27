@@ -16,7 +16,10 @@ contract MeloBleepsTokenURI {
 
     // constants for ensuring enough precision when computing values
     int256 internal constant ONE = 1000000;
+    int256 internal constant HUNDRED = 100000000;
     int256 internal constant TWO = 2000000; // 2 * ONE;
+    int256 internal constant FOUR = 4000000;
+    int256 internal constant EIGHT = 8000000;
     int256 internal constant HALF = 500000; // ONE/ 2;
     int256 internal constant ZERO7 = 700000; // (ONE * 7) / 10;
     int256 internal constant ZERO3 = 300000; // (ONE * 3) / 10;
@@ -26,21 +29,6 @@ contract MeloBleepsTokenURI {
     int256 internal constant MINUS_ONE = -1000000; //; -ONE;
     int256 internal constant MIN_VALUE = MINUS_ONE + 1;
     int256 internal constant MAX_VALUE = ONE - 1;
-
-    // allow to switch sign in assembly via mul(MINUS, x)
-    int256 internal constant MINUS = -1;
-
-    // sample rate: 22050 , bitsPerSample: 16bit
-    // bytes internal constant metadataStart =
-    //     'data:application/json,{"name":"__________________________________","description":"A_sound_fully_generated_onchain","external_url":"?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????","image":"data:image/svg+xml,<svg viewBox=\'0 0 32 16\' ><text x=\'50%\' y=\'50%\' dominant-baseline=\'middle\' text-anchor=\'middle\' style=\'fill: rgb(219, 39, 119); font-size: 12px;\'>__________________________________</text></svg>","animation_url":"data:audio/wav;base64,UklGRgAAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YQAA'; // missing 2 zero bytes
-
-    // sample rate: 11000 , bitsPerSample: 16bit
-    // bytes internal constant metadataStart =
-    // 'data:application/json,{"name":"__________________________________","description":"A_sound_fully_generated_onchain","external_url":"?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????","image":"data:image/svg+xml,<svg viewBox=\'0 0 32 16\' ><text x=\'50%\' y=\'50%\' dominant-baseline=\'middle\' text-anchor=\'middle\' style=\'fill: rgb(219, 39, 119); font-size: 12px;\'>__________________________________</text></svg>","animation_url":"data:audio/wav;base64,UklGRgAAAABXQVZFZm10IBAAAAABAAEA+CoAAPBVAAACABAAZGF0YQAA'; // missing 2 zero bytes
-
-    // sample rate: 11000 , bitsPerSample: 8bit
-    // bytes internal constant metadataStart =
-    //     'data:application/json,{"name":"__________________________________","description":"A_sound_fully_generated_onchain","external_url":"?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????","image":"data:image/svg+xml,<svg viewBox=\'0 0 32 16\' ><text x=\'50%\' y=\'50%\' dominant-baseline=\'middle\' text-anchor=\'middle\' style=\'fill: rgb(219, 39, 119); font-size: 12px;\'>__________________________________</text></svg>","animation_url":"data:audio/wav;base64,UklGRgAAAABXQVZFZm10IBAAAAABAAEA+CoAAPBVAAABAAgAZGF0YQAA'; // missing 2 zero bytes
 
     function wav(bytes32 d1, bytes32 d2) external view returns (string memory) {
         return _generateWav(d1, d2);
@@ -223,17 +211,8 @@ contract MeloBleepsTokenURI {
                     // skip first value as it pertain to the double bytes for chunksize
                     if gt(pos, 0) {
                         // tri
-                        // return (Math.abs((x % 1) * 2 - 1) * 2 - 1) * 0.5 // 0.7 in picolove
-                        // return floor(((Math.abs((x % ONE) * 2 - ONE) * 2 - ONE) * HALF) / ONE);
                         if eq(instr, 0) {
                             // triangle
-
-                            // intValue := sub(mul(smod(pos, ONE), 2), ONE)
-                            // if slt(intValue, 0) {
-                            //     intValue := sub(0, intValue)
-                            // }
-                            // intValue := sub(mul(intValue, 2), ONE)
-                            // intValue := sdiv(mul(intValue, HALF), ONE)
 
                             intValue := abs(sub(mul(mod(pos, ONE), 2), ONE))
                             intValue := sub(mul(intValue, 2), ONE)
@@ -300,54 +279,22 @@ contract MeloBleepsTokenURI {
                         }
                         if eq(instr, 6) {
                             // noise
-
-                            // intValue := sub(shr(232, mload(add(32, add(noiseTable, mod(pos, 8976))))), ONE)
-                            // export function noise(sampleRate: number): (x: number) => number {
-                            //     let rand = 0;
-                            //     let lastx = 0;
-                            //     let sample = 0;
-                            //     let lsample = 0;
-                            //     const tscale = note_to_hz(63) / sampleRate;
-                            //     return function (x: number) {
-                            //         rand = (1103515245 * rand + 12345) % Math.pow(2, 31);
-                            //         const scale = (x - lastx) / tscale;
-                            //         lsample = sample;
-                            //         sample = ((lsample + scale) * ((rand / Math.pow(2, 31)) * TWO - ONE)) / (ONE + scale);
-                            //         lastx = x;
-                            // return Math.min(Math.max((((lsample + sample) * 4) / 3) * (ONE * 1.75 - scale), -ONE), ONE) * 0.6;
-                            //     };
-                            // }
-
-                            // let rand = 0;
-                            // let lastx = 0;
-                            // let sample = 0;
-                            // let lsample = 0;
-                            // const tscale = note_to_hz(63) / sampleRate;
-                            // return function (x: number) {
-                            //     rand = (1103515245 * rand + 12345) % Math.pow(2, 31);
-                            //     const scale = floor(((x - lastx) * ONE) / tscale);
-                            //     lsample = sample;
-                            //  sample = floor(((lsample + scale) * (floor((rand * TWO) / Math.pow(2, 31)) - ONE)) / (ONE + scale));
-                            //     lastx = x;
-                            //     return floor(
-                            //     (Math.min(Math.max(floor((floor(((lsample + sample) * 4) / 3) * (1.75 - scale)) / ONE), -ONE), ONE) * 7) / 10
-                            //     );
-                            // };
-
                             let rand := mload(add(noise_handler, 32))
                             let lastx := mload(add(noise_handler, 64))
                             let sample := mload(add(noise_handler, 96))
                             let lsample := mload(add(noise_handler, 128))
-
                             rand := mod(add(mul(1103515245, rand), 12345), 0x80000000)
-                            let scale := div(mul(sub(pos, lastx), ONE), 160000) // 2489  = note_to_hz(63)  => 2489 * 10000000 / 11000 (sample rate) => 2262727 (160000 is from js)
+                            let scale := div(mul(sub(pos, lastx), FOUR), 160000)
                             lsample := sample
                             sample := sdiv(
-                                mul(add(lsample, scale), sub(div(mul(rand, TWO), 0x8000000), ONE)),
+                                mul(add(lsample, scale), sub(div(mul(rand, TWO), 0x80000000), ONE)),
                                 add(ONE, scale)
                             )
                             lastx := pos
-                            intValue := sdiv(mul(sdiv(mul(add(lsample, sample), 4), 3), sub(2, scale)), ONE) // 2 => 1.75
+                            intValue := sdiv(
+                                mul(sdiv(mul(add(lsample, sample), 4), 3), sub(175, mul(scale, 100))),
+                                HUNDRED
+                            )
                             if slt(intValue, MINUS_ONE) {
                                 intValue := MINUS_ONE
                             }
@@ -355,39 +302,12 @@ contract MeloBleepsTokenURI {
                                 intValue := ONE
                             }
                             intValue := sdiv(mul(intValue, 5), 10)
-                            // noise_handler := or(rand, or(shl(64, lastx), add(shl(128, sample), shl(196, lsample))))
                             mstore(add(noise_handler, 32), rand)
                             mstore(add(noise_handler, 64), lastx)
                             mstore(add(noise_handler, 96), sample)
                             mstore(add(noise_handler, 128), lsample)
-
-                            // let rand := mod(noise_handler, 0xFFFFFFFFFFFFFFFF)
-                            // let lastx := mod(shr(64, noise_handler), 0xFFFFFFFFFFFFFFFF)
-                            // let sample := mod(shr(128, noise_handler), 0xFFFFFFFFFFFFFFFF)
-                            // let lsample := mod(shr(196, noise_handler), 0xFFFFFFFFFFFFFFFF)
-                            // rand := mod(add(mul(1103515245, rand), 12345), 0x80000000)
-                            // let scale := div(sub(pos, lastx), 2262727) // 2489  = note_to_hz(63)  => 2489 * 10000000 / 11000 (sample rate) => 2262727
-                            // lsample := sample
-                            // sample := div(
-                            //     mul(add(lsample, scale), sub(mul(div(rand, 0x8000000), TWO), ONE)),
-                            //     add(ONE, scale)
-                            // )
-                            // lastx := pos
-                            // intValue := mul(div(mul(add(lsample, sample), 4), 3), sub(ONE75, scale))
-                            // if slt(intValue, MINUS_ONE) {
-                            //     intValue := MINUS_ONE
-                            // }
-                            // if gt(intValue, ONE) {
-                            //     intValue := ONE
-                            // }
-                            // intValue := div(mul(intValue, 6), 10)
-                            // noise_handler := add(rand, add(shl(64, lastx), add(shl(128, sample), shl(196, lsample))))
                         }
 
-                        // x = x * 2;
-                        // return floor(
-                        //     Math.abs((x % TWO) - ONE) - HALF + floor((Math.abs((floor((x * 127) / 128) % TWO) - ONE) - HALF) / 2) - ONE / 4
-                        // );
                         if eq(instr, 7) {
                             // phaser (detuned_tri)
                             intValue := mul(pos, 2)
@@ -415,8 +335,8 @@ contract MeloBleepsTokenURI {
                                 7
                             )
                         }
-                        intValue := sdiv(mul(intValue, vol), 700) // getValue(pos, instr)
-                        intValue := add(sdiv(mul(intValue, 256), TWO), 128) // TODO never go negative
+                        intValue := sdiv(mul(intValue, vol), 700)
+                        intValue := add(sdiv(mul(intValue, 256), TWO), 128)
                     }
                     v := add(v, shl(sub(16, mul(c, 8)), intValue))
                     pos := add(pos, posStep)
