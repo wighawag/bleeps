@@ -189,8 +189,8 @@ contract MeloBleepsTokenURI {
             assembly {
                 function abs(a) -> b {
                     b := a
-                    if lt(b, 0) {
-                        b := mul(b, MINUS)
+                    if slt(b, 0) {
+                        b := sub(0, b)
                     }
                 }
 
@@ -206,7 +206,7 @@ contract MeloBleepsTokenURI {
                 data := and(shr(add(16, mul(sub(15, meloIndex), 15)), data), 0x3FFF) // sub(15) is to divide the data in 2
                 let note := and(data, 0x3F)
                 let instr := and(shr(6, data), 0x07)
-                let vol := and(shr(9, data), 0x07)
+                let vol := mul(and(shr(9, data), 0x07), 100)
 
                 let posStep := div(
                     mul(and(shr(232, mload(add(freqTable, add(32, mul(note, 3))))), 0xFFFFFF), 10000),
@@ -223,16 +223,24 @@ contract MeloBleepsTokenURI {
                     // skip first value as it pertain to the double bytes for chunksize
                     if gt(pos, 0) {
                         // tri
+                        // return (Math.abs((x % 1) * 2 - 1) * 2 - 1) * 0.5 // 0.7 in picolove
+                        // return floor(((Math.abs((x % ONE) * 2 - ONE) * 2 - ONE) * HALF) / ONE);
                         if eq(instr, 0) {
-                            intValue := sub(mul(smod(pos, ONE), 2), ONE)
-                            if slt(intValue, 0) {
-                                intValue := sub(0, intValue)
-                            }
+                            // triangle
+
+                            // intValue := sub(mul(smod(pos, ONE), 2), ONE)
+                            // if slt(intValue, 0) {
+                            //     intValue := sub(0, intValue)
+                            // }
+                            // intValue := sub(mul(intValue, 2), ONE)
+                            // intValue := sdiv(mul(intValue, HALF), ONE)
+
+                            intValue := abs(sub(mul(mod(pos, ONE), 2), ONE))
                             intValue := sub(mul(intValue, 2), ONE)
-                            intValue := sdiv(mul(intValue, HALF), ONE)
+                            intValue := sdiv(intValue, 2)
                         }
                         if eq(instr, 1) {
-                            // uneven_tri
+                            // tilted saw (uneven_tri)
                             let tmp := smod(pos, ONE)
                             if slt(tmp, ZERO8750) {
                                 intValue := sdiv(mul(tmp, 16), 7)
@@ -268,7 +276,7 @@ contract MeloBleepsTokenURI {
                             intValue := sdiv(intValue, 4)
                         }
                         if eq(instr, 5) {
-                            // tri2
+                            // organ (tri2)
                             intValue := mul(pos, 4)
                             intValue := sdiv(
                                 mul(
@@ -285,12 +293,47 @@ contract MeloBleepsTokenURI {
                                         ),
                                         ZERO1
                                     ),
-                                    ZERO1
+                                    HALF
                                 ),
                                 ONE
                             )
                         }
                         if eq(instr, 6) {
+                            // noise
+
+                            // intValue := sub(shr(232, mload(add(32, add(noiseTable, mod(pos, 8976))))), ONE)
+                            // export function noise(sampleRate: number): (x: number) => number {
+                            //     let rand = 0;
+                            //     let lastx = 0;
+                            //     let sample = 0;
+                            //     let lsample = 0;
+                            //     const tscale = note_to_hz(63) / sampleRate;
+                            //     return function (x: number) {
+                            //         rand = (1103515245 * rand + 12345) % Math.pow(2, 31);
+                            //         const scale = (x - lastx) / tscale;
+                            //         lsample = sample;
+                            //         sample = ((lsample + scale) * ((rand / Math.pow(2, 31)) * TWO - ONE)) / (ONE + scale);
+                            //         lastx = x;
+                            // return Math.min(Math.max((((lsample + sample) * 4) / 3) * (ONE * 1.75 - scale), -ONE), ONE) * 0.6;
+                            //     };
+                            // }
+
+                            // let rand = 0;
+                            // let lastx = 0;
+                            // let sample = 0;
+                            // let lsample = 0;
+                            // const tscale = note_to_hz(63) / sampleRate;
+                            // return function (x: number) {
+                            //     rand = (1103515245 * rand + 12345) % Math.pow(2, 31);
+                            //     const scale = floor(((x - lastx) * ONE) / tscale);
+                            //     lsample = sample;
+                            //  sample = floor(((lsample + scale) * (floor((rand * TWO) / Math.pow(2, 31)) - ONE)) / (ONE + scale));
+                            //     lastx = x;
+                            //     return floor(
+                            //     (Math.min(Math.max(floor((floor(((lsample + sample) * 4) / 3) * (1.75 - scale)) / ONE), -ONE), ONE) * 7) / 10
+                            //     );
+                            // };
+
                             let rand := mload(add(noise_handler, 32))
                             let lastx := mload(add(noise_handler, 64))
                             let sample := mload(add(noise_handler, 96))
@@ -317,9 +360,36 @@ contract MeloBleepsTokenURI {
                             mstore(add(noise_handler, 64), lastx)
                             mstore(add(noise_handler, 96), sample)
                             mstore(add(noise_handler, 128), lsample)
+
+                            // let rand := mod(noise_handler, 0xFFFFFFFFFFFFFFFF)
+                            // let lastx := mod(shr(64, noise_handler), 0xFFFFFFFFFFFFFFFF)
+                            // let sample := mod(shr(128, noise_handler), 0xFFFFFFFFFFFFFFFF)
+                            // let lsample := mod(shr(196, noise_handler), 0xFFFFFFFFFFFFFFFF)
+                            // rand := mod(add(mul(1103515245, rand), 12345), 0x80000000)
+                            // let scale := div(sub(pos, lastx), 2262727) // 2489  = note_to_hz(63)  => 2489 * 10000000 / 11000 (sample rate) => 2262727
+                            // lsample := sample
+                            // sample := div(
+                            //     mul(add(lsample, scale), sub(mul(div(rand, 0x8000000), TWO), ONE)),
+                            //     add(ONE, scale)
+                            // )
+                            // lastx := pos
+                            // intValue := mul(div(mul(add(lsample, sample), 4), 3), sub(ONE75, scale))
+                            // if slt(intValue, MINUS_ONE) {
+                            //     intValue := MINUS_ONE
+                            // }
+                            // if gt(intValue, ONE) {
+                            //     intValue := ONE
+                            // }
+                            // intValue := div(mul(intValue, 6), 10)
+                            // noise_handler := add(rand, add(shl(64, lastx), add(shl(128, sample), shl(196, lsample))))
                         }
+
+                        // x = x * 2;
+                        // return floor(
+                        //     Math.abs((x % TWO) - ONE) - HALF + floor((Math.abs((floor((x * 127) / 128) % TWO) - ONE) - HALF) / 2) - ONE / 4
+                        // );
                         if eq(instr, 7) {
-                            // detuned_tri
+                            // phaser (detuned_tri)
                             intValue := mul(pos, 2)
                             intValue := add(
                                 sub(abs(sub(smod(intValue, TWO), ONE)), HALF),
@@ -329,7 +399,23 @@ contract MeloBleepsTokenURI {
                                 )
                             )
                         }
-                        intValue := sdiv(mul(intValue, vol), 7) // getValue(pos, instr)
+                        if eq(instr, 8) {
+                            intValue := mul(pos, 2)
+                            intValue := sdiv(
+                                mul(
+                                    add(
+                                        sub(sub(smod(intValue, TWO), ONE), HALF),
+                                        sub(
+                                            sdiv(sub(sub(smod(sdiv(mul(intValue, 127), 128), TWO), ONE), HALF), 2),
+                                            sdiv(ONE, 4)
+                                        )
+                                    ),
+                                    5
+                                ),
+                                7
+                            )
+                        }
+                        intValue := sdiv(mul(intValue, vol), 700) // getValue(pos, instr)
                         intValue := add(sdiv(mul(intValue, 256), TWO), 128) // TODO never go negative
                     }
                     v := add(v, shl(sub(16, mul(c, 8)), intValue))

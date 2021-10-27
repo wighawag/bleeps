@@ -23,7 +23,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     autoMine: true,
   });
 
-  await execute('Timelock', {from: deployer}, 'setFirstAdmin', BleepsDAO.address);
+  if (BleepsDAO.newlyDeployed) {
+    await execute('Timelock', {from: deployer}, 'setFirstAdmin', BleepsDAO.address);
+  }
 };
 export default func;
 func.tags = ['BleepsDAO'];

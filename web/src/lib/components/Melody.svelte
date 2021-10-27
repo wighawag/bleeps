@@ -6,7 +6,7 @@
   import {onMount} from 'svelte';
   import GreenNavButton from './navigation/GreenNavButton.svelte';
 
-  const testShape = 0;
+  const testShape = 5;
   const testSong = [
     {vol: 5, note: 1, shape: testShape},
     {vol: 5, note: 3, shape: testShape},
@@ -164,6 +164,8 @@
         song = song1;
       } else if (songNum === '2') {
         song = song2;
+      } else if (songNum === 'test') {
+        song = testSong;
       }
     }
     volumes = extractVolumes(song);
