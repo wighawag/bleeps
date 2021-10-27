@@ -58,7 +58,7 @@ contract Bleeps is ERC721BaseWithPermit {
     /// @return A count of valid NFTs tracked by this contract, where each one of
     ///  them has an assigned and queryable owner not equal to the zero address
     function totalSupply() external pure returns (uint256) {
-        return 512;
+        return 576;
     }
 
     /// @notice A descriptive name for a collection of NFTs in this contract
@@ -113,10 +113,11 @@ contract Bleeps is ERC721BaseWithPermit {
     }
 
     function mint(uint16 id, address to) external payable {
-        uint256 instr = (uint256(id) >> 6) % 64;
+        require(id < 576, "INVALID_SOUND");
+        uint256 instr = (uint256(id) >> 6) % 16;
 
-        if (instr == 6) {
-            require(msg.sender == _recipient, "Noise's bleeps are reserved");
+        if (instr == 6 || instr == 8) {
+            require(msg.sender == _recipient, "These bleeps are reserved");
         } else {
             uint256 expectedValue = _initPrice;
             uint256 timePassed = (block.timestamp - _startTime);

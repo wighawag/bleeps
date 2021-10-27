@@ -19,7 +19,7 @@ type OwnersState = {
   expectedValue?: BigNumber;
 };
 
-const allIds = Array.from(Array(512)).map((v, i) => i);
+const allIds = Array.from(Array(576)).map((v, i) => i);
 
 class OwnersStateStore extends BaseStore<OwnersState> {
   private timer: NodeJS.Timeout | undefined;
@@ -63,7 +63,10 @@ class OwnersStateStore extends BaseStore<OwnersState> {
       let numLeft = 0;
       for (let i = 0; i < result.addresses.length; i++) {
         tokenOwners[i] = result.addresses[i];
-        if ((i < 6 * 64 || i >= 7 * 64) && result.addresses[i] === '0x0000000000000000000000000000000000000000') {
+        if ((i >= 6 * 64 && i < 7 * 64) || (i >= 8 * 64 && i < 9 * 64)) {
+          tokenOwners[i] = '0x1111111111111111111111111111111111111111';
+        }
+        if (tokenOwners[i] === '0x0000000000000000000000000000000000000000') {
           numLeft++;
         }
       }

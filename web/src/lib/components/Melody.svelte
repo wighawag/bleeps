@@ -43,38 +43,39 @@
   ];
 
   const song1 = [
-    {vol: 7, note: 1, shape: 7},
+    // new Bleeps sound
+    {vol: 7, note: 1, shape: 8},
     {vol: 0, note: 0, shape: 0},
-    {vol: 7, note: 1, shape: 7},
+    {vol: 7, note: 1, shape: 8},
     {vol: 0, note: 0, shape: 0},
-    {vol: 5, note: 26, shape: 6},
-    {vol: 7, note: 1, shape: 7},
-    {vol: 0, note: 0, shape: 0},
-    {vol: 0, note: 0, shape: 0},
-    {vol: 7, note: 1, shape: 7},
+    {vol: 5, note: 63, shape: 6},
+    {vol: 7, note: 1, shape: 8},
     {vol: 0, note: 0, shape: 0},
     {vol: 0, note: 0, shape: 0},
-    {vol: 0, note: 0, shape: 0},
-    {vol: 5, note: 26, shape: 6},
-    {vol: 0, note: 0, shape: 0},
-    {vol: 7, note: 1, shape: 7},
-    {vol: 0, note: 0, shape: 0},
-    {vol: 7, note: 1, shape: 7},
-    {vol: 0, note: 0, shape: 0},
-    {vol: 7, note: 1, shape: 7},
-    {vol: 0, note: 0, shape: 0},
-    {vol: 5, note: 26, shape: 6},
-    {vol: 7, note: 1, shape: 7},
-    {vol: 0, note: 0, shape: 0},
-    {vol: 0, note: 0, shape: 0},
-    {vol: 7, note: 1, shape: 7},
+    {vol: 7, note: 1, shape: 8},
     {vol: 0, note: 0, shape: 0},
     {vol: 0, note: 0, shape: 0},
     {vol: 0, note: 0, shape: 0},
-    {vol: 5, note: 26, shape: 6},
+    {vol: 5, note: 63, shape: 6},
     {vol: 0, note: 0, shape: 0},
-    {vol: 7, note: 1, shape: 7},
-    {vol: 5, note: 26, shape: 6},
+    {vol: 7, note: 1, shape: 8},
+    {vol: 0, note: 0, shape: 0},
+    {vol: 7, note: 1, shape: 8},
+    {vol: 0, note: 0, shape: 0},
+    {vol: 7, note: 1, shape: 8},
+    {vol: 0, note: 0, shape: 0},
+    {vol: 5, note: 63, shape: 6},
+    {vol: 7, note: 1, shape: 8},
+    {vol: 0, note: 0, shape: 0},
+    {vol: 0, note: 0, shape: 0},
+    {vol: 7, note: 1, shape: 8},
+    {vol: 0, note: 0, shape: 0},
+    {vol: 0, note: 0, shape: 0},
+    {vol: 0, note: 0, shape: 0},
+    {vol: 5, note: 63, shape: 6},
+    {vol: 0, note: 0, shape: 0},
+    {vol: 7, note: 1, shape: 8},
+    {vol: 5, note: 63, shape: 6},
   ];
 
   const song2 = [
@@ -125,8 +126,8 @@
   }
 
   function encodeNote(bn: BigNumber, step: {note: number; vol: number; index: number; shape: number}): BigNumber {
-    const shift = BigNumber.from(2).pow(241 - step.index * 15);
-    const value = step.note + step.shape * 64 + step.vol * 64 * 8;
+    const shift = BigNumber.from(2).pow(240 - step.index * 16);
+    const value = step.note + step.shape * 64 + step.vol * 64 * 16;
     const extra = shift.mul(value);
     return bn.add(extra);
   }

@@ -62,6 +62,30 @@
       }
     });
   }
+
+  function instrumentName(instr: number): string {
+    switch (instr) {
+      case 0:
+        return 'TRIANGLE';
+      case 1:
+        return 'TILTED SAW';
+      case 2:
+        return 'SAW';
+      case 3:
+        return 'SQUARE';
+      case 4:
+        return 'PULSE';
+      case 5:
+        return 'ORGAN';
+      case 6:
+        return 'NOISE';
+      case 7:
+        return 'PHASER';
+      case 8:
+        return 'FUNKY SAW';
+    }
+    return 'NONE';
+  }
 </script>
 
 {$ownersState.state}
@@ -93,7 +117,7 @@
     {/if}
 
     {#if $ownersState?.numLeft !== undefined}
-      <p class="text-yellow-400">{$ownersState?.numLeft} / 512 left</p>
+      <p class="text-yellow-400">{$ownersState?.numLeft} / 576 left</p>
     {/if}
   </div>
 </section>
@@ -111,30 +135,34 @@
       </GreenNavButton> -->
 
       <div class="max-w-2xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:max-w-7xl lg:px-8">
-        <div class="grid grid-cols-8 mx-auto">
-          {#each Array.from(Array(512))
-            .map((v, i) => i)
-            .filter((v) => v < 6 * 64 || v >= 7 * 64) as bleepId}
-            <div>
-              <img
-                class="group mb-8 mx-auto"
-                src="images/logo.svg"
-                alt={'' + bleepId}
-                style="width:32px;height:32px;"
-                width="32px"
-                height="32px"
-              />
-              {#if $ownersState.tokenOwners && $ownersState.tokenOwners[bleepId]}
-                {#if $ownersState.tokenOwners[bleepId] !== '0x0000000000000000000000000000000000000000'}
-                  <NavButton label="listen" on:click={() => select(bleepId)}>listen</NavButton>
-                {:else}
-                  <GreenNavButton label="listen" on:click={() => select(bleepId)}>listen</GreenNavButton>
-                {/if}
-              {:else}
-                <GreenNavButton label="listen" on:click={() => select(bleepId)}>listen</GreenNavButton>
-              {/if}
+        <div>
+          {#each Array.from(Array(9)).map((v, i) => i) as instr}
+            <h2 class="text-4xl">{instrumentName(instr)}</h2>
+            <div class="grid grid-cols-8 mx-auto border-2 border-gray-200 p-1 mb-16">
+              {#each Array.from(Array(64)).map((v, i) => i + instr * 64) as bleepId}
+                <div>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 32"
+                    ><text
+                      x="32"
+                      y="16"
+                      dominant-baseline="middle"
+                      text-anchor="middle"
+                      style="fill: rgb(219, 39, 119); font-size: 12px;">D#0</text
+                    ></svg
+                  >
+                  {#if $ownersState.tokenOwners && $ownersState.tokenOwners[bleepId]}
+                    {#if $ownersState.tokenOwners[bleepId] !== '0x0000000000000000000000000000000000000000'}
+                      <NavButton label="listen" on:click={() => select(bleepId)}>listen</NavButton>
+                    {:else}
+                      <GreenNavButton label="listen" on:click={() => select(bleepId)}>listen</GreenNavButton>
+                    {/if}
+                  {:else}
+                    <GreenNavButton label="listen" on:click={() => select(bleepId)}>listen</GreenNavButton>
+                  {/if}
 
-              <!-- More products... -->
+                  <!-- More products... -->
+                </div>
+              {/each}
             </div>
           {/each}
         </div>

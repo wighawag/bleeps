@@ -62,7 +62,7 @@ contract BleepsTokenURI {
 
     function noteString(uint256 id) internal pure returns (bytes memory str) {
         uint256 note = uint256(id) % 64;
-        uint256 instr = (uint256(id) >> 6) % 64;
+        uint256 instr = (uint256(id) >> 6) % 16;
 
         if (instr == 0) {
             str = "TRIANGLE%20__";
@@ -80,6 +80,8 @@ contract BleepsTokenURI {
             str = "NOISE%20__";
         } else if (instr == 7) {
             str = "PHASER%20__";
+        } else if (instr == 8) {
+            str = "FUNKY_SAW%20__";
         }
 
         uint8 m = uint8(note % 12);
@@ -107,16 +109,65 @@ contract BleepsTokenURI {
         str[str.length - 1] = bytes1(48 + uint8(note / 12));
     }
 
+    function noteString2(uint256 id) internal pure returns (bytes memory str) {
+        uint256 note = uint256(id) % 64;
+        uint256 instr = (uint256(id) >> 6) % 16;
+
+        if (instr == 0) {
+            str = "TRIANGLE%2520__";
+        } else if (instr == 1) {
+            str = "TILTED%2520SAW%2520__";
+        } else if (instr == 2) {
+            str = "SAW%2520__";
+        } else if (instr == 3) {
+            str = "SQUARE%2520__";
+        } else if (instr == 4) {
+            str = "PULSE%2520__";
+        } else if (instr == 5) {
+            str = "ORGAN%2520__";
+        } else if (instr == 6) {
+            str = "NOISE%2520__";
+        } else if (instr == 7) {
+            str = "PHASER%2520__";
+        } else if (instr == 8) {
+            str = "FUNKY_SAW%2520__";
+        }
+
+        uint8 m = uint8(note % 12);
+        uint8 n = m;
+        if (m > 0) {
+            n--;
+        }
+        if (m > 2) {
+            n--;
+        }
+        if (m > 5) {
+            n--;
+        }
+        if (m > 7) {
+            n--;
+        }
+        if (m > 9) {
+            n--;
+        }
+        str[str.length - 2] = bytes1(uint8(65) + uint8((n + 2) % 7));
+        if (m == 1 || m == 3 || m == 6 || m == 8 || m == 10) {
+            str[str.length - 1] = "%"; // TODO
+            str = bytes.concat(str, "2523_");
+        }
+        str[str.length - 1] = bytes1(48 + uint8(note / 12));
+    }
+
     function _prepareBuffer(uint256 id, bytes memory buffer) internal pure returns (uint256 l) {
         unchecked {
-            bytes memory note = noteString(id);
             bytes memory start = bytes.concat(
                 'data:application/json,{"name":"',
-                note,
+                noteString(id),
                 '","description":"A%20sound%20fully%20generated%20onchain","external_url":"',
-                "https://bleeps.eth.link",
-                "\",\"image\":\"data:image/svg+xml,<svg%2520viewBox='0%25200%252032%252016'%2520><text%2520x='16'%2520y='8'%2520dominant-baseline='middle'%2520text-anchor='middle'%2520style='fill:%2520rgb(219,%252039,%2520119);%2520font-size:%252012px;'>",
-                note,
+                "https://bleeps.art/bleeps/%23id=",
+                bytes(uint2str(id)),
+                "\",\"image\":\"data:image/svg+xml,<svg%2520xmlns='http://www.w3.org/2000/svg'%2520viewBox='0%25200%252064%252032'%2520><text%2520x='32'%2520y='16'%2520dominant-baseline='middle'%2520text-anchor='middle'%2520style='fill:%2520rgb(219,%252039,%2520119);%2520font-size:%252012px;'>",
+                noteString2(id),
                 '</text></svg>","animation_url":"data:audio/wav;base64,UklGRgAAAABXQVZFZm10IBAAAAABAAEA+CoAAPBVAAABAAgAZGF0YQAA'
             ); // missing 2 zero bytes
             uint256 len = start.length;
@@ -232,7 +283,7 @@ contract BleepsTokenURI {
         uint256 startLength = _prepareBuffer(id, buffer);
 
         uint256 note = uint256(id) % 64;
-        uint256 instr = (uint256(id) >> 6) % 64;
+        uint256 instr = (uint256(id) >> 6) % 16;
 
         uint256 vol = 500;
 

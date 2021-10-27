@@ -191,10 +191,10 @@ contract MeloBleepsTokenURI {
                         meloIndex := 15
                     }
                 }
-                data := and(shr(add(16, mul(sub(15, meloIndex), 15)), data), 0x3FFF) // sub(15) is to divide the data in 2
+                data := and(shr(add(16, mul(sub(16, meloIndex), 16)), data), 0xFFFF) // sub(15) is to divide the data in 2
                 let note := and(data, 0x3F)
-                let instr := and(shr(6, data), 0x07)
-                let vol := mul(and(shr(9, data), 0x07), 100)
+                let instr := and(shr(6, data), 0x0F)
+                let vol := mul(and(shr(10, data), 0x07), 100)
 
                 let posStep := div(
                     mul(and(shr(232, mload(add(freqTable, add(32, mul(note, 3))))), 0xFFFFFF), 10000),
