@@ -23,7 +23,6 @@
     }
     return wallet.contracts.BleepsTokenURI.wav(id)
       .then((v) => {
-        console.log(v);
         return fetch(v).then((r) => r.json());
         // return JSON.parse(v.substr('data:application/json,'.length));
       })
@@ -222,11 +221,9 @@
         {#await sound}
           Loading Sound, please wait...
         {:then metadata}
-          {JSON.stringify(metadata, null, '  ')}
-          <h1 class="text-green-400 text-2xl">{metadata?.name}</h1>
-          <audio src={metadata?.animation_url} preload="auto" controls autoplay crossorigin="anonymous" />
+          <h1 class="text-green-400 text-2xl">{metadata.name}</h1>
+          <audio src={metadata.animation_url} preload="auto" controls autoplay crossorigin="anonymous" />
         {:catch error}
-          {error}
           <p style="color: red">{formatError(error)}</p>
         {/await}
       {/if}
