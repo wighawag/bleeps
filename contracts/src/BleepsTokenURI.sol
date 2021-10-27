@@ -32,6 +32,12 @@ contract BleepsTokenURI {
     int256 internal constant MIN_VALUE = MINUS_ONE + 1;
     int256 internal constant MAX_VALUE = ONE - 1;
 
+    // svg from : https://codepen.io/rachelmcgrane/pen/VexWdX
+    function contractURI() external pure returns (string memory) {
+        return
+            'data:application/json,{"name":"Bleeps","description":"Composable%20Sounds%20Fully%20Generated%20On-Chain","image":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MCAzOC4wNSIgc3R5bGU9ImJhY2tncm91bmQtY29sb3I6d2hpdGUiID48c3R5bGU+I0xpbmVfMSB7YW5pbWF0aW9uOnB1bHNlIDFzIGluZmluaXRlO2FuaW1hdGlvbi1kZWxheTouMTVzO30jTGluZV8yIHthbmltYXRpb246cHVsc2UgMXMgaW5maW5pdGU7YW5pbWF0aW9uLWRlbGF5Oi4zMHM7fSNMaW5lXzMge2FuaW1hdGlvbjpwdWxzZSAxcyBpbmZpbml0ZTthbmltYXRpb24tZGVsYXk6LjQ1czt9I0xpbmVfNCB7YW5pbWF0aW9uOnB1bHNlIDFzIGluZmluaXRlO2FuaW1hdGlvbi1kZWxheTouNjBzO30jTGluZV81IHthbmltYXRpb246cHVsc2UgMXMgaW5maW5pdGU7YW5pbWF0aW9uLWRlbGF5Oi43NXM7fSNMaW5lXzYge2FuaW1hdGlvbjpwdWxzZSAxcyBpbmZpbml0ZTthbmltYXRpb24tZGVsYXk6Ljkwczt9I0xpbmVfNyB7YW5pbWF0aW9uOnB1bHNlIDFzIGluZmluaXRlO2FuaW1hdGlvbi1kZWxheToxLjA1czt9I0xpbmVfOCB7YW5pbWF0aW9uOnB1bHNlIDFzIGluZmluaXRlO2FuaW1hdGlvbi1kZWxheToxLjIwczt9I0xpbmVfOSB7YW5pbWF0aW9uOnB1bHNlIDFzIGluZmluaXRlO2FuaW1hdGlvbi1kZWxheToxLjM1czt9QGtleWZyYW1lcyBwdWxzZSB7MCV7dHJhbnNmb3JtOiBzY2FsZVkoMSk7dHJhbnNmb3JtLW9yaWdpbjo1MCUgNTAlO301MCUge3RyYW5zZm9ybTogc2NhbGVZKC43KTt0cmFuc2Zvcm0tb3JpZ2luOiA1MCUgNTAlO30xMDAlIHt0cmFuc2Zvcm06IHNjYWxlWSgxKTt0cmFuc2Zvcm0tb3JpZ2luOiA1MCUgNTAlO319PC9zdHlsZT48cGF0aCBpZD0iTGluZV8xIiBkYXRhLW5hbWU9IkxpbmUgMSIgZD0iTTAuOTEsMTVMMC43OCwxNUExLDEsMCwwLDAsMCwxNnY2YTEsMSwwLDEsMCwyLDBzMCwwLDAsMFYxNmExLDEsMCwwLDAtMS0xSDAuOTFaIi8+PHBhdGggaWQ9IkxpbmVfMiIgZGF0YS1uYW1lPSJMaW5lIDIiIGQ9Ik02LjkxLDlMNi43OCw5QTEsMSwwLDAsMCw2LDEwVjI4YTEsMSwwLDEsMCwyLDBzMCwwLDAsMFYxMEExLDEsMCwwLDAsNyw5SDYuOTFaIi8+PHBhdGggaWQ9IkxpbmVfMyIgZGF0YS1uYW1lPSJMaW5lIDMiIGQ9Ik0xMi45MSwwTDEyLjc4LDBBMSwxLDAsMCwwLDEyLDFWMzdhMSwxLDAsMSwwLDIsMHMwLDAsMCwwVjFhMSwxLDAsMCwwLTEtMUgxMi45MVoiLz48cGF0aCBpZD0iTGluZV80IiBkYXRhLW5hbWU9IkxpbmUgNCIgZD0iTTE4LjkxLDEwbC0wLjEyLDBBMSwxLDAsMCwwLDE4LDExVjI3YTEsMSwwLDEsMCwyLDBzMCwwLDAsMFYxMWExLDEsMCwwLDAtMS0xSDE4LjkxWiIvPjxwYXRoIGlkPSJMaW5lXzUiIGRhdGEtbmFtZT0iTGluZSA1IiBkPSJNMjQuOTEsMTVsLTAuMTIsMEExLDEsMCwwLDAsMjQsMTZ2NmExLDEsMCwwLDAsMiwwczAsMCwwLDBWMTZhMSwxLDAsMCwwLTEtMUgyNC45MVoiLz48cGF0aCBpZD0iTGluZV82IiBkYXRhLW5hbWU9IkxpbmUgNiIgZD0iTTMwLjkxLDEwbC0wLjEyLDBBMSwxLDAsMCwwLDMwLDExVjI3YTEsMSwwLDEsMCwyLDBzMCwwLDAsMFYxMWExLDEsMCwwLDAtMS0xSDMwLjkxWiIvPjxwYXRoIGlkPSJMaW5lXzciIGRhdGEtbmFtZT0iTGluZSA3IiBkPSJNMzYuOTEsMEwzNi43OCwwQTEsMSwwLDAsMCwzNiwxVjM3YTEsMSwwLDEsMCwyLDBzMCwwLDAsMFYxYTEsMSwwLDAsMC0xLTFIMzYuOTFaIi8+PHBhdGggaWQ9IkxpbmVfOCIgZGF0YS1uYW1lPSJMaW5lIDgiIGQ9Ik00Mi45MSw5TDQyLjc4LDlBMSwxLDAsMCwwLDQyLDEwVjI4YTEsMSwwLDEsMCwyLDBzMCwwLDAsMFYxMGExLDEsMCwwLDAtMS0xSDQyLjkxWiIvPjxwYXRoIGlkPSJMaW5lXzkiIGRhdGEtbmFtZT0iTGluZSA5IiBkPSJNNDguOTEsMTVsLTAuMTIsMEExLDEsMCwwLDAsNDgsMTZ2NmExLDEsMCwxLDAsMiwwczAsMCwwLDBWMTZhMSwxLDAsMCwwLTEtMUg0OC45MVoiLz48L3N2Zz4K","external_link":"https://bleeps.art"}';
+    }
+
     function wav(uint256 id) external view returns (string memory) {
         return _generateWav(id);
     }
@@ -60,79 +66,31 @@ contract BleepsTokenURI {
         }
     }
 
-    function noteString(uint256 id) internal pure returns (bytes memory str) {
-        uint256 note = uint256(id) % 64;
+    function instrumentName(uint256 id, bool doubleEncoding) internal pure returns (bytes memory str) {
         uint256 instr = (uint256(id) >> 6) % 16;
-
         if (instr == 0) {
-            str = "TRIANGLE%20__";
+            str = "TRIANGLE";
         } else if (instr == 1) {
-            str = "TILTED%20SAW%20__";
+            str = doubleEncoding ? bytes("TILTED%2520SAW") : bytes("TILTED%20SAW");
         } else if (instr == 2) {
-            str = "SAW%20__";
+            str = "SAW";
         } else if (instr == 3) {
-            str = "SQUARE%20__";
+            str = "SQUARE";
         } else if (instr == 4) {
-            str = "PULSE%20__";
+            str = "PULSE";
         } else if (instr == 5) {
-            str = "ORGAN%20__";
+            str = "ORGAN";
         } else if (instr == 6) {
-            str = "NOISE%20__";
+            str = "NOISE";
         } else if (instr == 7) {
-            str = "PHASER%20__";
+            str = "PHASER";
         } else if (instr == 8) {
-            str = "FUNKY_SAW%20__";
+            str = "FUNKY_SAW";
         }
-
-        uint8 m = uint8(note % 12);
-        uint8 n = m;
-        if (m > 0) {
-            n--;
-        }
-        if (m > 2) {
-            n--;
-        }
-        if (m > 5) {
-            n--;
-        }
-        if (m > 7) {
-            n--;
-        }
-        if (m > 9) {
-            n--;
-        }
-        str[str.length - 2] = bytes1(uint8(65) + uint8((n + 2) % 7));
-        if (m == 1 || m == 3 || m == 6 || m == 8 || m == 10) {
-            str[str.length - 1] = "%";
-            str = bytes.concat(str, "23_");
-        }
-        str[str.length - 1] = bytes1(48 + uint8(note / 12));
     }
 
-    function noteString2(uint256 id) internal pure returns (bytes memory str) {
+    function noteString(uint256 id, bool doubleEncoding) internal pure returns (bytes memory str) {
         uint256 note = uint256(id) % 64;
-        uint256 instr = (uint256(id) >> 6) % 16;
-
-        if (instr == 0) {
-            str = "TRIANGLE%2520__";
-        } else if (instr == 1) {
-            str = "TILTED%2520SAW%2520__";
-        } else if (instr == 2) {
-            str = "SAW%2520__";
-        } else if (instr == 3) {
-            str = "SQUARE%2520__";
-        } else if (instr == 4) {
-            str = "PULSE%2520__";
-        } else if (instr == 5) {
-            str = "ORGAN%2520__";
-        } else if (instr == 6) {
-            str = "NOISE%2520__";
-        } else if (instr == 7) {
-            str = "PHASER%2520__";
-        } else if (instr == 8) {
-            str = "FUNKY_SAW%2520__";
-        }
-
         uint8 m = uint8(note % 12);
         uint8 n = m;
         if (m > 0) {
@@ -150,25 +108,41 @@ contract BleepsTokenURI {
         if (m > 9) {
             n--;
         }
-        str[str.length - 2] = bytes1(uint8(65) + uint8((n + 2) % 7));
+        str = "_";
+        str[0] = bytes1(uint8(65) + uint8((n + 2) % 7));
         if (m == 1 || m == 3 || m == 6 || m == 8 || m == 10) {
-            str[str.length - 1] = "%"; // TODO
-            str = bytes.concat(str, "2523_");
+            if (doubleEncoding) {
+                str = bytes.concat(str, "%2523_");
+            } else {
+                str = bytes.concat(str, "%23_");
+            }
         }
         str[str.length - 1] = bytes1(48 + uint8(note / 12));
     }
 
     function _prepareBuffer(uint256 id, bytes memory buffer) internal pure returns (uint256 l) {
         unchecked {
+            bytes memory instrument = instrumentName(id, false);
+            bytes memory note = noteString(id, false);
             bytes memory start = bytes.concat(
                 'data:application/json,{"name":"',
-                noteString(id),
+                instrument,
+                "%20",
+                note,
                 '","description":"A%20sound%20fully%20generated%20onchain","external_url":"',
                 "https://bleeps.art/bleeps/%23id=",
                 bytes(uint2str(id)),
-                "\",\"image\":\"data:image/svg+xml,<svg%2520xmlns='http://www.w3.org/2000/svg'%2520viewBox='0%25200%252064%252032'%2520><text%2520x='32'%2520y='16'%2520dominant-baseline='middle'%2520text-anchor='middle'%2520style='fill:%2520rgb(219,%252039,%2520119);%2520font-size:%252012px;'>",
-                noteString2(id),
-                '</text></svg>","animation_url":"data:audio/wav;base64,UklGRgAAAABXQVZFZm10IBAAAAABAAEA+CoAAPBVAAABAAgAZGF0YQAA'
+                "\",\"image\":\"data:image/svg+xml,<svg%2520xmlns='http://www.w3.org/2000/svg'%2520viewBox='0%25200%252064%252032'%2520><text%2520x='32'%2520y='16'%2520dominant-baseline='middle'%2520text-anchor='middle'%2520style='fill:%2520rgb(84,%2520102,%2520221);%2520font-size:%252012px;'>",
+                instrumentName(id, true),
+                "%20",
+                noteString(id, true),
+                '</text></svg>",',
+                '"attributes":[{"trait_type":"Instrument","value":"',
+                instrument,
+                '"},{"trait_type":"Note","value":"',
+                note,
+                '"}]',
+                '"animation_url":"data:audio/wav;base64,UklGRgAAAABXQVZFZm10IBAAAAABAAEA+CoAAPBVAAABAAgAZGF0YQAA'
             ); // missing 2 zero bytes
             uint256 len = start.length;
             uint256 src;

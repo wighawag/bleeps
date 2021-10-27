@@ -71,6 +71,10 @@ contract Bleeps is ERC721BaseWithPermit {
         return "BLEEP";
     }
 
+    function contractURI() external view returns (string memory) {
+        return tokenURIContract.contractURI();
+    }
+
     function tokenURI(uint256 id) external view returns (string memory) {
         return tokenURIContract.wav(uint16(id));
     }

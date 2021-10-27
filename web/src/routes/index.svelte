@@ -86,6 +86,34 @@
     }
     return 'NONE';
   }
+
+  function noteName(id: number): string {
+    const note = id % 64;
+    const m = note % 12;
+    let n = m;
+    if (m > 0) {
+      n--;
+    }
+    if (m > 2) {
+      n--;
+    }
+    if (m > 5) {
+      n--;
+    }
+    if (m > 7) {
+      n--;
+    }
+    if (m > 9) {
+      n--;
+    }
+    let str = '_';
+    str = String.fromCharCode(65 + ((n + 2) % 7));
+    if (m == 1 || m == 3 || m == 6 || m == 8 || m == 10) {
+      str += '#';
+    }
+    str += String.fromCharCode(48 + Math.floor(note / 12));
+    return str;
+  }
 </script>
 
 {$ownersState.state}
@@ -147,7 +175,7 @@
                       y="16"
                       dominant-baseline="middle"
                       text-anchor="middle"
-                      style="fill: rgb(219, 39, 119); font-size: 12px;">D#0</text
+                      style="fill: rgb(84, 102, 221); font-size: 12px;">{noteName(bleepId)}</text
                     ></svg
                   >
                   {#if $ownersState.tokenOwners && $ownersState.tokenOwners[bleepId]}
