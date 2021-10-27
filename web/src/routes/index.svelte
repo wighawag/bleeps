@@ -21,10 +21,15 @@
     if (!wallet.contracts) {
       return Promise.reject('no contract');
     }
-    return wallet.contracts.BleepsTokenURI.wav(id).then((v) => {
-      return fetch(v).then((r) => r.json());
-      // return JSON.parse(v.substr('data:application/json,'.length));
-    });
+    return wallet.contracts.BleepsTokenURI.wav(id)
+      .then((v) => {
+        console.log(v);
+        return fetch(v).then((r) => r.json());
+        // return JSON.parse(v.substr('data:application/json,'.length));
+      })
+      .catch((e) => {
+        console.log(e);
+      });
   }
 
   let sound;
@@ -217,9 +222,11 @@
         {#await sound}
           Loading Sound, please wait...
         {:then metadata}
-          <h1 class="text-green-400 text-2xl">{metadata.name}</h1>
-          <audio src={metadata.animation_url} preload="auto" controls autoplay crossorigin="anonymous" />
+          {JSON.stringify(metadata, null, '  ')}
+          <h1 class="text-green-400 text-2xl">{metadata?.name}</h1>
+          <audio src={metadata?.animation_url} preload="auto" controls autoplay crossorigin="anonymous" />
         {:catch error}
+          {error}
           <p style="color: red">{formatError(error)}</p>
         {/await}
       {/if}

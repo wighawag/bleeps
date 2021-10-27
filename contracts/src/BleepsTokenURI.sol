@@ -132,7 +132,7 @@ contract BleepsTokenURI {
                 '","description":"A%20sound%20fully%20generated%20onchain","external_url":"',
                 "https://bleeps.art/bleeps/%23id=",
                 bytes(uint2str(id)),
-                "\",\"image\":\"data:image/svg+xml,<svg%2520xmlns='http://www.w3.org/2000/svg'%2520viewBox='0%25200%252064%252032'%2520><text%2520x='32'%2520y='16'%2520dominant-baseline='middle'%2520text-anchor='middle'%2520style='fill:%2520rgb(84,%2520102,%2520221);%2520font-size:%252012px;'>",
+                "\",\"image\":\"data:image/svg+xml,<svg%2520xmlns='http://www.w3.org/2000/svg'%2520viewBox='0%25200%252096%252048'%2520><text%2520x='48'%2520y='24'%2520dominant-baseline='middle'%2520text-anchor='middle'%2520style='fill:%2520rgb(84,%2520102,%2520221);%2520font-size:%252012px;'>",
                 instrumentName(id, true),
                 "%20",
                 noteString(id, true),
@@ -141,7 +141,7 @@ contract BleepsTokenURI {
                 instrument,
                 '"},{"trait_type":"Note","value":"',
                 note,
-                '"}]',
+                '"}],',
                 '"animation_url":"data:audio/wav;base64,UklGRgAAAABXQVZFZm10IBAAAAABAAEA+CoAAPBVAAABAAgAZGF0YQAA'
             ); // missing 2 zero bytes
             uint256 len = start.length;
