@@ -21,7 +21,7 @@ contract BleepsDAO is Governor, GovernorCompatibilityBravo, GovernorVotesComp, G
         return 2; // 1 week
     }
 
-    function quorum(uint256 blockNumber) public pure override returns (uint256) {
+    function quorum(uint256) public pure override returns (uint256) {
         return 3;
     }
 

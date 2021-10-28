@@ -38,7 +38,7 @@ contract BleepsTokenURI {
             'data:application/json,{"name":"Bleeps","description":"Composable%20Sounds%20Fully%20Generated%20On-Chain","image":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MCAzOC4wNSIgc3R5bGU9ImJhY2tncm91bmQtY29sb3I6d2hpdGUiID48c3R5bGU+I0xpbmVfMSB7YW5pbWF0aW9uOnB1bHNlIDFzIGluZmluaXRlO2FuaW1hdGlvbi1kZWxheTouMTVzO30jTGluZV8yIHthbmltYXRpb246cHVsc2UgMXMgaW5maW5pdGU7YW5pbWF0aW9uLWRlbGF5Oi4zMHM7fSNMaW5lXzMge2FuaW1hdGlvbjpwdWxzZSAxcyBpbmZpbml0ZTthbmltYXRpb24tZGVsYXk6LjQ1czt9I0xpbmVfNCB7YW5pbWF0aW9uOnB1bHNlIDFzIGluZmluaXRlO2FuaW1hdGlvbi1kZWxheTouNjBzO30jTGluZV81IHthbmltYXRpb246cHVsc2UgMXMgaW5maW5pdGU7YW5pbWF0aW9uLWRlbGF5Oi43NXM7fSNMaW5lXzYge2FuaW1hdGlvbjpwdWxzZSAxcyBpbmZpbml0ZTthbmltYXRpb24tZGVsYXk6Ljkwczt9I0xpbmVfNyB7YW5pbWF0aW9uOnB1bHNlIDFzIGluZmluaXRlO2FuaW1hdGlvbi1kZWxheToxLjA1czt9I0xpbmVfOCB7YW5pbWF0aW9uOnB1bHNlIDFzIGluZmluaXRlO2FuaW1hdGlvbi1kZWxheToxLjIwczt9I0xpbmVfOSB7YW5pbWF0aW9uOnB1bHNlIDFzIGluZmluaXRlO2FuaW1hdGlvbi1kZWxheToxLjM1czt9QGtleWZyYW1lcyBwdWxzZSB7MCV7dHJhbnNmb3JtOiBzY2FsZVkoMSk7dHJhbnNmb3JtLW9yaWdpbjo1MCUgNTAlO301MCUge3RyYW5zZm9ybTogc2NhbGVZKC43KTt0cmFuc2Zvcm0tb3JpZ2luOiA1MCUgNTAlO30xMDAlIHt0cmFuc2Zvcm06IHNjYWxlWSgxKTt0cmFuc2Zvcm0tb3JpZ2luOiA1MCUgNTAlO319PC9zdHlsZT48cGF0aCBpZD0iTGluZV8xIiBkYXRhLW5hbWU9IkxpbmUgMSIgZD0iTTAuOTEsMTVMMC43OCwxNUExLDEsMCwwLDAsMCwxNnY2YTEsMSwwLDEsMCwyLDBzMCwwLDAsMFYxNmExLDEsMCwwLDAtMS0xSDAuOTFaIi8+PHBhdGggaWQ9IkxpbmVfMiIgZGF0YS1uYW1lPSJMaW5lIDIiIGQ9Ik02LjkxLDlMNi43OCw5QTEsMSwwLDAsMCw2LDEwVjI4YTEsMSwwLDEsMCwyLDBzMCwwLDAsMFYxMEExLDEsMCwwLDAsNyw5SDYuOTFaIi8+PHBhdGggaWQ9IkxpbmVfMyIgZGF0YS1uYW1lPSJMaW5lIDMiIGQ9Ik0xMi45MSwwTDEyLjc4LDBBMSwxLDAsMCwwLDEyLDFWMzdhMSwxLDAsMSwwLDIsMHMwLDAsMCwwVjFhMSwxLDAsMCwwLTEtMUgxMi45MVoiLz48cGF0aCBpZD0iTGluZV80IiBkYXRhLW5hbWU9IkxpbmUgNCIgZD0iTTE4LjkxLDEwbC0wLjEyLDBBMSwxLDAsMCwwLDE4LDExVjI3YTEsMSwwLDEsMCwyLDBzMCwwLDAsMFYxMWExLDEsMCwwLDAtMS0xSDE4LjkxWiIvPjxwYXRoIGlkPSJMaW5lXzUiIGRhdGEtbmFtZT0iTGluZSA1IiBkPSJNMjQuOTEsMTVsLTAuMTIsMEExLDEsMCwwLDAsMjQsMTZ2NmExLDEsMCwwLDAsMiwwczAsMCwwLDBWMTZhMSwxLDAsMCwwLTEtMUgyNC45MVoiLz48cGF0aCBpZD0iTGluZV82IiBkYXRhLW5hbWU9IkxpbmUgNiIgZD0iTTMwLjkxLDEwbC0wLjEyLDBBMSwxLDAsMCwwLDMwLDExVjI3YTEsMSwwLDEsMCwyLDBzMCwwLDAsMFYxMWExLDEsMCwwLDAtMS0xSDMwLjkxWiIvPjxwYXRoIGlkPSJMaW5lXzciIGRhdGEtbmFtZT0iTGluZSA3IiBkPSJNMzYuOTEsMEwzNi43OCwwQTEsMSwwLDAsMCwzNiwxVjM3YTEsMSwwLDEsMCwyLDBzMCwwLDAsMFYxYTEsMSwwLDAsMC0xLTFIMzYuOTFaIi8+PHBhdGggaWQ9IkxpbmVfOCIgZGF0YS1uYW1lPSJMaW5lIDgiIGQ9Ik00Mi45MSw5TDQyLjc4LDlBMSwxLDAsMCwwLDQyLDEwVjI4YTEsMSwwLDEsMCwyLDBzMCwwLDAsMFYxMGExLDEsMCwwLDAtMS0xSDQyLjkxWiIvPjxwYXRoIGlkPSJMaW5lXzkiIGRhdGEtbmFtZT0iTGluZSA5IiBkPSJNNDguOTEsMTVsLTAuMTIsMEExLDEsMCwwLDAsNDgsMTZ2NmExLDEsMCwxLDAsMiwwczAsMCwwLDBWMTZhMSwxLDAsMCwwLTEtMUg0OC45MVoiLz48L3N2Zz4K","external_link":"https://bleeps.art"}';
     }
 
-    function wav(uint256 id) external view returns (string memory) {
+    function wav(uint256 id) external pure returns (string memory) {
         return _generateWav(id);
     }
 
@@ -66,6 +66,7 @@ contract BleepsTokenURI {
         }
     }
 
+    // solhint-disable-next-line code-complexity
     function instrumentName(uint256 id, bool doubleEncoding) internal pure returns (bytes memory str) {
         uint256 instr = (uint256(id) >> 6) % 16;
         if (instr == 0) {
@@ -89,6 +90,7 @@ contract BleepsTokenURI {
         }
     }
 
+    // solhint-disable-next-line code-complexity
     function noteString(uint256 id, bool doubleEncoding) internal pure returns (bytes memory str) {
         uint256 note = uint256(id) % 64;
         uint8 m = uint8(note % 12);
@@ -108,19 +110,34 @@ contract BleepsTokenURI {
         if (m > 9) {
             n--;
         }
-        str = "_";
-        str[0] = bytes1(uint8(65) + uint8((n + 2) % 7));
+        bytes1 noteStr = bytes1(uint8(65) + uint8((n + 2) % 7));
+        bytes1 octaveStr = bytes1(48 + uint8(note / 12));
+
         if (m == 1 || m == 3 || m == 6 || m == 8 || m == 10) {
             if (doubleEncoding) {
-                str = bytes.concat(str, "%2523_");
+                return bytes.concat(noteStr, "%2523", octaveStr);
             } else {
-                str = bytes.concat(str, "%23_");
+                return bytes.concat(noteStr, "%23", octaveStr);
             }
+        } else {
+            return bytes.concat(noteStr, octaveStr);
         }
-        str[str.length - 1] = bytes1(48 + uint8(note / 12));
+
+        // str = "_";
+        // str[0] = bytes1(uint8(65) + uint8((n + 2) % 7));
+        // if (m == 1 || m == 3 || m == 6 || m == 8 || m == 10) {
+        //     if (doubleEncoding) {
+        //         str = bytes.concat(str, "%2523_");
+        //     } else {
+        //         str = bytes.concat(str, "%23_");
+        //     }
+        // } else {
+        //     str = bytes.concat(str, "_");
+        // }
+        // str[str.length - 1] = bytes1(48 + uint8(note / 12));
     }
 
-    function _prepareBuffer(uint256 id, bytes memory buffer) internal pure returns (uint256 l) {
+    function _prepareBuffer(uint256 id, bytes memory buffer) internal pure returns (uint256) {
         unchecked {
             bytes memory instrument = instrumentName(id, false);
             bytes memory note = noteString(id, false);
@@ -197,6 +214,7 @@ contract BleepsTokenURI {
 
         // filesize // 46 00 00
         resultPtr = startLength + 32 - 52;
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             resultPtr := add(buffer, resultPtr)
             let v := shl(40, 0x46)
@@ -225,6 +243,7 @@ contract BleepsTokenURI {
 
         // // // chunksize // 61 00 00
         resultPtr = startLength + 32 - 4;
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             resultPtr := add(buffer, resultPtr)
             let v := shl(40, 0x61)
@@ -252,7 +271,7 @@ contract BleepsTokenURI {
         }
     }
 
-    function _generateWav(uint256 id) internal view returns (string memory) {
+    function _generateWav(uint256 id) internal pure returns (string memory) {
         bytes memory buffer = new bytes(100000);
         uint256 startLength = _prepareBuffer(id, buffer);
 
@@ -265,6 +284,7 @@ contract BleepsTokenURI {
         uint256 tablePtr;
         uint256 resultPtr = startLength + 32;
 
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             // prepare the lookup table
             tablePtr := add(table, 1)
@@ -294,6 +314,7 @@ contract BleepsTokenURI {
                 }
             }
 
+            // solhint-disable-next-line no-inline-assembly
             assembly {
                 function abs(a) -> b {
                     b := a

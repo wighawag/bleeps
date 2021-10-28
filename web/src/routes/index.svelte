@@ -67,6 +67,10 @@
     });
   }
 
+  function instrumentNameFromId(id: number): string {
+    return instrumentName(id >> 6);
+  }
+
   function instrumentName(instr: number): string {
     switch (instr) {
       case 0:
@@ -219,10 +223,19 @@
     <div class="text-white">
       {#if sound}
         {#await sound}
-          Loading Sound, please wait...
+          <h2 class="text-2xl">Loading {instrumentNameFromId(selected)} {noteName(selected)}....</h2>
+          <!-- Loading Sound, please wait... -->
         {:then metadata}
-          <h1 class="text-green-400 text-2xl">{metadata.name}</h1>
-          <audio src={metadata.animation_url} preload="auto" controls autoplay crossorigin="anonymous" />
+          <!-- <h1 class="text-green-400 text-2xl">{metadata.name}</h1> -->
+          <img src={metadata.image} alt={metadata.name} />
+          <audio
+            src={metadata.animation_url}
+            preload="auto"
+            controls
+            autoplay
+            crossorigin="anonymous"
+            class="mx-auto m-2"
+          />
         {:catch error}
           <p style="color: red">{formatError(error)}</p>
         {/await}

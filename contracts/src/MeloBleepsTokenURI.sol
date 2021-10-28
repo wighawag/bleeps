@@ -30,11 +30,11 @@ contract MeloBleepsTokenURI {
     int256 internal constant MIN_VALUE = MINUS_ONE + 1;
     int256 internal constant MAX_VALUE = ONE - 1;
 
-    function wav(bytes32 d1, bytes32 d2) external view returns (string memory) {
+    function wav(bytes32 d1, bytes32 d2) external pure returns (string memory) {
         return _generateWav(d1, d2);
     }
 
-    function _prepareBuffer(bytes memory buffer) internal pure returns (uint256 l) {
+    function _prepareBuffer(bytes memory buffer) internal pure returns (uint256) {
         bytes memory start = bytes.concat(
             'data:application/json,{"name":"',
             "hello",
@@ -149,7 +149,7 @@ contract MeloBleepsTokenURI {
         }
     }
 
-    function _generateWav(bytes32 d1, bytes32 d2) internal view returns (string memory) {
+    function _generateWav(bytes32 d1, bytes32 d2) internal pure returns (string memory) {
         bytes memory buffer = new bytes(500000);
         uint256 startLength = _prepareBuffer(buffer);
 
