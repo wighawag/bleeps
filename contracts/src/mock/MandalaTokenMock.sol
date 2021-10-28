@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPL-1.0
 pragma solidity 0.8.9;
-pragma experimental ABIEncoderV2;
 
 import "../base/ERC721BaseWithPermit.sol";
 

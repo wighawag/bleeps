@@ -5,7 +5,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, getNamedAccounts} = hre;
   const {deploy, execute} = deployments;
 
-  const {deployer, bleepsMaintainer, saleRecipient} = await getNamedAccounts();
+  const {deployer} = await getNamedAccounts();
 
   const bleeps = await deployments.get('Bleeps');
 
@@ -24,7 +24,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   });
 
   if (BleepsDAO.newlyDeployed) {
-    await execute('Timelock', {from: deployer}, 'setFirstAdmin', BleepsDAO.address);
+    await execute('Timelock', {from: deployer, log: true}, 'setFirstAdmin', BleepsDAO.address);
   }
 };
 export default func;

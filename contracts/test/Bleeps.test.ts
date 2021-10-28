@@ -1,6 +1,6 @@
 import {expect} from './chai-setup';
 import {ethers, deployments, getUnnamedAccounts} from 'hardhat';
-import {Bleeps} from '../typechain';
+import {Bleeps, BleepsInitialSale} from '../typechain';
 import {setupUsers} from './utils';
 import {BigNumber, constants} from 'ethers';
 import {parseEther, solidityKeccak256} from 'ethers/lib/utils';
@@ -12,6 +12,7 @@ const setup = deployments.createFixture(async () => {
   await deployments.fixture('Bleeps');
   const contracts = {
     Bleeps: <Bleeps>await ethers.getContract('Bleeps'),
+    BleepsInitialSale: <BleepsInitialSale>await ethers.getContract('BleepsInitialSale'),
   };
   const users = await setupUsers(await getUnnamedAccounts(), contracts);
   return {
@@ -37,12 +38,12 @@ describe('Bleeps', function () {
   });
 
   it('minting works', async function () {
-    const {users, Bleeps} = await setup();
+    const {users, Bleeps, BleepsInitialSale} = await setup();
     const note = 3;
     const instr = 5;
     const tokenID = note + instr * 64;
 
-    await expect(users[0].Bleeps.mint(tokenID, users[0].address, {value: parseEther('2')}))
+    await expect(users[0].BleepsInitialSale.mint(tokenID, users[0].address, {value: parseEther('2')}))
       .to.emit(Bleeps, 'Transfer')
       .withArgs(AddressZero, users[0].address, tokenID);
 

@@ -33,6 +33,11 @@ class OwnersStateStore extends BaseStore<OwnersState> {
     });
   }
 
+  private priceInfoResolve;
+  public waitFirstPriceInfo = new Promise<void>((resolve) => {
+    this.priceInfoResolve = resolve;
+  });
+
   async query(): Promise<null | {
     addresses: string[];
     startTime: BigNumber;
@@ -42,7 +47,7 @@ class OwnersStateStore extends BaseStore<OwnersState> {
   }> {
     const contracts = chain.contracts || fallback.contracts;
     if (contracts) {
-      const data = await contracts.Bleeps.ownersAndPriceInfo(allIds);
+      const data = await contracts.BleepsInitialSale.ownersAndPriceInfo(allIds);
 
       return data;
     } else if (fallback.state === 'Ready') {
@@ -83,6 +88,9 @@ class OwnersStateStore extends BaseStore<OwnersState> {
         },
         expectedValue: this.computeExpectedValue(),
       });
+      if (this.priceInfoResolve) {
+        this.priceInfoResolve();
+      }
     }
   }
 
@@ -98,7 +106,7 @@ class OwnersStateStore extends BaseStore<OwnersState> {
     if (this.$store.priceInfo) {
       const priceInfo = this.$store.priceInfo;
       let expectedValue = priceInfo.initPrice;
-      const timePassed = BigNumber.from(now()).sub(priceInfo.startTime).sub(60); // pay more (1 min)
+      const timePassed = BigNumber.from(now()).sub(priceInfo.startTime).sub(120); // pay more (1 min)
       const timeLeft = priceInfo.delay.sub(timePassed);
       const priceDiff = priceInfo.initPrice.sub(priceInfo.lastPrice);
 

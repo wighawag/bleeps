@@ -12,7 +12,7 @@
 
   const name = 'Bleeps and The Bleeps DAO';
 
-  let step: 'TX_CREATION' | 'TX_SBUMITTED' | 'IDLE' = 'IDLE';
+  let step: 'FETCHING_LAST_PRICE' | 'TX_CREATION' | 'TX_SBUMITTED' | 'IDLE' = 'IDLE';
   let error: string | undefined;
 
   let selected = undefined;
@@ -21,7 +21,7 @@
     if (!wallet.contracts) {
       return Promise.reject('no contract');
     }
-    return wallet.contracts.BleepsTokenURI.wav(id)
+    return wallet.contracts.BleepsTokenURI.tokenURI(id)
       .then((v) => {
         return fetch(v).then((r) => r.json());
         // return JSON.parse(v.substr('data:application/json,'.length));
@@ -50,9 +50,11 @@
 
   async function mint(bleepId: string) {
     flow.execute(async (contracts) => {
+      step = 'FETCHING_LAST_PRICE';
+      await ownersState.waitFirstPriceInfo;
       step = 'TX_CREATION';
       try {
-        const tx = await contracts.Bleeps.mint(bleepId, wallet.address, {
+        const tx = await contracts.BleepsInitialSale.mint(bleepId, wallet.address, {
           value: $ownersState.expectedValue,
         });
         step = 'TX_SBUMITTED';
@@ -265,6 +267,8 @@
   <Modal cancelable={false}>
     <div class="text-white">
       {#if step === 'TX_CREATION'}
+        Transaction To Be Authorized...
+      {:else if step === 'FETCHING_LAST_PRICE'}
         Fetching Latest Price....
       {:else}
         Waiting for transaction...

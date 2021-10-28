@@ -1,72 +1,49 @@
 // SPDX-License-Identifier: AGPL-1.0
 pragma solidity 0.8.9;
-pragma experimental ABIEncoderV2;
 
-/* solhint-disable quotes */
-
-import "./base/ERC721BaseWithPermit.sol";
-import "./BleepsTokenURI.sol";
+import "./base/ERC721Checkpointable.sol";
+import "./interfaces/ITokenURI.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-contract Bleeps is ERC721BaseWithPermit {
-    // _maintainer only roles is to update the tokenURI contract, useful in case there are any wav generation bug to fix or improvement to make, the plan is to revoke that role when the project has been time-tested
-    address internal _maintainer;
-    address payable internal _recipient;
-    BleepsTokenURI public tokenURIContract;
+contract Bleeps is IERC721, ERC721Checkpointable {
+    event TokenURIContractSet(ITokenURI newTokenURIContract);
+    event MaintainerSet(address newMaintainer);
+    event MinterAdminSet(address newMinterAdmin);
+    event MinterSet(address newMinter);
 
-    uint256 internal immutable _startTime;
-    uint256 internal immutable _initPrice;
-    uint256 internal immutable _delay;
-    uint256 internal immutable _lastPrice;
+    /// @notice maintainer can update the tokenURI contract, this is intended to be relinquished once the tokenURI has been heavily tested in the wild and that no modification are needed.
+    address public maintainer;
 
-    IERC721 internal immutable _mandalas;
+    /// @notice minterAdmin can update the minter. At the time being there is 576 Bleeps but there is space for extra instrument and the upper limit is 1024.
+    /// could be given to the DAO later so instrument can be added, the sale of these instrument sound could benenfit the DAO too and add new members.
+    address public minterAdmin;
+
+    /// @notice address allowed to mint, allow the sale contract to be separated from the token contract that can focus on the core logic
+    /// Once all 1024 potential bleeps (there could be less, at minimum there are 576 bleeps) are minted, no minter can mint anymore
+    address public minter;
+
+    /// @notice the contract that actually generate the sound (and all metadata via the a data: uri as tokenURI)
+    ITokenURI public tokenURIContract;
 
     constructor(
-        uint256 initPrice,
-        uint256 delay,
-        uint256 lastPrice,
-        uint256 startTime,
-        IERC721 mandalas,
-        address maintainer,
-        address payable recipient,
-        BleepsTokenURI initialTokenURIContract
+        address initialMaintainer,
+        address initialMinterAdmin,
+        ITokenURI initialTokenURIContract
     ) {
-        _initPrice = initPrice;
-        _delay = delay;
-        _lastPrice = lastPrice;
-        _startTime = startTime;
-        _mandalas = mandalas;
-        _maintainer = maintainer;
-        _recipient = recipient;
+        maintainer = initialMaintainer;
+        minterAdmin = initialMinterAdmin;
         tokenURIContract = initialTokenURIContract;
+        emit TokenURIContractSet(initialTokenURIContract);
+        emit MaintainerSet(initialMaintainer);
+        emit MinterAdminSet(initialMinterAdmin);
     }
 
-    function priceInfo()
-        external
-        view
-        returns (
-            uint256 startTime,
-            uint256 initPrice,
-            uint256 delay,
-            uint256 lastPrice
-        )
-    {
-        return (_startTime, _initPrice, _delay, _lastPrice);
-    }
-
-    /// @notice Count NFTs tracked by this contract
-    /// @return A count of valid NFTs tracked by this contract, where each one of
-    ///  them has an assigned and queryable owner not equal to the zero address
-    function totalSupply() external pure returns (uint256) {
-        return 576;
-    }
-
-    /// @notice A descriptive name for a collection of NFTs in this contract
+    /// @notice A descriptive name for a collection of NFTs in this contract.
     function name() public pure override returns (string memory) {
         return "Bleeps";
     }
 
-    /// @notice An abbreviated name for NFTs in this contract
+    /// @notice An abbreviated name for NFTs in this contract.
     function symbol() external pure returns (string memory) {
         return "BLEEP";
     }
@@ -75,79 +52,56 @@ contract Bleeps is ERC721BaseWithPermit {
         return tokenURIContract.contractURI();
     }
 
+    /// @notice Returns the Uniform Resource Identifier (URI) for token `id`.
     function tokenURI(uint256 id) external view returns (string memory) {
-        return tokenURIContract.wav(uint16(id));
+        return tokenURIContract.tokenURI(id);
     }
 
-    function setTokenURIContract(BleepsTokenURI newTokenURIContract) external {
-        require(msg.sender == _maintainer, "NOT_AUTHORIZED");
+    function setTokenURIContract(ITokenURI newTokenURIContract) external {
+        require(msg.sender == maintainer, "NOT_AUTHORIZED");
         tokenURIContract = newTokenURIContract;
+        emit TokenURIContractSet(newTokenURIContract);
     }
 
     function setMaintainer(address newMaintainer) external {
-        require(msg.sender == _maintainer, "NOT_AUTHORIZED");
-        _maintainer = newMaintainer;
+        require(msg.sender == maintainer, "NOT_AUTHORIZED");
+        maintainer = newMaintainer;
+        emit MaintainerSet(newMaintainer);
     }
 
-    function setRecipient(address payable newRecipient) external {
-        require(msg.sender == _maintainer, "NOT_AUTHORIZED");
-        _recipient = newRecipient;
+    function setMinter(address newMinter) external {
+        require(msg.sender == minterAdmin, "NOT_AUTHORIZED");
+        minter = newMinter;
+        emit MinterSet(newMinter);
     }
 
-    function ownersAndPriceInfo(uint256[] calldata ids)
-        external
-        view
-        returns (
-            address[] memory addresses,
-            uint256 startTime,
-            uint256 initPrice,
-            uint256 delay,
-            uint256 lastPrice
-        )
-    {
+    function setMinterAdmin(address newMinterAdmin) external {
+        require(msg.sender == minterAdmin, "NOT_AUTHORIZED");
+        minterAdmin = newMinterAdmin;
+        emit MinterAdminSet(newMinterAdmin);
+    }
+
+    function owners(uint256[] calldata ids) external view returns (address[] memory addresses) {
         addresses = new address[](ids.length);
         for (uint256 i = 0; i < ids.length; i++) {
             uint256 id = ids[i];
             addresses[i] = address(uint160(_owners[id]));
         }
-        startTime = _startTime;
-        initPrice = _initPrice;
-        delay = _delay;
-        lastPrice = _lastPrice;
     }
 
     function mint(uint16 id, address to) external payable {
-        require(id < 576, "INVALID_SOUND");
-        uint256 instr = (uint256(id) >> 6) % 16;
-
-        if (instr == 6 || instr == 8) {
-            require(msg.sender == _recipient, "These bleeps are reserved");
-        } else {
-            uint256 expectedValue = _initPrice;
-            uint256 timePassed = (block.timestamp - _startTime);
-            uint256 priceDiff = _initPrice - _lastPrice;
-            if (timePassed >= _delay) {
-                expectedValue = _lastPrice;
-            } else {
-                expectedValue = _lastPrice + (priceDiff * (_delay - timePassed)) / _delay;
-            }
-
-            (bool success, bytes memory returnData) = address(_mandalas).staticcall(
-                abi.encodeWithSignature("balanceOf(address)", msg.sender)
-            );
-            uint256 numMandalas = success && returnData.length > 0 ? abi.decode(returnData, (uint256)) : 0;
-            if (numMandalas > 0) {
-                expectedValue = (expectedValue * 8) / 10;
-            }
-            require(msg.value >= expectedValue, "NOT_ENOUGH");
-            payable(msg.sender).transfer(msg.value - expectedValue);
-            _recipient.transfer(expectedValue);
-        }
+        require(msg.sender == minter, "ONLY_MINTER_ALLOWED");
+        require(id < 1024, "INVALID_SOUND");
 
         require(to != address(0), "NOT_TO_ZEROADDRESS");
         require(to != address(this), "NOT_TO_THIS");
         address owner = _ownerOf(id);
         require(owner == address(0), "ALREADY_CREATED");
         _safeTransferFrom(address(0), to, id, "");
+    }
+
+    function sound(uint256 id) external pure returns (uint8 note, uint8 instrument) {
+        note = uint8(id & 0x3F);
+        instrument = uint8(uint256(id >> 6) & 0x0F);
     }
 }

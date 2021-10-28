@@ -1,8 +1,5 @@
 // SPDX-License-Identifier: AGPL-1.0
 pragma solidity 0.8.9;
-pragma experimental ABIEncoderV2;
-
-/* solhint-disable quotes */
 
 import "./base/ERC721Base.sol";
 import "./MeloBleepsTokenURI.sol";

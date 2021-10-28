@@ -13,8 +13,8 @@ erc721.runMochaTests('Bleeps ERC721', {}, async () => {
   async function mint(to: string): Promise<{hash: string; tokenId: string}> {
     const tokenId = nextTokenId;
     nextTokenId++;
-    const BleepsContract = await ethers.getContract('Bleeps', to);
-    const tx = await BleepsContract.mint(tokenId, to, {value: parseEther('3')});
+    const BleepsInitialSale = await ethers.getContract('BleepsInitialSale', to);
+    const tx = await BleepsInitialSale.mint(tokenId, to, {value: parseEther('3')});
     await tx.wait();
     return {
       tokenId: '' + tokenId,

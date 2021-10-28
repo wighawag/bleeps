@@ -34,9 +34,9 @@
 
 pragma solidity 0.8.9;
 
-import "./ERC721Base.sol";
+import "./ERC721BaseWithPermit.sol";
 
-abstract contract ERC721Checkpointable is ERC721Base {
+abstract contract ERC721Checkpointable is ERC721BaseWithPermit {
     /// @notice Defines decimals as per ERC-20 convention to make integrations with 3rd party governance platforms easier
     uint8 public constant decimals = 0;
 
