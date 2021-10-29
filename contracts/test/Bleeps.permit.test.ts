@@ -9,7 +9,7 @@ import {splitSignature} from '@ethersproject/bytes';
 const {AddressZero} = constants;
 
 const setup = deployments.createFixture(async () => {
-  await deployments.fixture('Bleeps');
+  await deployments.fixture(['Bleeps', 'BleepsInitialSale']);
   const contracts = {
     Bleeps: <Bleeps>await ethers.getContract('Bleeps'),
     BleepsInitialSale: <BleepsInitialSale>await ethers.getContract('BleepsInitialSale'),

@@ -29,6 +29,8 @@ abstract contract ERC721BaseWithPermit is ERC721Base {
         keccak256("Permit(address spender,uint256 tokenId,uint256 nonce,uint256 deadline)");
     bytes32 public constant PERMIT_FOR_ALL_TYPEHASH =
         keccak256("PermitForAll(address spender,uint256 nonce,uint256 deadline)");
+    bytes32 public constant DOMAIN_TYPEHASH =
+        keccak256("EIP712Domain(string name,uint256 chainId,address verifyingContract)");
 
     uint256 private immutable _deploymentChainId;
     bytes32 private immutable _deploymentDomainSeparator;
@@ -65,7 +67,7 @@ abstract contract ERC721BaseWithPermit is ERC721Base {
     ) external {
         require(deadline >= block.timestamp, "PERMIT_DEADLINE_EXPIRED");
 
-        address owner = _ownerOf(id);
+        (address owner, uint256 blockNumber) = _ownerAndBlockNumberOf(id);
         require(owner != address(0), "NONEXISTENT_TOKEN");
         require(signer == owner || _operatorsForAll[owner][signer], "UNAUTHORIZED_SIGNER");
 
@@ -77,7 +79,7 @@ abstract contract ERC721BaseWithPermit is ERC721Base {
         require(batchNonce == currentNonce, "INVALID_NONCE");
         _nonces[signer][batchId] = currentNonce + 1;
 
-        _approveFor(owner, spender, id);
+        _approveFor(owner, blockNumber, spender, id);
     }
 
     function permitForAll(
@@ -172,14 +174,6 @@ abstract contract ERC721BaseWithPermit is ERC721Base {
 
     /// @dev Calculate the DOMAIN_SEPARATOR.
     function _calculateDomainSeparator(uint256 chainId) private view returns (bytes32) {
-        return
-            keccak256(
-                abi.encode(
-                    keccak256("EIP712Domain(string name,uint256 chainId,address verifyingContract)"),
-                    keccak256(bytes(name())),
-                    chainId,
-                    address(this)
-                )
-            );
+        return keccak256(abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(name())), chainId, address(this)));
     }
 }

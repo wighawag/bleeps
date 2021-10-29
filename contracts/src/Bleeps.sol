@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: AGPL-1.0
 pragma solidity 0.8.9;
 
-import "./base/ERC721Checkpointable.sol";
+import "./base/ERC721BaseWithPermit.sol";
 import "./interfaces/ITokenURI.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-contract Bleeps is IERC721, ERC721Checkpointable {
+contract Bleeps is IERC721, ERC721BaseWithPermit {
     event TokenURIContractSet(ITokenURI newTokenURIContract);
     event MaintainerSet(address newMaintainer);
     event MinterAdminSet(address newMinterAdmin);
@@ -68,6 +68,14 @@ contract Bleeps is IERC721, ERC721Checkpointable {
         maintainer = newMaintainer;
         emit MaintainerSet(newMaintainer);
     }
+
+    // TODO remove (used by ERC721Checkpointable for disabling it)
+    // function disableTheUseOfCheckpoints() external {
+    //     require(msg.sender == maintainer, "NOT_AUTHORIZED");
+    //     _useCheckpoints = false;
+    //     // TODO event
+    //     // TODO special role ?
+    // }
 
     function setMinter(address newMinter) external {
         require(msg.sender == minterAdmin, "NOT_AUTHORIZED");

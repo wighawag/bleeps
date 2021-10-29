@@ -12,7 +12,8 @@ abstract contract ERC721Base is IERC165, IERC721 {
     bytes4 internal constant ERC721_RECEIVED = 0x150b7a02;
     bytes4 internal constant ERC165ID = 0x01ffc9a7;
 
-    uint256 internal constant OPERATOR_FLAG = 1 << 255;
+    uint256 internal constant OPERATOR_FLAG = 0x8000000000000000000000000000000000000000000000000000000000000000;
+    uint256 internal constant NOT_OPERATOR_FLAG = 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
 
     mapping(uint256 => uint256) internal _owners;
     mapping(address => uint256) internal _balances;
@@ -27,10 +28,10 @@ abstract contract ERC721Base is IERC165, IERC721 {
     /// @param operator The address receiving the approval.
     /// @param id The id of the token.
     function approve(address operator, uint256 id) external override {
-        address owner = _ownerOf(id);
+        (address owner, uint256 blockNumber) = _ownerAndBlockNumberOf(id);
         require(owner != address(0), "NONEXISTENT_TOKEN");
-        require(owner == msg.sender || _operatorsForAll[owner][msg.sender], "UNAUTHORIZED_APPROVAL");
-        _approveFor(owner, operator, id);
+        require(msg.sender == owner || _operatorsForAll[owner][msg.sender], "UNAUTHORIZED_APPROVAL");
+        _approveFor(owner, blockNumber, operator, id);
     }
 
     /// @notice Transfer a token between 2 addresses.
@@ -89,6 +90,32 @@ abstract contract ERC721Base is IERC165, IERC721 {
     function ownerOf(uint256 id) external view override returns (address owner) {
         owner = _ownerOf(id);
         require(owner != address(0), "NONEXISTENT_TOKEN");
+    }
+
+    /// @notice Get the owner of a token.
+    /// @param id The id of the token.
+    /// @return owner The address of the token owner.
+    /// @return blockNumber The blocknumber at which the last transfer happened
+    function ownerAndLastTransferBlockNumberOf(uint256 id) internal view returns (address owner, uint256 blockNumber) {
+        return _ownerAndBlockNumberOf(id);
+    }
+
+    struct OwnerData {
+        address owner;
+        uint256 lastTransferBlockNumber;
+    }
+
+    function ownerAndLastTransferBlockNumberList(uint256[] calldata ids)
+        external
+        view
+        returns (OwnerData[] memory ownersData)
+    {
+        ownersData = new OwnerData[](ids.length);
+        for (uint256 i = 0; i < ids.length; i++) {
+            uint256 data = _owners[ids[i]];
+            ownersData[i].owner = address(uint160(data));
+            ownersData[i].lastTransferBlockNumber = (data >> 160) & 0xFFFFFFFFFFFFFFFFFFFFFF;
+        }
     }
 
     /// @notice Get the approved operator for a specific token.
@@ -177,20 +204,21 @@ abstract contract ERC721Base is IERC165, IERC721 {
                 _balances[from]--;
             }
         }
-        _owners[id] = uint256(uint160(to));
+        _owners[id] = (block.number << 160) | uint256(uint160(to));
         emit Transfer(from, to, id);
     }
 
     /// @dev See approve.
     function _approveFor(
         address owner,
+        uint256 blockNumber,
         address operator,
         uint256 id
     ) internal {
         if (operator == address(0)) {
-            _owners[id] = uint256(uint160(owner));
+            _owners[id] = (blockNumber << 160) | uint256(uint160(owner));
         } else {
-            _owners[id] = OPERATOR_FLAG | uint256(uint160(owner));
+            _owners[id] = OPERATOR_FLAG | (blockNumber << 160) | uint256(uint160(owner));
             _operators[id] = operator;
         }
         emit Approval(owner, operator, id);
@@ -238,5 +266,15 @@ abstract contract ERC721Base is IERC165, IERC721 {
         uint256 data = _owners[id];
         owner = address(uint160(data));
         operatorEnabled = (data & OPERATOR_FLAG) == OPERATOR_FLAG;
+    }
+
+    // @dev Get the owner and operatorEnabled status of a token.
+    /// @param id The token to query.
+    /// @return owner The owner of the token.
+    /// @return blockNumber the blockNumber at which the owner became the owner (last transfer)
+    function _ownerAndBlockNumberOf(uint256 id) internal view returns (address owner, uint256 blockNumber) {
+        uint256 data = _owners[id];
+        owner = address(uint160(data));
+        blockNumber = (data >> 160) & 0xFFFFFFFFFFFFFFFFFFFFFF;
     }
 }

@@ -37,6 +37,8 @@ pragma solidity 0.8.9;
 import "./ERC721BaseWithPermit.sol";
 
 abstract contract ERC721Checkpointable is ERC721BaseWithPermit {
+    bool internal _useCheckpoints = true; // can only be disabled and never re-enabled
+
     /// @notice Defines decimals as per ERC-20 convention to make integrations with 3rd party governance platforms easier
     uint8 public constant decimals = 0;
 
@@ -55,9 +57,10 @@ abstract contract ERC721Checkpointable is ERC721BaseWithPermit {
     /// @notice The number of checkpoints for each account
     mapping(address => uint32) public numCheckpoints;
 
-    /// @notice The EIP-712 typehash for the contract's domain
-    bytes32 public constant DOMAIN_TYPEHASH =
-        keccak256("EIP712Domain(string name,uint256 chainId,address verifyingContract)");
+    // a;ready there
+    // /// @notice The EIP-712 typehash for the contract's domain
+    // bytes32 public constant DOMAIN_TYPEHASH =
+    //     keccak256("EIP712Domain(string name,uint256 chainId,address verifyingContract)");
 
     /// @notice The EIP-712 typehash for the delegation struct used by the contract
     bytes32 public constant DELEGATION_TYPEHASH =
@@ -100,9 +103,10 @@ abstract contract ERC721Checkpointable is ERC721BaseWithPermit {
         uint256 tokenId
     ) internal override {
         super._beforeTokenTransfer(from, to, tokenId);
-
-        /// @notice Differs from `_transferTokens()` to use `delegates` override method to simulate auto-delegation
-        _moveDelegates(delegates(from), delegates(to), 1);
+        if (_useCheckpoints) {
+            /// @notice Differs from `_transferTokens()` to use `delegates` override method to simulate auto-delegation
+            _moveDelegates(delegates(from), delegates(to), 1);
+        }
     }
 
     /**

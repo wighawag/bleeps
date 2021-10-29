@@ -5,7 +5,7 @@ import {parseEther} from 'ethers/lib/utils';
 
 erc721.runMochaTests('Bleeps ERC721', {}, async () => {
   //{burn: true}
-  await deployments.fixture(['Bleeps']);
+  await deployments.fixture(['Bleeps', 'BleepsInitialSale']);
   const {deployer} = await getNamedAccounts();
   const Bleeps = await deployments.get('Bleeps');
   const users = await getUnnamedAccounts();
