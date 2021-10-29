@@ -20,7 +20,7 @@ library Bytes {
         uint256 offset,
         uint256 data,
         uint256 len
-    ) private returns (uint256 newOffset) {
+    ) internal pure returns (uint256 newOffset) {
         newOffset = offset + len;
         len = 256 - len * 8;
         offset += 32;
@@ -35,7 +35,7 @@ library Bytes {
         uint256 offset,
         uint256 data,
         uint256 len
-    ) private returns (uint256 newOffset) {
+    ) internal pure returns (uint256 newOffset) {
         newOffset = offset + (len * 4) / 3;
         len = 256 - len * 8;
         offset += 32;
@@ -52,7 +52,7 @@ library Bytes {
         uint256 dest,
         uint256 src,
         uint256 len
-    ) private {
+    ) internal pure {
         for (; len >= 32; len -= 32) {
             assembly {
                 mstore(dest, mload(src))

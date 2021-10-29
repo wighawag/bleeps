@@ -1,9 +1,9 @@
 import {expect} from './chai-setup';
 import {ethers, deployments, getUnnamedAccounts} from 'hardhat';
-import {MeloBleeps} from '../typechain';
+import {MeloBleeps, MeloBleepsAuction} from '../typechain';
 import {setupUsers} from './utils';
 import {BigNumber, constants} from 'ethers';
-import {solidityKeccak256} from 'ethers/lib/utils';
+import {parseEther, solidityKeccak256} from 'ethers/lib/utils';
 const {AddressZero} = constants;
 // import Sound from 'node-aplay';
 // import fs from 'fs';
@@ -45,9 +45,10 @@ function createData(steps: {note: number; shape: number; vol: number}[]): {
 }
 
 const setup = deployments.createFixture(async () => {
-  await deployments.fixture('MeloBleeps');
+  await deployments.fixture(['MeloBleeps', 'MeloBleepsAuction']);
   const contracts = {
     MeloBleeps: <MeloBleeps>await ethers.getContract('MeloBleeps'),
+    MeloBleepsAuction: <MeloBleepsAuction>await ethers.getContract('MeloBleepsAuction'),
   };
   const users = await setupUsers(await getUnnamedAccounts(), contracts);
   return {
@@ -57,7 +58,7 @@ const setup = deployments.createFixture(async () => {
 });
 describe('MeloBleeps tokenURI', function () {
   it('minting works', async function () {
-    const {users, MeloBleeps} = await setup();
+    const {users, MeloBleeps, MeloBleepsAuction} = await setup();
     // TODO :
     // let tokenID = BigNumber.from(0);
     // for (let i = 0; i < 16; i++) {
@@ -175,11 +176,24 @@ describe('MeloBleeps tokenURI', function () {
 
     const {data1, data2} = createData(testSong3);
 
-    const tokenID = solidityKeccak256(['bytes32', 'bytes32'], [data1, data2]);
+    const tokenID = 1; // solidityKeccak256(['bytes32', 'bytes32'], [data1, data2]);
 
-    await expect(users[0].MeloBleeps.mint(data1, data2, users[0].address))
+    /*
+      address payable artist,
+        bytes32 data1,
+        bytes32 data2,
+        uint256 startPrice,
+        uint256 endPrice,
+        uint256 duration
+    */
+    await expect(
+      users[1].MeloBleepsAuction.mint(users[1].address, data1, data2, parseEther('1'), parseEther('0.5'), 3600)
+    )
       .to.emit(MeloBleeps, 'Transfer')
-      .withArgs(AddressZero, users[0].address, tokenID);
+      .withArgs(AddressZero, MeloBleepsAuction.address, tokenID);
+
+    await users[0].MeloBleepsAuction.purchase(1, users[0].address, {value: parseEther('1')});
+
     const tokenURI = await MeloBleeps.tokenURI(tokenID);
     // console.log(tokenURI);
     const metadataStr = tokenURI.substr('data:application/json,'.length);

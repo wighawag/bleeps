@@ -3,9 +3,9 @@ import {DeployFunction} from 'hardhat-deploy/types';
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, getNamedAccounts} = hre;
-  const {deploy, execute} = deployments;
+  const {deploy, execute, read} = deployments;
 
-  const {deployer, bleepsMaintainer} = await getNamedAccounts();
+  const {deployer, meloBleepsMaintainer, meloBleepsMinterAdmin} = await getNamedAccounts();
 
   const tokenURIContract = await deploy('MeloBleepsTokenURI', {
     from: deployer,
@@ -13,15 +13,30 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     autoMine: true,
   });
 
-  if ((await deployments.getOrNull('MeloBleeps')) && tokenURIContract.newlyDeployed) {
-    await execute('MeloBleeps', {from: bleepsMaintainer, log: true}, 'setTokenURIContract', tokenURIContract.address);
+  const existingBleeps = await deployments.getOrNull('MeloBleeps');
+
+  let needUpdate = false;
+  if (existingBleeps) {
+    const currentTokenURIContract = await read('MeloBleeps', 'tokenURIContract');
+    if (currentTokenURIContract?.toLowerCase() !== tokenURIContract.address.toLowerCase()) {
+      needUpdate = true;
+    }
+  }
+
+  if (needUpdate) {
+    await execute(
+      'MeloBleeps',
+      {from: meloBleepsMaintainer, log: true},
+      'setTokenURIContract',
+      tokenURIContract.address
+    );
   } else {
     await deploy('MeloBleeps', {
       from: deployer,
-      args: [bleepsMaintainer, tokenURIContract.address],
-      log: true,
+      args: [meloBleepsMaintainer, meloBleepsMinterAdmin, tokenURIContract.address],
       skipIfAlreadyDeployed: true,
-      autoMine: true,
+      log: true,
+      autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
     });
   }
 };

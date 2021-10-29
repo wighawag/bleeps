@@ -31,6 +31,8 @@ const config: HardhatUserConfig = {
     bleepsMaintainer: 1,
     bleepsMinterAdmin: 1,
     saleRecipient: 1,
+    meloBleepsMaintainer: 1,
+    meloBleepsMinterAdmin: 1,
   },
   networks: {
     hardhat: {

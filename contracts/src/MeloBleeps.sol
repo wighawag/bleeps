@@ -2,22 +2,30 @@
 pragma solidity 0.8.9;
 
 import "./base/ERC721Base.sol";
+import "./base/MinterMaintainerRoles.sol";
 import "./MeloBleepsTokenURI.sol";
 
-contract MeloBleeps is ERC721Base {
-    // _maintainer only roles is to update the tokenURI contract, useful in case there are any wav generation bug to fix or improvement to make, the plan is to revoke that role when the project has been time-tested
-    address internal _maintainer;
-    MeloBleepsTokenURI internal _tokenURIContract;
+contract MeloBleeps is ERC721Base, MinterMaintainerRoles {
+    event TokenURIContractSet(MeloBleepsTokenURI newTokenURIContract);
+
+    /// @notice the contract that actually generate the sound (and all metadata via the a data: uri as tokenURI)
+    MeloBleepsTokenURI public tokenURIContract;
 
     struct Melody {
         bytes32 data1;
         bytes32 data2;
+        address payable artist;
     }
     mapping(uint256 => Melody) internal _melodies;
+    uint256 _supply = 0;
 
-    constructor(address maintainer, MeloBleepsTokenURI tokenURIContract) {
-        _maintainer = maintainer;
-        _tokenURIContract = tokenURIContract;
+    constructor(
+        address initialMaintainer,
+        address initialMinterAdmin,
+        MeloBleepsTokenURI initialTokenURIContract
+    ) MinterMaintainerRoles(initialMaintainer, initialMinterAdmin) {
+        tokenURIContract = initialTokenURIContract;
+        emit TokenURIContractSet(initialTokenURIContract);
     }
 
     /// @notice A descriptive name for a collection of NFTs in this contract
@@ -33,30 +41,31 @@ contract MeloBleeps is ERC721Base {
     function tokenURI(uint256 id) external view returns (string memory) {
         bytes32 d1 = _melodies[id].data1;
         bytes32 d2 = _melodies[id].data2;
-        return _tokenURIContract.wav(d1, d2);
+        return tokenURIContract.wav(d1, d2);
     }
 
     function setTokenURIContract(MeloBleepsTokenURI newTokenURIContract) external {
-        require(msg.sender == _maintainer, "NOT_AUTHORIZED");
-        _tokenURIContract = newTokenURIContract;
-    }
-
-    function setMaintainer(address newMaintainer) external {
-        require(msg.sender == _maintainer, "NOT_AUTHORIZED");
-        _maintainer = newMaintainer;
+        require(msg.sender == maintainer, "NOT_AUTHORIZED");
+        tokenURIContract = newTokenURIContract;
+        emit TokenURIContractSet(newTokenURIContract);
     }
 
     function mint(
+        address payable artist,
         bytes32 data1,
         bytes32 data2,
         address to
-    ) external {
-        uint256 id = uint256(keccak256(abi.encodePacked(data1, data2))); // creator ?
-        _melodies[id] = Melody(data1, data2);
+    ) external returns (uint256 id) {
+        require(msg.sender == minter, "ONLY_MINTER_ALLOWED");
+        id = ++_supply;
+        _melodies[id] = Melody(data1, data2, artist);
         require(to != address(0), "NOT_TO_ZEROADDRESS");
         require(to != address(this), "NOT_TO_THIS");
-        address owner = _ownerOf(id);
-        require(owner == address(0), "ALREADY_CREATED");
-        _safeTransferFrom(address(0), to, id, "");
+        // _safeTransferFrom(address(0), to, id, "");
+        _transferFrom(address(0), to, id);
+    }
+
+    function creatorOf(uint256 id) external view returns (address payable) {
+        return _melodies[id].artist;
     }
 }

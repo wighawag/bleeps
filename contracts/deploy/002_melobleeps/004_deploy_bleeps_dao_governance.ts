@@ -9,6 +9,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const bleeps = await deployments.get('Bleeps');
 
+  // TODO TimeLock should be called the BleepsDAOGovernance
   const Timelock = await deploy('Timelock', {
     from: deployer,
     args: [deployer, 2], // 2 = timeLOckdelay
@@ -16,16 +17,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     autoMine: true,
   });
 
-  const BleepsDAO = await deploy('BleepsDAO', {
+  const BleepsDAOGovernance = await deploy('BleepsDAOGovernance', {
     from: deployer,
     args: [bleeps.address, Timelock.address], // 2 = timeLOckdelay
     log: true,
     autoMine: true,
   });
 
-  if (BleepsDAO.newlyDeployed) {
-    await execute('Timelock', {from: deployer, log: true}, 'setFirstAdmin', BleepsDAO.address);
+  if (BleepsDAOGovernance.newlyDeployed) {
+    await execute('Timelock', {from: deployer, log: true}, 'setFirstAdmin', BleepsDAOGovernance.address);
   }
 };
 export default func;
-func.tags = ['BleepsDAO'];
+func.tags = ['BleepsDAOGovernance'];
