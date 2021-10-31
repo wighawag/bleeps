@@ -12,6 +12,7 @@ contract BleepsInitialSale {
     uint256 internal immutable _lastPrice;
     address payable internal immutable _recipient;
     IERC721 internal immutable _mandalas;
+    uint256 internal immutable _mandalasDiscountPercentage;
 
     constructor(
         Bleeps bleeps,
@@ -20,7 +21,8 @@ contract BleepsInitialSale {
         uint256 lastPrice,
         uint256 startTime,
         address payable recipient,
-        IERC721 mandalas
+        IERC721 mandalas,
+        uint256 mandalasDiscountPercentage
     ) {
         _bleeps = bleeps;
         _initPrice = initPrice;
@@ -29,22 +31,25 @@ contract BleepsInitialSale {
         _startTime = startTime;
         _recipient = recipient;
         _mandalas = mandalas;
+        _mandalasDiscountPercentage = mandalasDiscountPercentage;
     }
 
-    function priceInfo()
+    function priceInfo(address purchaser)
         external
         view
         returns (
             uint256 startTime,
             uint256 initPrice,
             uint256 delay,
-            uint256 lastPrice
+            uint256 lastPrice,
+            uint256 mandalasDiscountPercentage,
+            bool hasMandalas
         )
     {
-        return (_startTime, _initPrice, _delay, _lastPrice);
+        return (_startTime, _initPrice, _delay, _lastPrice, _mandalasDiscountPercentage, _hasMandalas(purchaser));
     }
 
-    function ownersAndPriceInfo(uint256[] calldata ids)
+    function ownersAndPriceInfo(address purchaser, uint256[] calldata ids)
         external
         view
         returns (
@@ -52,7 +57,9 @@ contract BleepsInitialSale {
             uint256 startTime,
             uint256 initPrice,
             uint256 delay,
-            uint256 lastPrice
+            uint256 lastPrice,
+            uint256 mandalasDiscountPercentage,
+            bool hasMandalas
         )
     {
         addresses = _bleeps.owners(ids);
@@ -60,6 +67,8 @@ contract BleepsInitialSale {
         initPrice = _initPrice;
         delay = _delay;
         lastPrice = _lastPrice;
+        mandalasDiscountPercentage = _mandalasDiscountPercentage;
+        hasMandalas = _hasMandalas(purchaser);
     }
 
     function mint(uint16 id, address to) external payable {
@@ -78,17 +87,21 @@ contract BleepsInitialSale {
                 expectedValue = _lastPrice + (priceDiff * (_delay - timePassed)) / _delay;
             }
 
-            (bool success, bytes memory returnData) = address(_mandalas).staticcall(
-                abi.encodeWithSignature("balanceOf(address)", msg.sender)
-            );
-            uint256 numMandalas = success && returnData.length > 0 ? abi.decode(returnData, (uint256)) : 0;
-            if (numMandalas > 0) {
-                expectedValue = (expectedValue * 8) / 10;
+            if (_hasMandalas(msg.sender)) {
+                expectedValue = expectedValue - (expectedValue * _mandalasDiscountPercentage) / 100;
             }
             require(msg.value >= expectedValue, "NOT_ENOUGH");
             payable(msg.sender).transfer(msg.value - expectedValue);
             _recipient.transfer(expectedValue);
         }
         _bleeps.mint(id, to);
+    }
+
+    function _hasMandalas(address owner) internal view returns (bool) {
+        (bool success, bytes memory returnData) = address(_mandalas).staticcall(
+            abi.encodeWithSignature("balanceOf(address)", owner)
+        );
+        uint256 numMandalas = success && returnData.length > 0 ? abi.decode(returnData, (uint256)) : 0;
+        return numMandalas > 0;
     }
 }

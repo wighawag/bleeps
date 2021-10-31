@@ -21,7 +21,7 @@
     if (!wallet.contracts) {
       return Promise.reject('no contract');
     }
-    return wallet.contracts.BleepsTokenURI.tokenURI(id)
+    return wallet.contracts.Bleeps.tokenURI(id)
       .then((v) => {
         return fetch(v).then((r) => r.json());
         // return JSON.parse(v.substr('data:application/json,'.length));
@@ -121,7 +121,7 @@
     if (m == 1 || m == 3 || m == 6 || m == 8 || m == 10) {
       str += '#';
     }
-    str += String.fromCharCode(48 + Math.floor(note / 12));
+    str += String.fromCharCode(50 + Math.floor(note / 12));
     return str;
   }
 </script>
@@ -149,8 +149,18 @@
     </p>
 
     {#if $ownersState?.expectedValue}
+      {#if $ownersState?.priceInfo.hasMandalas}
+        <p class="text-green-600">
+          As a owner of mandalas, you got a {$ownersState.priceInfo.mandalasDiscountPercentage}% discount!
+        </p>
+      {/if}
       <p class="text-yellow-400">
-        Current Price: {$ownersState?.expectedValue.div('1000000000000000').toNumber() / 1000}
+        Current Price: {$ownersState?.expectedValue.div('1000000000000000').toNumber() / 1000} ETH
+        {#if $ownersState?.priceInfo.hasMandalas}
+          <span class="text-gray-500"
+            >(instead of {$ownersState?.normalExpectedValue.div('1000000000000000').toNumber() / 1000} ETH)</span
+          >
+        {/if}
       </p>
     {/if}
 

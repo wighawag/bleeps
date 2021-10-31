@@ -20,7 +20,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   });
 
   const currentMinter = await read('MeloBleeps', 'minter');
-  if (currentMinter?.toLowerCase() !== MeloBleepsAuction.address) {
+  if (currentMinter?.toLowerCase() !== MeloBleepsAuction.address.toLowerCase()) {
     await execute('MeloBleeps', {from: melobleepsMinterAdmin, log: true}, 'setMinter', MeloBleepsAuction.address);
   }
 };

@@ -1,4 +1,4 @@
-import {chain, fallback} from './wallet';
+import {chain, fallback, wallet} from './wallet';
 import {BaseStore} from '$lib/utils/stores/base';
 import {BigNumber} from '@ethersproject/bignumber';
 import {now} from './time';
@@ -15,7 +15,10 @@ type OwnersState = {
     initPrice: BigNumber;
     delay: BigNumber;
     lastPrice: BigNumber;
+    mandalasDiscountPercentage: BigNumber;
+    hasMandalas: boolean;
   };
+  normalExpectedValue?: BigNumber;
   expectedValue?: BigNumber;
 };
 
@@ -44,10 +47,15 @@ class OwnersStateStore extends BaseStore<OwnersState> {
     initPrice: BigNumber;
     delay: BigNumber;
     lastPrice: BigNumber;
+    mandalasDiscountPercentage: BigNumber;
+    hasMandalas: boolean;
   }> {
     const contracts = chain.contracts || fallback.contracts;
     if (contracts) {
-      const data = await contracts.BleepsInitialSale.ownersAndPriceInfo(allIds);
+      const data = await contracts.BleepsInitialSale.ownersAndPriceInfo(
+        wallet.address || '0x0000000000000000000000000000000000000000',
+        allIds
+      );
 
       return data;
     } else if (fallback.state === 'Ready') {
@@ -75,7 +83,7 @@ class OwnersStateStore extends BaseStore<OwnersState> {
           numLeft++;
         }
       }
-
+      const {normalExpectedValue, expectedValue} = this.computeExpectedValue();
       this.setPartial({
         tokenOwners,
         numLeft,
@@ -85,8 +93,11 @@ class OwnersStateStore extends BaseStore<OwnersState> {
           initPrice: result.initPrice,
           delay: result.delay,
           lastPrice: result.lastPrice,
+          mandalasDiscountPercentage: result.mandalasDiscountPercentage,
+          hasMandalas: result.hasMandalas,
         },
-        expectedValue: this.computeExpectedValue(),
+        normalExpectedValue,
+        expectedValue,
       });
       if (this.priceInfoResolve) {
         this.priceInfoResolve();
@@ -96,29 +107,35 @@ class OwnersStateStore extends BaseStore<OwnersState> {
 
   private _everySeconds() {
     if (this.$store.priceInfo) {
+      const {normalExpectedValue, expectedValue} = this.computeExpectedValue();
       this.setPartial({
-        expectedValue: this.computeExpectedValue(),
+        normalExpectedValue,
+        expectedValue,
       });
     }
   }
 
-  computeExpectedValue(): BigNumber | undefined {
+  computeExpectedValue(): {normalExpectedValue?: BigNumber; expectedValue?: BigNumber} {
     if (this.$store.priceInfo) {
       const priceInfo = this.$store.priceInfo;
-      let expectedValue = priceInfo.initPrice;
+      let normalExpectedValue = priceInfo.initPrice;
       const timePassed = BigNumber.from(now()).sub(priceInfo.startTime).sub(120); // pay more (1 min)
       const timeLeft = priceInfo.delay.sub(timePassed);
       const priceDiff = priceInfo.initPrice.sub(priceInfo.lastPrice);
 
       if (timeLeft.lte(0)) {
-        expectedValue = priceInfo.lastPrice;
+        normalExpectedValue = priceInfo.lastPrice;
       } else {
-        expectedValue = priceInfo.lastPrice.add(priceDiff.mul(timeLeft).div(priceInfo.delay));
+        normalExpectedValue = priceInfo.lastPrice.add(priceDiff.mul(timeLeft).div(priceInfo.delay));
       }
-      return expectedValue; //.add(priceInfo.initPrice.div(10));
+      let expectedValue = normalExpectedValue;
+      if (priceInfo.hasMandalas) {
+        expectedValue = normalExpectedValue.sub(normalExpectedValue.mul(priceInfo.mandalasDiscountPercentage).div(100));
+      }
+      return {expectedValue, normalExpectedValue}; //.add(priceInfo.initPrice.div(10));
       // return priceInfo.initPrice;
     }
-    return undefined;
+    return {};
   }
 
   subscribe(run: (value: OwnersState) => void, invalidate?: (value?: OwnersState) => void): () => void {

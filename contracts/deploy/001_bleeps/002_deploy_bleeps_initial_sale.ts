@@ -21,6 +21,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       Math.floor(Date.now() / 1000), // TODO double check
       saleRecipient,
       MandalaToken.address,
+      20, // 20% discount
     ],
     skipIfAlreadyDeployed: true,
     log: true,
@@ -28,7 +29,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   });
 
   const currentMinter = await read('Bleeps', 'minter');
-  if (currentMinter?.toLowerCase() !== BleepsInitialSale.address) {
+  if (currentMinter?.toLowerCase() !== BleepsInitialSale.address.toLowerCase()) {
     await execute('Bleeps', {from: bleepsMinterAdmin, log: true}, 'setMinter', BleepsInitialSale.address);
   }
 };

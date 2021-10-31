@@ -112,7 +112,7 @@ contract BleepsTokenURI is ITokenURI {
             n--;
         }
         bytes1 noteStr = bytes1(uint8(65) + uint8((n + 2) % 7));
-        bytes1 octaveStr = bytes1(48 + uint8(note / 12));
+        bytes1 octaveStr = bytes1(50 + uint8(note / 12)); // 48 + 2 = ascii code for "2" the smallest octave available here, A4 being 440Hz
 
         if (m == 1 || m == 3 || m == 6 || m == 8 || m == 10) {
             if (doubleEncoding) {
