@@ -12,6 +12,7 @@ import "../base/WithSupportForOpenSeaProxies.sol";
 contract Bleeps is IERC721, WithSupportForOpenSeaProxies, ERC721Checkpointable, Roles {
     event TokenURIContractSet(ITokenURI newTokenURIContract);
     event CheckpointingDisablerSet(address newCheckpointingDisabler);
+    event CheckpointingDisabled();
 
     /// @notice the contract that actually generate the sound (and all metadata via the a data: uri via tokenURI call).
     ITokenURI public tokenURIContract;
@@ -140,6 +141,7 @@ contract Bleeps is IERC721, WithSupportForOpenSeaProxies, ERC721Checkpointable, 
         _useCheckpoints = false;
         checkpointingDisabler = address(0);
         emit CheckpointingDisablerSet(address(0));
+        emit CheckpointingDisabled();
     }
 
     /// @notice update the address that can disable the use of checkpinting, can be used to disable it entirely.
