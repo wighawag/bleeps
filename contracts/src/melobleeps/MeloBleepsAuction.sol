@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-1.0
 pragma solidity 0.8.9;
 
-import "./Bleeps.sol";
+import "../bleeps/Bleeps.sol";
 import "./MeloBleeps.sol";
 
 contract MeloBleepsAuction {

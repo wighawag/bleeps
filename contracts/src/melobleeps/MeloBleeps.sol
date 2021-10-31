@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-1.0
 pragma solidity 0.8.9;
 
-import "./base/ERC721Base.sol";
-import "./base/Roles.sol";
+import "../base/ERC721Base.sol";
+import "../base/Roles.sol";
 import "./MeloBleepsTokenURI.sol";
 
 contract MeloBleeps is ERC721Base, Roles {

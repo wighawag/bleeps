@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: AGPL-1.0
 pragma solidity 0.8.9;
 
-import "./base/Roles.sol";
-import "./base/ERC721Checkpointable.sol";
+import "../base/Roles.sol";
+import "../base/ERC721Checkpointable.sol";
 
-import "./interfaces/ITokenURI.sol";
+import "./ITokenURI.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-import "./base/WithSupportForOpenSeaProxies.sol";
+import "../base/WithSupportForOpenSeaProxies.sol";
 
 contract Bleeps is IERC721, WithSupportForOpenSeaProxies, ERC721Checkpointable, Roles {
     event TokenURIContractSet(ITokenURI newTokenURIContract);
