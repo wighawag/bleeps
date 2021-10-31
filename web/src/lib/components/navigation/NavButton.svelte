@@ -43,11 +43,11 @@
     disabledClasses = 'opacity-50 ' + (waitOnDisabled ? 'cursor-wait ' : '');
 
     if (primary) {
-      colorClasses = ` text-white bg-pink-600`;
-      hoverClasses += ` hover:bg-pink-500`;
-      focusClasses += ` focus-not-active:bg-pink-500`;
-      activeClasses += ` active:bg-pink-600 active:border-pink-500`;
-      activatedClasses += ` bg-pink-600 border-pink-500`;
+      colorClasses = ` text-white bg-bleeps`;
+      hoverClasses += ` hover:bg-yellow-500`;
+      focusClasses += ` focus-not-active:bg-yellow-500`;
+      activeClasses += ` active:bg-yellow-600 active:border-yellow-500`;
+      activatedClasses += ` bg-yellow-600 border-yellow-500`;
     } else if (secondary) {
       colorClasses = `text-pink-600 bg-gray-100 dark:text-pink-500 dark:bg-gray-900`;
       hoverClasses += ` hover:bg-gray-50 dark:hover:bg-gray-800`;

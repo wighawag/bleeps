@@ -126,46 +126,82 @@
   }
 </script>
 
-{$ownersState.state}
-<section class="py-2 px-4 text-center">
-  <div class="max-w-auto md:max-w-lg mx-auto">
+<!-- {$ownersState.state} TODO show loading  -->
+<section class="px-4 text-center">
+  <div class="mx-auto">
     <img
-      class="mb-8 mx-auto"
+      class="mb-4 mx-auto"
       src="images/logo.svg"
       alt={name}
       style="width:256px;height:256px;"
       width="256px"
       height="256px"
     />
-    <h2 class="text-5xl mb-2 font-heading text-black dark:text-white">
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-16">
+      <div>
+        <div>
+          <img src="bleeps/Bleep.png" alt="Bleeps" class="w-24 mx-auto" />
+        </div>
+        <div class="mt-6">
+          <h3 class="text-lg font-black text-white">Mint <span class="text-bleeps">Bleeps</span></h3>
+        </div>
+      </div>
+      <div>
+        <div>
+          <img src="bleeps/Bleeper.png" alt="Bleeper" class="w-24 mx-auto" />
+        </div>
+        <div class="mt-6">
+          <h3 class="text-lg font-black text-white">Become a <span class="text-bleeps">Bleeper</span></h3>
+        </div>
+      </div>
+      <div>
+        <div>
+          <img src="bleeps/Royalties.png" alt="Royalties" class="w-24 mx-auto" />
+        </div>
+        <div class="mt-6">
+          <h3 class="text-lg font-black text-white">Earn <span class="text-bleeps">Royalties</span></h3>
+        </div>
+      </div>
+      <div>
+        <div>
+          <img src="bleeps/DAO.png" alt="BleepsDAO" class="w-24 mx-auto" />
+        </div>
+        <div class="mt-6">
+          <h3 class="text-lg font-black text-white">Join The <span class="text-bleeps">Bleeps DAO</span></h3>
+        </div>
+      </div>
+    </div>
+    <!-- <h2 class="text-5xl mb-2 font-heading text-black dark:text-white">
       {name}
-    </h2>
-    <p class="m-6 text-gray-500 dark:text-gray-400 text-xl">Sound Generated entirely from Solidity</p>
+    </h2> -->
+    <!-- <p class="m-6 text-gray-500 dark:text-gray-400 text-xl">Sound Generated entirely from Solidity</p>
 
     <p class="m-6 text-gray-500 dark:text-gray-200 text-xl">Mint the Primitive Sounds and be part of the Bleeps DAO</p>
 
     <p class="m-6 text-gray-500 dark:text-gray-200 text-xl">
       You ll then receive proceeds from the auction sale of melodies (WIP)
-    </p>
-
-    {#if $ownersState?.expectedValue}
-      {#if $ownersState?.priceInfo.hasMandalas}
-        <p class="text-green-600">
-          As a owner of mandalas, you got a {$ownersState.priceInfo.mandalasDiscountPercentage}% discount!
+    </p> -->
+    {#if $wallet.state === 'Ready' && $chain.state === 'Ready'}
+      {#if $ownersState?.expectedValue}
+        {#if $ownersState?.priceInfo.hasMandalas}
+          <p class="text-green-600">
+            As a owner of mandalas, you got a {$ownersState.priceInfo.mandalasDiscountPercentage}% discount!
+          </p>
+        {/if}
+        <p class="text-yellow-400">
+          Current Price: {$ownersState?.expectedValue.div('1000000000000000').toNumber() / 1000} ETH
+          {#if $ownersState?.priceInfo.hasMandalas}
+            <span class="text-gray-500"
+              >(instead of {$ownersState?.normalExpectedValue.div('1000000000000000').toNumber() / 1000} ETH)</span
+            >
+          {/if}
         </p>
       {/if}
-      <p class="text-yellow-400">
-        Current Price: {$ownersState?.expectedValue.div('1000000000000000').toNumber() / 1000} ETH
-        {#if $ownersState?.priceInfo.hasMandalas}
-          <span class="text-gray-500"
-            >(instead of {$ownersState?.normalExpectedValue.div('1000000000000000').toNumber() / 1000} ETH)</span
-          >
-        {/if}
-      </p>
-    {/if}
 
-    {#if $ownersState?.numLeft !== undefined}
-      <p class="text-yellow-400">{$ownersState?.numLeft} / 576 left</p>
+      {#if $ownersState?.numLeft !== undefined}
+        <p class="text-yellow-400">{$ownersState?.numLeft} / 576 left</p>
+      {/if}
     {/if}
   </div>
 </section>
