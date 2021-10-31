@@ -92,10 +92,10 @@ abstract contract ERC721Base is IERC165, IERC721 {
         require(owner != address(0), "NONEXISTENT_TOKEN");
     }
 
-    /// @notice Get the owner of a token.
+    /// @notice Get the owner of a token and the blockNumber of the last transfer, useful to voting mechanism.
     /// @param id The id of the token.
     /// @return owner The address of the token owner.
-    /// @return blockNumber The blocknumber at which the last transfer happened
+    /// @return blockNumber The blocknumber at which the last transfer of that id happened.
     function ownerAndLastTransferBlockNumberOf(uint256 id) internal view returns (address owner, uint256 blockNumber) {
         return _ownerAndBlockNumberOf(id);
     }
@@ -105,6 +105,9 @@ abstract contract ERC721Base is IERC165, IERC721 {
         uint256 lastTransferBlockNumber;
     }
 
+    /// @notice Get the list of owner of a token and the blockNumber of its last transfer, useful to voting mechanism.
+    /// @param ids The list of token ids to check.
+    /// @return ownersData The list of (owner, lastTransferBlockNumber) for each ids given as input.
     function ownerAndLastTransferBlockNumberList(uint256[] calldata ids)
         external
         view
@@ -165,12 +168,12 @@ abstract contract ERC721Base is IERC165, IERC721 {
     }
 
     /// @notice Check if the contract supports an interface.
-    /// 0x01ffc9a7 is ERC165.
-    /// 0x80ac58cd is ERC721
-    /// 0x5b5e139f is for ERC721 metadata
     /// @param id The id of the interface.
     /// @return Whether the interface is supported.
     function supportsInterface(bytes4 id) public pure virtual override returns (bool) {
+        /// 0x01ffc9a7 is ERC165.
+        /// 0x80ac58cd is ERC721
+        /// 0x5b5e139f is for ERC721 metadata
         return id == 0x01ffc9a7 || id == 0x80ac58cd || id == 0x5b5e139f;
     }
 
@@ -271,10 +274,33 @@ abstract contract ERC721Base is IERC165, IERC721 {
     // @dev Get the owner and operatorEnabled status of a token.
     /// @param id The token to query.
     /// @return owner The owner of the token.
-    /// @return blockNumber the blockNumber at which the owner became the owner (last transfer)
+    /// @return blockNumber the blockNumber at which the owner became the owner (last transfer).
     function _ownerAndBlockNumberOf(uint256 id) internal view returns (address owner, uint256 blockNumber) {
         uint256 data = _owners[id];
         owner = address(uint160(data));
         blockNumber = (data >> 160) & 0xFFFFFFFFFFFFFFFFFFFFFF;
+    }
+
+    // from https://github.com/Uniswap/v3-periphery/blob/main/contracts/base/Multicall.sol
+    /// @notice Call multiple functions in the current contract and return the data from all of them if they all succeed.
+    /// @dev The `msg.value` should not be trusted for any method callable from multicall.
+    /// @param data The encoded function data for each of the calls to make to this contract.
+    /// @return results The results from each of the calls passed in via data.
+    function multicall(bytes[] calldata data) public payable returns (bytes[] memory results) {
+        results = new bytes[](data.length);
+        for (uint256 i = 0; i < data.length; i++) {
+            (bool success, bytes memory result) = address(this).delegatecall(data[i]);
+
+            if (!success) {
+                // Next 5 lines from https://ethereum.stackexchange.com/a/83577
+                if (result.length < 68) revert();
+                assembly {
+                    result := add(result, 0x04)
+                }
+                revert(abi.decode(result, (string)));
+            }
+
+            results[i] = result;
+        }
     }
 }
