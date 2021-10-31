@@ -55,7 +55,7 @@
     <div class="mt-8 border-t border-gray-700 pt-8 text-gray-400">
       <p class="mt-4 p-1">
         The source code can be found
-        <a href="https://github.com/wighawag/loot-for-everyone" target="_blank" class="underline">here</a>
+        <a href="https://github.com/wighawag/bleeps" target="_blank" class="underline">here</a>
         and the contract address is
         <a
           href={`https://etherscan.io/address/${contractsInfo.contracts.Bleeps?.address}`}
