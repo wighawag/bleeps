@@ -21,6 +21,16 @@ const setup = deployments.createFixture(async () => {
   };
 });
 describe('Bleeps', function () {
+  it('supportsInterface', async function () {
+    const {Bleeps} = await setup();
+    expect(await Bleeps.supportsInterface('0x01ffc9a7')).to.be.true;
+    expect(await Bleeps.supportsInterface('0x80ac58cd')).to.be.true;
+    expect(await Bleeps.supportsInterface('0x5b5e139f')).to.be.true;
+    expect(await Bleeps.supportsInterface('0x2a55205a')).to.be.true;
+    expect(await Bleeps.supportsInterface('0x00000000')).to.be.false;
+    expect(await Bleeps.supportsInterface('0x11111111')).to.be.false;
+  });
+
   it('tokenURI works', async function () {
     const {users, Bleeps} = await setup();
     const note = 3;
