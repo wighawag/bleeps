@@ -39,9 +39,10 @@
 
 <NavBar
   links={[
-    {href: url(''), title: 'Home'},
-    {href: url('create/'), title: 'Create Melodies'},
-    {href: url('about/'), title: 'About Bleeps'},
+    {href: url(''), title: 'Bleeps'},
+    {href: url('mint/'), title: 'Mint'},
+    {href: url('create/'), title: 'Create'},
+    {href: url('about/'), title: 'About'},
   ]}
 />
 <div class="text-white">

@@ -10,6 +10,7 @@ type OwnersState = {
   error?: unknown;
   tokenOwners?: {[id: string]: string};
   numLeft?: number;
+  numLeftPerInstr?: {[instr: number]: number};
   priceInfo?: {
     startTime: BigNumber;
     initPrice: BigNumber;
@@ -73,6 +74,24 @@ class OwnersStateStore extends BaseStore<OwnersState> {
       }
     } else {
       const tokenOwners = {};
+      const numLeftPerInstr = {
+        0: 64,
+        1: 64,
+        2: 64,
+        3: 64,
+        4: 64,
+        5: 64,
+        6: 64,
+        7: 64,
+        8: 64,
+        9: 64,
+        10: 64,
+        11: 64,
+        12: 64,
+        13: 64,
+        14: 64,
+        15: 64,
+      };
       let numLeft = 0;
       for (let i = 0; i < result.addresses.length; i++) {
         tokenOwners[i] = result.addresses[i];
@@ -81,6 +100,8 @@ class OwnersStateStore extends BaseStore<OwnersState> {
         }
         if (tokenOwners[i] === '0x0000000000000000000000000000000000000000') {
           numLeft++;
+        } else {
+          numLeftPerInstr[i >> 6]--;
         }
       }
       const {normalExpectedValue, expectedValue} = this.computeExpectedValue();
@@ -96,6 +117,7 @@ class OwnersStateStore extends BaseStore<OwnersState> {
           mandalasDiscountPercentage: result.mandalasDiscountPercentage,
           hasMandalas: result.hasMandalas,
         },
+        numLeftPerInstr,
         normalExpectedValue,
         expectedValue,
       });
