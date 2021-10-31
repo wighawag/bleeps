@@ -5,7 +5,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, getNamedAccounts} = hre;
   const {deploy, execute, read} = deployments;
 
-  const {deployer, bleepsMaintainer, bleepsMinterAdmin} = await getNamedAccounts();
+  const {deployer, bleepsTokenURIAdmin, bleepsRoyaltyAdmin, bleepsMinterAdmin, checkpointingDisabler} =
+    await getNamedAccounts();
 
   const tokenURIContract = await deploy('BleepsTokenURI', {
     from: deployer,
@@ -14,6 +15,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   });
 
   const existingBleeps = await deployments.getOrNull('Bleeps');
+
+  const openseaProxyRegistry =
+    (await deployments.getOrNull('WyvernProxyRegistry')) || '0x0000000000000000000000000000000000000000';
 
   let needUpdate = false;
   if (existingBleeps) {
@@ -24,11 +28,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   }
 
   if (needUpdate) {
-    await execute('Bleeps', {from: bleepsMaintainer, log: true}, 'setTokenURIContract', tokenURIContract.address);
+    await execute('Bleeps', {from: bleepsTokenURIAdmin, log: true}, 'setTokenURIContract', tokenURIContract.address);
   } else {
     await deploy('Bleeps', {
       from: deployer,
-      args: [bleepsMaintainer, bleepsMinterAdmin, tokenURIContract.address],
+      args: [
+        openseaProxyRegistry,
+        bleepsTokenURIAdmin,
+        bleepsRoyaltyAdmin,
+        bleepsMinterAdmin,
+        tokenURIContract.address,
+        checkpointingDisabler,
+      ],
       skipIfAlreadyDeployed: true,
       log: true,
       autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks

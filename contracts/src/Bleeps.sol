@@ -1,25 +1,39 @@
 // SPDX-License-Identifier: AGPL-1.0
 pragma solidity 0.8.9;
 
-import "./base/MinterMaintainerRoles.sol";
+import "./base/Roles.sol";
 import "./base/ERC721Checkpointable.sol";
 
 import "./interfaces/ITokenURI.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-contract Bleeps is IERC721, ERC721Checkpointable, MinterMaintainerRoles {
+import "./base/WithSupportForOpenSeaProxies.sol";
+
+contract Bleeps is IERC721, WithSupportForOpenSeaProxies, ERC721Checkpointable, Roles {
     event TokenURIContractSet(ITokenURI newTokenURIContract);
 
     /// @notice the contract that actually generate the sound (and all metadata via the a data: uri as tokenURI)
     ITokenURI public tokenURIContract;
 
+    address internal _royaltyRecipient;
+    uint256 internal _royaltyPer10Thousands;
+
+    address internal _checkpointingDisabler;
+
     constructor(
-        address initialMaintainer,
+        address openseaProxyRegistry,
+        address initialTokenURIAdmin,
+        address initialRoyaltyAdmin,
         address initialMinterAdmin,
-        ITokenURI initialTokenURIContract
-    ) MinterMaintainerRoles(initialMaintainer, initialMinterAdmin) {
+        ITokenURI initialTokenURIContract,
+        address checkpointingDisabler
+    )
+        WithSupportForOpenSeaProxies(openseaProxyRegistry)
+        Roles(initialTokenURIAdmin, initialRoyaltyAdmin, initialMinterAdmin)
+    {
         tokenURIContract = initialTokenURIContract;
         emit TokenURIContractSet(initialTokenURIContract);
+        _checkpointingDisabler = checkpointingDisabler;
     }
 
     /// @notice A descriptive name for a collection of NFTs in this contract.
@@ -42,7 +56,7 @@ contract Bleeps is IERC721, ERC721Checkpointable, MinterMaintainerRoles {
     }
 
     function setTokenURIContract(ITokenURI newTokenURIContract) external {
-        require(msg.sender == maintainer, "NOT_AUTHORIZED");
+        require(msg.sender == tokenURIAdmin, "NOT_AUTHORIZED");
         tokenURIContract = newTokenURIContract;
         emit TokenURIContractSet(newTokenURIContract);
     }
@@ -55,13 +69,54 @@ contract Bleeps is IERC721, ERC721Checkpointable, MinterMaintainerRoles {
         }
     }
 
+    /// @notice Check if the sender approved the operator.
+    /// @param owner The address of the owner.
+    /// @param operator The address of the operator.
+    /// @return isOperator The status of the approval.
+    function isApprovedForAll(address owner, address operator)
+        public
+        view
+        virtual
+        override(ERC721Base, IERC721)
+        returns (bool isOperator)
+    {
+        return super.isApprovedForAll(owner, operator) || _isOpenSeaProxy(owner, operator);
+    }
+
+    /// @notice Check if the contract supports an interface.
+    /// @param id The id of the interface.
+    /// @return Whether the interface is supported.
+    function supportsInterface(bytes4 id) public pure virtual override(ERC721Base, IERC165) returns (bool) {
+        return super.supportsInterface(id) || id == 0x2a55205a; /// 0x2a55205a is ERC2981 (royalty standard)
+    }
+
+    /// @notice Called with the sale price to determine how much royalty
+    //          is owed and to whom.
+    /// @param id - the token queried for royalty information
+    /// @param salePrice - the sale price of the token specified by id
+    /// @return receiver - address of who should be sent the royalty payment
+    /// @return royaltyAmount - the royalty payment amount for salePrice
+    function royaltyInfo(uint256 id, uint256 salePrice)
+        external
+        view
+        returns (address receiver, uint256 royaltyAmount)
+    {
+        receiver = _royaltyRecipient;
+        royaltyAmount = (salePrice * _royaltyPer10Thousands) / 10000;
+    }
+
+    function setRoyaltyParameters(address newRecipient, uint256 royaltyPer10Thousands) external {
+        require(msg.sender == royaltyAdmin, "NOT_AUTHORIZED");
+        // require(royaltyPer10Thousands <= 50, "ROYALTY_TOO_HIGH"); ?
+        _royaltyRecipient = newRecipient;
+        _royaltyPer10Thousands = royaltyPer10Thousands;
+    }
+
     /// @notice disable checkpointing overhead
     /// This can be used if the governance system can switch to use ownerAndLastTransferBlockNumberOf instead of checkpoints
     function disableTheUseOfCheckpoints() external {
-        require(msg.sender == maintainer, "NOT_AUTHORIZED");
+        require(msg.sender == _checkpointingDisabler, "NOT_AUTHORIZED");
         _useCheckpoints = false;
-        // TODO event
-        // TODO special role ?
     }
 
     function mint(uint16 id, address to) external payable {

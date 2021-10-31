@@ -5,7 +5,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, getNamedAccounts} = hre;
   const {deploy, execute, read} = deployments;
 
-  const {deployer, meloBleepsMinterAdmin} = await getNamedAccounts();
+  const {deployer, melobleepsMinterAdmin} = await getNamedAccounts();
 
   const Bleeps = await deployments.get('Bleeps');
   const MeloBleeps = await deployments.get('MeloBleeps');
@@ -21,7 +21,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const currentMinter = await read('MeloBleeps', 'minter');
   if (currentMinter?.toLowerCase() !== MeloBleepsAuction.address) {
-    await execute('MeloBleeps', {from: meloBleepsMinterAdmin, log: true}, 'setMinter', MeloBleepsAuction.address);
+    await execute('MeloBleeps', {from: melobleepsMinterAdmin, log: true}, 'setMinter', MeloBleepsAuction.address);
   }
 };
 export default func;

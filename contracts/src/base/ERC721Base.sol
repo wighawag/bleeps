@@ -135,7 +135,7 @@ abstract contract ERC721Base is IERC165, IERC721 {
     /// @param owner The address of the owner.
     /// @param operator The address of the operator.
     /// @return isOperator The status of the approval.
-    function isApprovedForAll(address owner, address operator) external view override returns (bool isOperator) {
+    function isApprovedForAll(address owner, address operator) public view virtual override returns (bool isOperator) {
         return _operatorsForAll[owner][operator];
     }
 

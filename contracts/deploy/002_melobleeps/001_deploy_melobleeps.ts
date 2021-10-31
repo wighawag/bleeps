@@ -5,7 +5,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, getNamedAccounts} = hre;
   const {deploy, execute, read} = deployments;
 
-  const {deployer, meloBleepsMaintainer, meloBleepsMinterAdmin} = await getNamedAccounts();
+  const {deployer, melobleepsTokenURIAdmin, melobleepsRoyaltyAdmin, melobleepsMinterAdmin} = await getNamedAccounts();
 
   const tokenURIContract = await deploy('MeloBleepsTokenURI', {
     from: deployer,
@@ -26,14 +26,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   if (needUpdate) {
     await execute(
       'MeloBleeps',
-      {from: meloBleepsMaintainer, log: true},
+      {from: melobleepsTokenURIAdmin, log: true},
       'setTokenURIContract',
       tokenURIContract.address
     );
   } else {
     await deploy('MeloBleeps', {
       from: deployer,
-      args: [meloBleepsMaintainer, meloBleepsMinterAdmin, tokenURIContract.address],
+      args: [melobleepsTokenURIAdmin, melobleepsRoyaltyAdmin, melobleepsMinterAdmin, tokenURIContract.address],
       skipIfAlreadyDeployed: true,
       log: true,
       autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks

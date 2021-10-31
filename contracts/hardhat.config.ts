@@ -28,11 +28,14 @@ const config: HardhatUserConfig = {
   },
   namedAccounts: {
     deployer: 0,
-    bleepsMaintainer: 1,
+    bleepsTokenURIAdmin: 1,
+    bleepsRoyaltyAdmin: 1,
     bleepsMinterAdmin: 1,
+    checkpointingDisabler: 1,
     saleRecipient: 1,
-    meloBleepsMaintainer: 1,
-    meloBleepsMinterAdmin: 1,
+    melobleepsTokenURIAdmin: 1,
+    melobleepsRoyaltyAdmin: 1,
+    melobleepsMinterAdmin: 1,
   },
   networks: {
     hardhat: {

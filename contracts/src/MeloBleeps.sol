@@ -2,10 +2,10 @@
 pragma solidity 0.8.9;
 
 import "./base/ERC721Base.sol";
-import "./base/MinterMaintainerRoles.sol";
+import "./base/Roles.sol";
 import "./MeloBleepsTokenURI.sol";
 
-contract MeloBleeps is ERC721Base, MinterMaintainerRoles {
+contract MeloBleeps is ERC721Base, Roles {
     event TokenURIContractSet(MeloBleepsTokenURI newTokenURIContract);
 
     /// @notice the contract that actually generate the sound (and all metadata via the a data: uri as tokenURI)
@@ -20,10 +20,11 @@ contract MeloBleeps is ERC721Base, MinterMaintainerRoles {
     uint256 _supply = 0;
 
     constructor(
-        address initialMaintainer,
+        address initialTokenURIAdmin,
+        address initialRoyaltyAdmin,
         address initialMinterAdmin,
         MeloBleepsTokenURI initialTokenURIContract
-    ) MinterMaintainerRoles(initialMaintainer, initialMinterAdmin) {
+    ) Roles(initialTokenURIAdmin, initialRoyaltyAdmin, initialMinterAdmin) {
         tokenURIContract = initialTokenURIContract;
         emit TokenURIContractSet(initialTokenURIContract);
     }
@@ -45,7 +46,7 @@ contract MeloBleeps is ERC721Base, MinterMaintainerRoles {
     }
 
     function setTokenURIContract(MeloBleepsTokenURI newTokenURIContract) external {
-        require(msg.sender == maintainer, "NOT_AUTHORIZED");
+        require(msg.sender == tokenURIAdmin, "NOT_AUTHORIZED");
         tokenURIContract = newTokenURIContract;
         emit TokenURIContractSet(newTokenURIContract);
     }
