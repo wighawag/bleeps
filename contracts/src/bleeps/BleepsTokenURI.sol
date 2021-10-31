@@ -123,19 +123,6 @@ contract BleepsTokenURI is ITokenURI {
         } else {
             return bytes.concat(noteStr, octaveStr);
         }
-
-        // str = "_";
-        // str[0] = bytes1(uint8(65) + uint8((n + 2) % 7));
-        // if (m == 1 || m == 3 || m == 6 || m == 8 || m == 10) {
-        //     if (doubleEncoding) {
-        //         str = bytes.concat(str, "%2523_");
-        //     } else {
-        //         str = bytes.concat(str, "%23_");
-        //     }
-        // } else {
-        //     str = bytes.concat(str, "_");
-        // }
-        // str[str.length - 1] = bytes1(48 + uint8(note / 12));
     }
 
     function _prepareBuffer(uint256 id, bytes memory buffer) internal pure returns (uint256) {
