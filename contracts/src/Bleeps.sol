@@ -2,12 +2,12 @@
 pragma solidity 0.8.9;
 
 import "./base/MinterMaintainerRoles.sol";
-import "./base/ERC721BaseWithPermit.sol";
+import "./base/ERC721Checkpointable.sol";
 
 import "./interfaces/ITokenURI.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-contract Bleeps is IERC721, ERC721BaseWithPermit, MinterMaintainerRoles {
+contract Bleeps is IERC721, ERC721Checkpointable, MinterMaintainerRoles {
     event TokenURIContractSet(ITokenURI newTokenURIContract);
 
     /// @notice the contract that actually generate the sound (and all metadata via the a data: uri as tokenURI)
@@ -55,13 +55,14 @@ contract Bleeps is IERC721, ERC721BaseWithPermit, MinterMaintainerRoles {
         }
     }
 
-    // TODO remove (used by ERC721Checkpointable for disabling it)
-    // function disableTheUseOfCheckpoints() external {
-    //     require(msg.sender == maintainer, "NOT_AUTHORIZED");
-    //     _useCheckpoints = false;
-    //     // TODO event
-    //     // TODO special role ?
-    // }
+    /// @notice disable checkpointing overhead
+    /// This can be used if the governance system can switch to use ownerAndLastTransferBlockNumberOf instead of checkpoints
+    function disableTheUseOfCheckpoints() external {
+        require(msg.sender == maintainer, "NOT_AUTHORIZED");
+        _useCheckpoints = false;
+        // TODO event
+        // TODO special role ?
+    }
 
     function mint(uint16 id, address to) external payable {
         require(msg.sender == minter, "ONLY_MINTER_ALLOWED");
