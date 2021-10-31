@@ -11,6 +11,7 @@ import "../base/WithSupportForOpenSeaProxies.sol";
 
 contract Bleeps is IERC721, WithSupportForOpenSeaProxies, ERC721Checkpointable, Roles {
     event TokenURIContractSet(ITokenURI newTokenURIContract);
+    event CheckpointingDisablerSet(address newCheckpointingDisabler);
 
     /// @notice the contract that actually generate the sound (and all metadata via the a data: uri via tokenURI call).
     ITokenURI public tokenURIContract;
@@ -22,7 +23,7 @@ contract Bleeps is IERC721, WithSupportForOpenSeaProxies, ERC721Checkpointable, 
     uint256 internal _royaltyPer10Thousands;
 
     /// @dev address that is able to switch off the use of checkpointing, this will make token transfers much cheaper in term of gas, but require the design of a new governance system.
-    address internal _checkpointingDisabler;
+    address public checkpointingDisabler;
 
     /// @dev Create the Bleeps contract
     /// @param openseaProxyRegistry allow Bleeps to be sold on opensea without prior approval tx as long as the user have already an opensea proxy.
@@ -30,21 +31,22 @@ contract Bleeps is IERC721, WithSupportForOpenSeaProxies, ERC721Checkpointable, 
     /// @param initialRoyaltyAdmin admin able to update the royalty recipient and rates.
     /// @param initialMinterAdmin admin able to set the minter contract.
     /// @param initialTokenURIContract initial tokenURI contract that generate the metadata including the wav file.
-    /// @param checkpointingDisabler admin able to update the royalty recipient and rates.
+    /// @param initialCheckpointingDisabler admin able to update the royalty recipient and rates.
     constructor(
         address openseaProxyRegistry,
         address initialTokenURIAdmin,
         address initialRoyaltyAdmin,
         address initialMinterAdmin,
         ITokenURI initialTokenURIContract,
-        address checkpointingDisabler
+        address initialCheckpointingDisabler
     )
         WithSupportForOpenSeaProxies(openseaProxyRegistry)
         Roles(initialTokenURIAdmin, initialRoyaltyAdmin, initialMinterAdmin)
     {
         tokenURIContract = initialTokenURIContract;
         emit TokenURIContractSet(initialTokenURIContract);
-        _checkpointingDisabler = checkpointingDisabler;
+        checkpointingDisabler = initialCheckpointingDisabler;
+        emit CheckpointingDisablerSet(initialCheckpointingDisabler);
     }
 
     /// @notice A descriptive name for a collection of NFTs in this contract.
@@ -134,15 +136,18 @@ contract Bleeps is IERC721, WithSupportForOpenSeaProxies, ERC721Checkpointable, 
     /// @notice disable checkpointing overhead
     /// This can be used if the governance system can switch to use ownerAndLastTransferBlockNumberOf instead of checkpoints
     function disableTheUseOfCheckpoints() external {
-        require(msg.sender == _checkpointingDisabler, "NOT_AUTHORIZED");
+        require(msg.sender == checkpointingDisabler, "NOT_AUTHORIZED");
         _useCheckpoints = false;
+        checkpointingDisabler = address(0);
+        emit CheckpointingDisablerSet(address(0));
     }
 
     /// @notice update the address that can disable the use of checkpinting, can be used to disable it entirely.
     /// @param newCheckpointingDisabler new address that can disable the use of checkpointing. can be the zero address to remove the ability to change.
     function setCheckpointingDisabler(address newCheckpointingDisabler) external {
-        require(msg.sender == _checkpointingDisabler, "NOT_AUTHORIZED");
-        _checkpointingDisabler = newCheckpointingDisabler;
+        require(msg.sender == checkpointingDisabler, "NOT_AUTHORIZED");
+        checkpointingDisabler = newCheckpointingDisabler;
+        emit CheckpointingDisablerSet(newCheckpointingDisabler);
     }
 
     /// @notice mint one of bleep if not already minted. Can only be called by `minter`.
