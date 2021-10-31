@@ -134,7 +134,7 @@ abstract contract ERC721Checkpointable is ERC721BaseWithPermit {
                 keccak256(abi.encode(DELEGATION_TYPEHASH, delegatee, nonce, expiry))
             )
         );
-        // TODO support smart contract wallet
+        // TODO support smart contract wallet via IERC721, require change in function signature to know which signer to call first
         address signatory = ecrecover(digest, v, r, s);
         require(signatory != address(0), "ERC721Checkpointable::delegateBySig: invalid signature");
         require(nonce == _userNonces[signatory]++, "ERC721Checkpointable::delegateBySig: invalid nonce");

@@ -63,11 +63,8 @@ abstract contract ERC721BaseWithPermit is ERC721Base {
 
         (address owner, uint256 blockNumber) = _ownerAndBlockNumberOf(id);
         require(owner != address(0), "NONEXISTENT_TOKEN");
-        // require(signer == owner || _operatorsForAll[owner][signer], "UNAUTHORIZED_SIGNER");
 
-        uint256 currentNonce = _tokenNonces[id];
-        _requireValidPermit(owner, spender, id, deadline, currentNonce, v, r, s);
-        _tokenNonces[id] = currentNonce + 1;
+        _requireValidPermit(owner, spender, id, deadline, _tokenNonces[id]++, v, r, s);
 
         _approveFor(owner, blockNumber, spender, id);
     }
@@ -82,9 +79,7 @@ abstract contract ERC721BaseWithPermit is ERC721Base {
     ) external {
         require(deadline >= block.timestamp, "PERMIT_DEADLINE_EXPIRED");
 
-        uint256 currentNonce = _userNonces[signer];
-        _requireValidPermitForAll(signer, spender, deadline, currentNonce, v, r, s);
-        _userNonces[signer] = currentNonce + 1;
+        _requireValidPermitForAll(signer, spender, deadline, _userNonces[signer]++, v, r, s);
 
         _setApprovalForAll(signer, spender, true);
     }
