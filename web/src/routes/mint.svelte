@@ -231,66 +231,68 @@
       height="128px"
     />
 
-    {#if $ownersState?.expectedValue}
-      {#if $ownersState?.priceInfo.hasMandalas}
-        <p class="text-green-600 mb-2">
-          As a owner of mandalas, you got a {$ownersState.priceInfo.mandalasDiscountPercentage}% discount!
-        </p>
-      {/if}
-    {/if}
-
-    <div class="">
-      <div class="inline-block border-white md:w-64 w-32 md:h-24 h-16 border-2 mx-auto rounded-md">
-        {#if $ownersState?.numLeftPerInstr !== undefined}
-          <div
-            style={`width:${
-              $ownersState?.numLeft !== 448 ? Math.max(((448 - $ownersState?.numLeft) * 100) / 448, 5) : 0
-            }%; background-color:#dab894;height:100%;position:relative;line-height:inherit;`}
-          />
-        {:else}
-          <div style="width:0%; background-color:#dab894;height:100%;position:relative;line-height:inherit;" />
+    {#if $wallet.state === 'Ready' && $chain.state === 'Ready'}
+      {#if $ownersState?.expectedValue}
+        {#if $ownersState?.priceInfo.hasMandalas}
+          <p class="text-green-600 mb-2">
+            As a owner of mandalas, you got a {$ownersState.priceInfo.mandalasDiscountPercentage}% discount!
+          </p>
         {/if}
-      </div>
-      <div class="inline-block border-white border md:w-24 w-12 md:h-24 h-16 border-2 mx-auto rounded-md">
-        <p class="absolute my-8 mx-3 invisible md:visible">reserved</p>
-        <div style="width:0%; background-color:#dab894;height:100%;position:relative;line-height:inherit;" />
-      </div>
-      <!-- <div class="inline-block border-white border-dashed md:w-64 w-32 md:h-24 h-16 border-2 mx-auto rounded-md">
+      {/if}
+
+      <div class="">
+        <div class="inline-block border-white md:w-64 w-32 md:h-24 h-16 border-2 mx-auto rounded-md">
+          {#if $ownersState?.numLeftPerInstr !== undefined}
+            <div
+              style={`width:${
+                $ownersState?.numLeft !== 448 ? Math.max(((448 - $ownersState?.numLeft) * 100) / 448, 5) : 0
+              }%; background-color:#dab894;height:100%;position:relative;line-height:inherit;`}
+            />
+          {:else}
+            <div style="width:0%; background-color:#dab894;height:100%;position:relative;line-height:inherit;" />
+          {/if}
+        </div>
+        <div class="inline-block border-white border md:w-24 w-12 md:h-24 h-16 border-2 mx-auto rounded-md">
+          <p class="absolute my-8 mx-3 invisible md:visible">reserved</p>
+          <div style="width:0%; background-color:#dab894;height:100%;position:relative;line-height:inherit;" />
+        </div>
+        <!-- <div class="inline-block border-white border-dashed md:w-64 w-32 md:h-24 h-16 border-2 mx-auto rounded-md">
         <p class="absolute m-8 invisible md:visible">Owned By Bleeps DAO</p>
         <div style="width:0%; background-color:#dab894;height:100%;position:relative;line-height:inherit;" />
       </div> -->
-    </div>
+      </div>
 
-    <div>
-      <div class="inline-block md:w-64 w-32 mx-auto">
-        {#if $ownersState?.numLeft !== undefined}
-          <p class="text-yellow-400">{448 - $ownersState?.numLeft} / 448 Minted</p>
-        {/if}
-      </div>
-      <div class="inline-block md:w-24 w-12 mx-auto">
-        <p>+128</p>
-      </div>
-      <!-- <div class="inline-block md:w-64 w-32 mx-auto">
+      <div>
+        <div class="inline-block md:w-64 w-32 mx-auto">
+          {#if $ownersState?.numLeft !== undefined}
+            <p class="text-yellow-400">{448 - $ownersState?.numLeft} / 448 Minted</p>
+          {/if}
+        </div>
+        <div class="inline-block md:w-24 w-12 mx-auto">
+          <p>+128</p>
+        </div>
+        <!-- <div class="inline-block md:w-64 w-32 mx-auto">
         <p>(+448)</p>
       </div> -->
-    </div>
-
-    <div class="mb-8">
-      <div class="inline-block md:w-64 w-32 mx-auto">
-        <p class="text-bleeps">
-          {#if $ownersState?.expectedValue}
-            Current Price: {$ownersState?.expectedValue.div('1000000000000000').toNumber() / 1000} ETH
-            {#if $ownersState?.priceInfo.hasMandalas}
-              <span class="text-gray-500"
-                >(instead of {$ownersState?.normalExpectedValue.div('1000000000000000').toNumber() / 1000} ETH)</span
-              >
-            {/if}
-          {/if}
-        </p>
       </div>
-      <div class="inline-block md:w-24 w-12 mx-auto" />
-      <!-- <div class="inline-block md:w-64 w-32 mx-auto" /> -->
-    </div>
+
+      <div class="mb-8">
+        <div class="inline-block md:w-64 w-32 mx-auto">
+          <p class="text-bleeps">
+            {#if $ownersState?.expectedValue}
+              Current Price: {$ownersState?.expectedValue.div('1000000000000000').toNumber() / 1000} ETH
+              {#if $ownersState?.priceInfo.hasMandalas}
+                <span class="text-gray-500"
+                  >(instead of {$ownersState?.normalExpectedValue.div('1000000000000000').toNumber() / 1000} ETH)</span
+                >
+              {/if}
+            {/if}
+          </p>
+        </div>
+        <div class="inline-block md:w-24 w-12 mx-auto" />
+        <!-- <div class="inline-block md:w-64 w-32 mx-auto" /> -->
+      </div>
+    {/if}
   </div>
 </section>
 
