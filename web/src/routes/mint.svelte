@@ -62,7 +62,7 @@
         await tx.wait();
         step = 'IDLE';
       } catch (e) {
-        if (e?.message.indexOf('User denied') === -1) {
+        if (e?.message && e?.message.indexOf('User denied') === -1) {
           error = formatError(e);
         }
         step = 'IDLE';

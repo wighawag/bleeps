@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/governance/compatibility/GovernorCompatibilityBr
 import "@openzeppelin/contracts/governance/extensions/GovernorVotesComp.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorTimelockCompound.sol";
 
-contract BleepsDAOGovernance is Governor, GovernorCompatibilityBravo, GovernorVotesComp, GovernorTimelockCompound {
+contract BleepsDAOGovernor is Governor, GovernorCompatibilityBravo, GovernorVotesComp, GovernorTimelockCompound {
     constructor(ERC20VotesComp _token, ICompoundTimelock _timelock)
         Governor("BleepsDAO")
         GovernorVotesComp(_token)
