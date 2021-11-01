@@ -1,4 +1,4 @@
-import {chain, fallback} from './wallet';
+import {chain, fallback, wallet} from './wallet';
 import {BaseStore} from '$lib/utils/stores/base';
 import {BigNumber} from '@ethersproject/bignumber';
 import {now} from './time';
@@ -10,16 +10,20 @@ type OwnersState = {
   error?: unknown;
   tokenOwners?: {[id: string]: string};
   numLeft?: number;
+  numLeftPerInstr?: {[instr: number]: number};
   priceInfo?: {
     startTime: BigNumber;
     initPrice: BigNumber;
     delay: BigNumber;
     lastPrice: BigNumber;
+    mandalasDiscountPercentage: BigNumber;
+    hasMandalas: boolean;
   };
+  normalExpectedValue?: BigNumber;
   expectedValue?: BigNumber;
 };
 
-const allIds = Array.from(Array(512)).map((v, i) => i);
+const allIds = Array.from(Array(576)).map((v, i) => i);
 
 class OwnersStateStore extends BaseStore<OwnersState> {
   private timer: NodeJS.Timeout | undefined;
@@ -33,16 +37,26 @@ class OwnersStateStore extends BaseStore<OwnersState> {
     });
   }
 
+  private priceInfoResolve;
+  public waitFirstPriceInfo = new Promise<void>((resolve) => {
+    this.priceInfoResolve = resolve;
+  });
+
   async query(): Promise<null | {
     addresses: string[];
     startTime: BigNumber;
     initPrice: BigNumber;
     delay: BigNumber;
     lastPrice: BigNumber;
+    mandalasDiscountPercentage: BigNumber;
+    hasMandalas: boolean;
   }> {
     const contracts = chain.contracts || fallback.contracts;
     if (contracts) {
-      const data = await contracts.Bleeps.ownersAndPriceInfo(allIds);
+      const data = await contracts.BleepsInitialSale.ownersAndPriceInfo(
+        wallet.address || '0x0000000000000000000000000000000000000000',
+        allIds
+      );
 
       return data;
     } else if (fallback.state === 'Ready') {
@@ -60,14 +74,37 @@ class OwnersStateStore extends BaseStore<OwnersState> {
       }
     } else {
       const tokenOwners = {};
+      const numLeftPerInstr = {
+        0: 64,
+        1: 64,
+        2: 64,
+        3: 64,
+        4: 64,
+        5: 64,
+        6: 64,
+        7: 64,
+        8: 64,
+        9: 64,
+        10: 64,
+        11: 64,
+        12: 64,
+        13: 64,
+        14: 64,
+        15: 64,
+      };
       let numLeft = 0;
       for (let i = 0; i < result.addresses.length; i++) {
         tokenOwners[i] = result.addresses[i];
-        if ((i < 6 * 64 || i >= 7 * 64) && result.addresses[i] === '0x0000000000000000000000000000000000000000') {
+        if ((i >= 6 * 64 && i < 7 * 64) || (i >= 8 * 64 && i < 9 * 64)) {
+          tokenOwners[i] = '0x1111111111111111111111111111111111111111';
+        }
+        if (tokenOwners[i] === '0x0000000000000000000000000000000000000000') {
           numLeft++;
+        } else {
+          numLeftPerInstr[i >> 6]--;
         }
       }
-
+      const {normalExpectedValue, expectedValue} = this.computeExpectedValue();
       this.setPartial({
         tokenOwners,
         numLeft,
@@ -77,37 +114,50 @@ class OwnersStateStore extends BaseStore<OwnersState> {
           initPrice: result.initPrice,
           delay: result.delay,
           lastPrice: result.lastPrice,
+          mandalasDiscountPercentage: result.mandalasDiscountPercentage,
+          hasMandalas: result.hasMandalas,
         },
-        expectedValue: this.computeExpectedValue(),
+        numLeftPerInstr,
+        normalExpectedValue,
+        expectedValue,
       });
+      if (this.priceInfoResolve) {
+        this.priceInfoResolve();
+      }
     }
   }
 
   private _everySeconds() {
     if (this.$store.priceInfo) {
+      const {normalExpectedValue, expectedValue} = this.computeExpectedValue();
       this.setPartial({
-        expectedValue: this.computeExpectedValue(),
+        normalExpectedValue,
+        expectedValue,
       });
     }
   }
 
-  computeExpectedValue(): BigNumber | undefined {
+  computeExpectedValue(): {normalExpectedValue?: BigNumber; expectedValue?: BigNumber} {
     if (this.$store.priceInfo) {
       const priceInfo = this.$store.priceInfo;
-      let expectedValue = priceInfo.initPrice;
-      const timePassed = BigNumber.from(now()).sub(priceInfo.startTime).sub(60); // pay more (1 min)
+      let normalExpectedValue = priceInfo.initPrice;
+      const timePassed = BigNumber.from(now()).sub(priceInfo.startTime).sub(120); // pay more (1 min)
       const timeLeft = priceInfo.delay.sub(timePassed);
       const priceDiff = priceInfo.initPrice.sub(priceInfo.lastPrice);
 
       if (timeLeft.lte(0)) {
-        expectedValue = priceInfo.lastPrice;
+        normalExpectedValue = priceInfo.lastPrice;
       } else {
-        expectedValue = priceInfo.lastPrice.add(priceDiff.mul(timeLeft).div(priceInfo.delay));
+        normalExpectedValue = priceInfo.lastPrice.add(priceDiff.mul(timeLeft).div(priceInfo.delay));
       }
-      return expectedValue; //.add(priceInfo.initPrice.div(10));
+      let expectedValue = normalExpectedValue;
+      if (priceInfo.hasMandalas) {
+        expectedValue = normalExpectedValue.sub(normalExpectedValue.mul(priceInfo.mandalasDiscountPercentage).div(100));
+      }
+      return {expectedValue, normalExpectedValue}; //.add(priceInfo.initPrice.div(10));
       // return priceInfo.initPrice;
     }
-    return undefined;
+    return {};
   }
 
   subscribe(run: (value: OwnersState) => void, invalidate?: (value?: OwnersState) => void): () => void {

@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPL-1.0
 pragma solidity 0.8.9;
-pragma experimental ABIEncoderV2;
 
 library Strings {
     function uint2str(uint256 num) internal pure returns (string memory _uintAsString) {

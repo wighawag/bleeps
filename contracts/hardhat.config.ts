@@ -28,8 +28,14 @@ const config: HardhatUserConfig = {
   },
   namedAccounts: {
     deployer: 0,
-    bleepsMaintainer: 1,
+    bleepsTokenURIAdmin: 1,
+    bleepsRoyaltyAdmin: 1,
+    bleepsMinterAdmin: 1,
+    checkpointingDisabler: 1,
     saleRecipient: 1,
+    melobleepsTokenURIAdmin: 1,
+    melobleepsRoyaltyAdmin: 1,
+    melobleepsMinterAdmin: 1,
   },
   networks: {
     hardhat: {
@@ -68,6 +74,7 @@ const config: HardhatUserConfig = {
     mainnet: {
       url: node_url('mainnet'),
       accounts: accounts('mainnet'),
+      deploy: ['deploy/001_bleeps'],
     },
     rinkeby: {
       url: node_url('rinkeby'),
@@ -77,9 +84,10 @@ const config: HardhatUserConfig = {
       url: node_url('kovan'),
       accounts: accounts('kovan'),
     },
-    goerli: {
+    staging2: {
       url: node_url('goerli'),
       accounts: accounts('goerli'),
+      deploy: ['deploy/001_bleeps'],
     },
   },
   paths: {

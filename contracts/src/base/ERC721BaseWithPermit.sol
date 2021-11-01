@@ -6,10 +6,6 @@ import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 interface IERC1271 {
-    function isValidSignature(bytes calldata data, bytes calldata signature) external view returns (bytes4 magicValue);
-}
-
-interface IERC1654 {
     function isValidSignature(bytes32 hash, bytes calldata signature) external view returns (bytes4 magicValue);
 }
 
@@ -17,23 +13,20 @@ abstract contract ERC721BaseWithPermit is ERC721Base {
     using Address for address;
     using ECDSA for bytes32;
 
-    enum SignatureType {
-        DIRECT,
-        EIP1654,
-        EIP1271
-    }
-    bytes4 internal constant ERC1271_MAGICVALUE = 0x20c13b0b;
-    bytes4 internal constant ERC1654_MAGICVALUE = 0x1626ba7e;
+    bytes4 internal constant ERC1271_MAGICVALUE = 0x1626ba7e;
 
     bytes32 public constant PERMIT_TYPEHASH =
         keccak256("Permit(address spender,uint256 tokenId,uint256 nonce,uint256 deadline)");
     bytes32 public constant PERMIT_FOR_ALL_TYPEHASH =
         keccak256("PermitForAll(address spender,uint256 nonce,uint256 deadline)");
+    bytes32 public constant DOMAIN_TYPEHASH =
+        keccak256("EIP712Domain(string name,uint256 chainId,address verifyingContract)");
 
     uint256 private immutable _deploymentChainId;
     bytes32 private immutable _deploymentDomainSeparator;
 
-    mapping(address => mapping(uint128 => uint128)) internal _nonces;
+    mapping(uint256 => uint256) internal _tokenNonces;
+    mapping(address => uint256) internal _userNonces;
 
     constructor() {
         uint256 chainId;
@@ -50,53 +43,43 @@ abstract contract ERC721BaseWithPermit is ERC721Base {
         return _DOMAIN_SEPARATOR();
     }
 
-    function nonces(address owner, uint128 batch) external view returns (uint256 nonce) {
-        nonce = uint256(batch << 128) + _nonces[owner][batch];
+    function tokenNonces(uint256 id) external view returns (uint256 nonce) {
+        return _tokenNonces[id];
+    }
+
+    function nonces(address owner) external view returns (uint256 nonce) {
+        return _userNonces[owner];
     }
 
     function permit(
-        address signer,
         address spender,
         uint256 id,
         uint256 deadline,
-        uint256 nonce,
-        bytes calldata signature,
-        SignatureType signatureType
+        uint8 v,
+        bytes32 r,
+        bytes32 s
     ) external {
         require(deadline >= block.timestamp, "PERMIT_DEADLINE_EXPIRED");
 
-        address owner = _ownerOf(id);
+        (address owner, uint256 blockNumber) = _ownerAndBlockNumberOf(id);
         require(owner != address(0), "NONEXISTENT_TOKEN");
-        require(signer == owner || _operatorsForAll[owner][signer], "UNAUTHORIZED_SIGNER");
 
-        _requireValidPermit(signer, spender, id, deadline, nonce, signature, signatureType);
+        _requireValidPermit(owner, spender, id, deadline, _tokenNonces[id]++, v, r, s);
 
-        uint128 batchId = uint128(nonce >> 128);
-        uint128 batchNonce = uint128(nonce % 2**128);
-        uint128 currentNonce = _nonces[signer][batchId];
-        require(batchNonce == currentNonce, "INVALID_NONCE");
-        _nonces[signer][batchId] = currentNonce + 1;
-
-        _approveFor(owner, spender, id);
+        _approveFor(owner, blockNumber, spender, id);
     }
 
     function permitForAll(
         address signer,
         address spender,
         uint256 deadline,
-        uint256 nonce,
-        bytes calldata signature,
-        SignatureType signatureType
+        uint8 v,
+        bytes32 r,
+        bytes32 s
     ) external {
         require(deadline >= block.timestamp, "PERMIT_DEADLINE_EXPIRED");
 
-        _requireValidPermitForAll(signer, spender, deadline, nonce, signature, signatureType);
-
-        uint128 batchId = uint128(nonce >> 128);
-        uint128 batchNonce = uint128(nonce % 2**128);
-        uint128 currentNonce = _nonces[signer][batchId];
-        require(batchNonce == currentNonce, "INVALID_NONCE");
-        _nonces[signer][batchId] = currentNonce + 1;
+        _requireValidPermitForAll(signer, spender, deadline, _userNonces[signer]++, v, r, s);
 
         _setApprovalForAll(signer, spender, true);
     }
@@ -109,15 +92,18 @@ abstract contract ERC721BaseWithPermit is ERC721Base {
         uint256 id,
         uint256 deadline,
         uint256 nonce,
-        bytes calldata signature,
-        SignatureType signatureType
+        uint8 v,
+        bytes32 r,
+        bytes32 s
     ) internal view {
-        bytes memory dataToHash = abi.encodePacked(
-            "\x19\x01",
-            _DOMAIN_SEPARATOR(),
-            keccak256(abi.encode(PERMIT_TYPEHASH, spender, id, nonce, deadline))
+        bytes32 digest = keccak256(
+            abi.encodePacked(
+                "\x19\x01",
+                _DOMAIN_SEPARATOR(),
+                keccak256(abi.encode(PERMIT_TYPEHASH, spender, id, nonce, deadline))
+            )
         );
-        return _requireValidSignature(signer, dataToHash, signature, signatureType);
+        return _requireValidSignature(signer, digest, v, r, s);
     }
 
     function _requireValidPermitForAll(
@@ -125,36 +111,36 @@ abstract contract ERC721BaseWithPermit is ERC721Base {
         address spender,
         uint256 deadline,
         uint256 nonce,
-        bytes calldata signature,
-        SignatureType signatureType
+        uint8 v,
+        bytes32 r,
+        bytes32 s
     ) internal view {
-        bytes memory dataToHash = abi.encodePacked(
-            "\x19\x01",
-            _DOMAIN_SEPARATOR(),
-            keccak256(abi.encode(PERMIT_FOR_ALL_TYPEHASH, spender, nonce, deadline))
+        bytes32 digest = keccak256(
+            abi.encodePacked(
+                "\x19\x01",
+                _DOMAIN_SEPARATOR(),
+                keccak256(abi.encode(PERMIT_FOR_ALL_TYPEHASH, spender, nonce, deadline))
+            )
         );
-        return _requireValidSignature(signer, dataToHash, signature, signatureType);
+        _requireValidSignature(signer, digest, v, r, s);
     }
 
     function _requireValidSignature(
         address signer,
-        bytes memory dataToHash,
-        bytes calldata signature,
-        SignatureType signatureType
+        bytes32 digest,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
     ) internal view {
-        if (signatureType == SignatureType.EIP1271) {
+        if (signer.isContract()) {
             require(
-                IERC1271(signer).isValidSignature(dataToHash, signature) == ERC1271_MAGICVALUE,
-                "SIGNATURE_1271_INVALID"
-            );
-        } else if (signatureType == SignatureType.EIP1654) {
-            require(
-                IERC1654(signer).isValidSignature(keccak256(dataToHash), signature) == ERC1654_MAGICVALUE,
-                "SIGNATURE_1654_INVALID"
+                IERC1271(signer).isValidSignature(digest, abi.encodePacked(r, s, v)) == ERC1271_MAGICVALUE,
+                "SIGNATURE_1271_NOT_MATCHING"
             );
         } else {
-            address actualSigner = keccak256(dataToHash).recover(signature);
-            require(signer == actualSigner, "SIGNATURE_WRONG_SIGNER");
+            address recoveredAddress = ecrecover(digest, v, r, s);
+            require(recoveredAddress != address(0), "SIGNATURE_INVALID");
+            require(recoveredAddress == signer, "SIGNATURE_WRONG_SIGNER");
         }
     }
 
@@ -172,14 +158,6 @@ abstract contract ERC721BaseWithPermit is ERC721Base {
 
     /// @dev Calculate the DOMAIN_SEPARATOR.
     function _calculateDomainSeparator(uint256 chainId) private view returns (bytes32) {
-        return
-            keccak256(
-                abi.encode(
-                    keccak256("EIP712Domain(string name,uint256 chainId,address verifyingContract)"),
-                    keccak256(bytes(name())),
-                    chainId,
-                    address(this)
-                )
-            );
+        return keccak256(abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(name())), chainId, address(this)));
     }
 }

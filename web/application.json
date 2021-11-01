@@ -1,8 +1,8 @@
 {
   "appName": "Bleeps And The Bleeps DAO",
   "appShortName": "Bleeps",
-  "appDescription": "Sound Fully Generated On-Chain, zero backend, no ipfs, and a melody minter with some of the proceeds going to the DAO and its members",
-  "appShortDescription": "Sound Fully Generated On-Chain, zero backend, no ipfs",
+  "appDescription": "The First Composable Sounds Fully Generated On-Chain With Zero Externalities, no backend, no ipfs, no client-code, and a melody minter where some of the proceeds goes to the Bleeps DAO and its members",
+  "appShortDescription": "The First Composable Sounds Fully Generated On-Chain With Zero Externalities, no backend, no ipfs, no client-code",
   "developerName": "Ronan Sandford",
   "developerURL": "https://ronan.eth.link",
   "url": "https://bleeps.art",

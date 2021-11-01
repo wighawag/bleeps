@@ -34,9 +34,11 @@
 
 pragma solidity 0.8.9;
 
-import "./ERC721Base.sol";
+import "./ERC721BaseWithPermit.sol";
 
-abstract contract ERC721Checkpointable is ERC721Base {
+abstract contract ERC721Checkpointable is ERC721BaseWithPermit {
+    bool internal _useCheckpoints = true; // can only be disabled and never re-enabled
+
     /// @notice Defines decimals as per ERC-20 convention to make integrations with 3rd party governance platforms easier
     uint8 public constant decimals = 0;
 
@@ -55,16 +57,9 @@ abstract contract ERC721Checkpointable is ERC721Base {
     /// @notice The number of checkpoints for each account
     mapping(address => uint32) public numCheckpoints;
 
-    /// @notice The EIP-712 typehash for the contract's domain
-    bytes32 public constant DOMAIN_TYPEHASH =
-        keccak256("EIP712Domain(string name,uint256 chainId,address verifyingContract)");
-
     /// @notice The EIP-712 typehash for the delegation struct used by the contract
     bytes32 public constant DELEGATION_TYPEHASH =
         keccak256("Delegation(address delegatee,uint256 nonce,uint256 expiry)");
-
-    /// @notice A record of states for signing / validating signatures
-    mapping(address => uint256) public nonces;
 
     /// @notice An event thats emitted when an account changes its delegate
     event DelegateChanged(address indexed delegator, address indexed fromDelegate, address indexed toDelegate);
@@ -100,9 +95,10 @@ abstract contract ERC721Checkpointable is ERC721Base {
         uint256 tokenId
     ) internal override {
         super._beforeTokenTransfer(from, to, tokenId);
-
-        /// @notice Differs from `_transferTokens()` to use `delegates` override method to simulate auto-delegation
-        _moveDelegates(delegates(from), delegates(to), 1);
+        if (_useCheckpoints) {
+            /// @notice Differs from `_transferTokens()` to use `delegates` override method to simulate auto-delegation
+            _moveDelegates(delegates(from), delegates(to), 1);
+        }
     }
 
     /**
@@ -131,14 +127,17 @@ abstract contract ERC721Checkpointable is ERC721Base {
         bytes32 r,
         bytes32 s
     ) public {
-        bytes32 domainSeparator = keccak256(
-            abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(name())), getChainId(), address(this))
+        bytes32 digest = keccak256(
+            abi.encodePacked(
+                "\x19\x01",
+                _DOMAIN_SEPARATOR(),
+                keccak256(abi.encode(DELEGATION_TYPEHASH, delegatee, nonce, expiry))
+            )
         );
-        bytes32 structHash = keccak256(abi.encode(DELEGATION_TYPEHASH, delegatee, nonce, expiry));
-        bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
+        // TODO support smart contract wallet via IERC721, require change in function signature to know which signer to call first
         address signatory = ecrecover(digest, v, r, s);
         require(signatory != address(0), "ERC721Checkpointable::delegateBySig: invalid signature");
-        require(nonce == nonces[signatory]++, "ERC721Checkpointable::delegateBySig: invalid nonce");
+        require(nonce == _userNonces[signatory]++, "ERC721Checkpointable::delegateBySig: invalid nonce");
         require(block.timestamp <= expiry, "ERC721Checkpointable::delegateBySig: signature expired");
         return _delegate(signatory, delegatee);
     }
@@ -277,13 +276,5 @@ abstract contract ERC721Checkpointable is ERC721Base {
     ) internal pure returns (uint96) {
         require(b <= a, errorMessage);
         return a - b;
-    }
-
-    function getChainId() internal view returns (uint256) {
-        uint256 chainId;
-        assembly {
-            chainId := chainid()
-        }
-        return chainId;
     }
 }

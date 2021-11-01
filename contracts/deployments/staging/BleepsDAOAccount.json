@@ -1,0 +1,44 @@
+{
+  "address": "0x3785B4DB0f7562af154Ca392D424457e5EaAc8ce",
+  "abi": [
+    {
+      "stateMutability": "payable",
+      "type": "receive"
+    }
+  ],
+  "transactionHash": "0xad4ef1789bb400337da1a905a20994474836e3105c73a5c45e823bcf4bff579e",
+  "receipt": {
+    "to": null,
+    "from": "0x61c461EcC993aaDEB7e4b47E96d1B8cC37314B20",
+    "contractAddress": "0x3785B4DB0f7562af154Ca392D424457e5EaAc8ce",
+    "transactionIndex": 1,
+    "gasUsed": "68353",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0xb4b692f99542ca4feb907448aaa045b7524895b3e4ffd0dfb380545e4e9aed69",
+    "transactionHash": "0xad4ef1789bb400337da1a905a20994474836e3105c73a5c45e823bcf4bff579e",
+    "logs": [],
+    "blockNumber": 5767028,
+    "cumulativeGasUsed": "171246",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "solcInputHash": "1b2ea95ff4d75cfecf88910190c72404",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.9+commit.e5eed63a\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"stateMutability\":\"payable\",\"type\":\"receive\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"src/bleepsdao/BleepsDAOAccount.sol\":\"BleepsDAOAccount\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":999999},\"remappings\":[]},\"sources\":{\"src/bleepsdao/BleepsDAOAccount.sol\":{\"content\":\"// SPDX-License-Identifier: AGPL-1.0\\npragma solidity 0.8.9;\\n\\ncontract BleepsDAOAccount {\\n    receive() external payable {}\\n}\\n\",\"keccak256\":\"0xe7802f32b84e853393fc15d4afd1ad7e2b530dc0ceb03134cf15c46e07c79376\",\"license\":\"AGPL-1.0\"}},\"version\":1}",
+  "bytecode": "0x6080604052348015600f57600080fd5b50604580601d6000396000f3fe608060405236600a57005b600080fdfea26469706673582212206c04b531c807d1fbfd15e75fb9b668af3eedb8b8c9dfcce3f076f8432ae079ff64736f6c63430008090033",
+  "deployedBytecode": "0x608060405236600a57005b600080fdfea26469706673582212206c04b531c807d1fbfd15e75fb9b668af3eedb8b8c9dfcce3f076f8432ae079ff64736f6c63430008090033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [],
+    "types": null
+  }
+}
