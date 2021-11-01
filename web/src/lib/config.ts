@@ -16,7 +16,12 @@ let localdev = false;
 if (chainId === '1337' || chainId === '31337') {
   const localEthNode = import.meta.env.VITE_ETH_NODE_URI_LOCALHOST as string;
   if (localEthNode && localEthNode !== '') {
-    nodeUrl = localEthNode;
+    if (localEthNode.startsWith('HOST:') && typeof window !== 'undefined') {
+      nodeUrl = `${window.location.protocol}//${window.location.hostname}:${localEthNode.slice(5)}`;
+      // console.log({nodeUrl});
+    } else {
+      nodeUrl = localEthNode;
+    }
   } else {
     nodeUrl = 'http://localhost:8545';
   }

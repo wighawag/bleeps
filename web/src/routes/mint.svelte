@@ -6,7 +6,7 @@
   import WalletAccess from '$lib/WalletAccess.svelte';
   import NavButton from '$lib/components/navigation/NavButton.svelte';
   import GreenNavButton from '$lib/components/navigation/GreenNavButton.svelte';
-  import {wallet, flow, chain} from '$lib/stores/wallet';
+  import {wallet, flow, chain, fallback} from '$lib/stores/wallet';
   import Modal from '$lib/components/Modal.svelte';
   import {ownersState} from '$lib/stores/owners';
   import {base} from '$app/paths';
@@ -19,10 +19,11 @@
   let selected = undefined;
 
   function fetchURI(id: number): Promise<{image: string; animation_url: string}> {
-    if (!wallet.contracts) {
+    const contracts = wallet.contracts || fallback.contracts;
+    if (!contracts) {
       return Promise.reject('no contract');
     }
-    return wallet.contracts.Bleeps.tokenURI(id)
+    return contracts.Bleeps.tokenURI(id)
       .then((v) => {
         return fetch(v).then((r) => r.json());
         // return JSON.parse(v.substr('data:application/json,'.length));
@@ -231,7 +232,7 @@
       height="128px"
     />
 
-    {#if $wallet.state === 'Ready' && $chain.state === 'Ready'}
+    {#if $chain.state === 'Ready' || $fallback.state === 'Ready'}
       {#if $ownersState?.expectedValue}
         {#if $ownersState?.priceInfo.hasMandalas}
           <p class="text-green-600 mb-2">
@@ -298,7 +299,7 @@
 
 <div class="w-full mx-auto text-center">
   <WalletAccess>
-    {#if $wallet.state === 'Ready' && $chain.state === 'Ready'}
+    {#if $chain.state === 'Ready' || $fallback.state === 'Ready'}
       <!-- <GreenNavButton
         class="w-24 mx-auto"
         label="Connect"
@@ -330,7 +331,7 @@
               <p>{64 - $ownersState.numLeftPerInstr[instr]} / 64 Minted</p>
             {/if}
 
-            <div class="grid grid-cols-8 mx-auto p-1 mb-16 gap-4">
+            <div class="grid grid-cols-8 mx-auto p-1 mb-16 gap-1 sm:gap-2 md:gap-4">
               {#each Array.from(Array(64)).map((v, i) => i + instr * 64) as bleepId}
                 <div>
                   <!-- <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" style="background-color:#000;">
