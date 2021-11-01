@@ -21,6 +21,8 @@
             if ($builtin.state === 'Ready') {
               if ($builtin.vendor === 'Metamask') {
                 return 'images/metamask.svg';
+              } else if ($builtin.vendor === 'Frame') {
+                return 'images/frame.png';
               } else if ($builtin.vendor === 'Opera') {
                 return 'images/opera.svg';
               }
