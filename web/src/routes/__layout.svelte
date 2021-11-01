@@ -11,11 +11,16 @@
 
   import {base} from '$app/paths';
   import contractsInfo from '$lib/contracts.json';
+  import {wallet} from '$lib/stores/wallet';
 
   const title = 'Bleeps And The Bleeps DAO';
   const description = appDescription;
   const host = appUrl.endsWith('/') ? appUrl : appUrl + '/';
   const previewImage = host + 'preview.png';
+
+  function disconnect() {
+    wallet.disconnect();
+  }
 </script>
 
 <svelte:head>
@@ -44,7 +49,28 @@
     {href: url('create/'), title: 'Create'},
     {href: url('about/'), title: 'About'},
   ]}
-/>
+>
+  {#if $wallet.address}
+    <span class="text-bleeps"
+      >{$wallet.address.startsWith('0x') ? $wallet.address.slice(0, 6) + '...' : $wallet.address}<svg
+        on:click={disconnect}
+        xmlns="http://www.w3.org/2000/svg"
+        class="ml-4 h-6 w-6 inline align-middle"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+        />
+      </svg></span
+    >
+  {/if}
+</NavBar>
+
 <div class="text-white">
   <slot />
 </div>
