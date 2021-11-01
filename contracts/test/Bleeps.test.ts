@@ -44,7 +44,7 @@ describe('Bleeps', function () {
     console.log(tokenURI);
     // const metadata = JSON.parse(metadataStr);
     // console.log(metadata);
-    // console.log(`gas ${(await Bleeps.estimateGas.tokenURI(tokenID)).toNumber().toLocaleString('en')}`);
+    console.log(`gas ${(await Bleeps.estimateGas.tokenURI(tokenID)).toNumber().toLocaleString('en')}`);
   });
 
   it('minting works', async function () {
