@@ -39,12 +39,12 @@ describe('Bleeps', function () {
     // await expect(users[0].Bleeps.mint(tokenID, users[0].address, {value: parseEther('3')}))
     //   .to.emit(Bleeps, 'Transfer')
     //   .withArgs(AddressZero, users[0].address, tokenID);
-    // const tokenURI = await Bleeps.tokenURI(tokenID);
+    const tokenURI = await Bleeps.tokenURI(tokenID);
     // const metadataStr = tokenURI.substr('data:application/json,'.length);
-    // console.log(tokenURI);
+    console.log(tokenURI);
     // const metadata = JSON.parse(metadataStr);
     // console.log(metadata);
-    console.log(`gas ${(await Bleeps.estimateGas.tokenURI(tokenID)).toNumber().toLocaleString('en')}`);
+    // console.log(`gas ${(await Bleeps.estimateGas.tokenURI(tokenID)).toNumber().toLocaleString('en')}`);
   });
 
   it('minting works', async function () {
