@@ -19,6 +19,12 @@ contract MeloBleeps is ERC721Base, Roles {
     mapping(uint256 => Melody) internal _melodies;
     uint256 _supply = 0;
 
+    struct BleepUsed {
+        uint104 num;
+        uint152 value;
+    }
+    mapping(uint256 => BleepUsed) public bleepsUsed;
+
     constructor(
         address initialTokenURIAdmin,
         address initialRoyaltyAdmin,
@@ -57,6 +63,8 @@ contract MeloBleeps is ERC721Base, Roles {
         bytes32 data2,
         address to
     ) external returns (uint256 id) {
+        // TODO prevent same one
+        // record bleeps used and value
         require(msg.sender == minter, "ONLY_MINTER_ALLOWED");
         id = ++_supply;
         _melodies[id] = Melody(data1, data2, artist);

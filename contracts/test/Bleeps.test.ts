@@ -47,6 +47,12 @@ describe('Bleeps', function () {
     console.log(`gas ${(await Bleeps.estimateGas.tokenURI(tokenID)).toNumber().toLocaleString('en')}`);
   });
 
+  it('contractURI works', async function () {
+    const {Bleeps} = await setup();
+    const contractURI = await Bleeps.contractURI();
+    console.log(contractURI);
+  });
+
   it('minting works', async function () {
     const {users, Bleeps, BleepsInitialSale} = await setup();
     const note = 3;
