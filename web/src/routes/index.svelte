@@ -56,7 +56,7 @@
 
 <div class="w-full mx-auto text-center">
   <!-- <NavButton class="w-64 mx-auto" label="Mint" href={url('mint/')}>Bleeps Auction Sale</NavButton> -->
-  <p class="text-yellow-400">Sale Comming Soon...</p>
+  <p class="text-yellow-400">Sale Coming Soon...</p>
   <p>
     follow : <a class="underline" href="https://twitter.com/BleepsDAO">BleepsDAO</a> or
     <a class="underline" href="https://twitter.com/wighawag">wighawag</a>
