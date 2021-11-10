@@ -40,11 +40,17 @@ describe('Bleeps', function () {
     //   .to.emit(Bleeps, 'Transfer')
     //   .withArgs(AddressZero, users[0].address, tokenID);
     const tokenURI = await Bleeps.tokenURI(tokenID);
-    const metadataStr = tokenURI.substr('data:application/json,'.length);
+    // const metadataStr = tokenURI.substr('data:application/json,'.length);
     console.log(tokenURI);
     // const metadata = JSON.parse(metadataStr);
     // console.log(metadata);
-    // console.log(`gas ${(await Bleeps.estimateGas.tokenURI(tokenID)).toNumber().toLocaleString('en')}`);
+    console.log(`gas ${(await Bleeps.estimateGas.tokenURI(tokenID)).toNumber().toLocaleString('en')}`);
+  });
+
+  it('contractURI works', async function () {
+    const {Bleeps} = await setup();
+    const contractURI = await Bleeps.contractURI();
+    console.log(contractURI);
   });
 
   it('minting works', async function () {

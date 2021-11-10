@@ -1,11 +1,28 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BSD-3-Clause
+
+/// @title The Bleeps DAO executor and treasury
+
+// LICENSE
+// BleepsDAOExecutor.sol is a modified version of NounsDAO executor, itself a modification of Compound Lab's Timelock.sol:
+// https://github.com/compound-finance/compound-protocol/blob/20abad28055a2f91df48a90f8bb6009279a4cb35/contracts/Timelock.sol
+//
+// Timelock.sol source code Copyright 2020 Compound Labs, Inc. licensed under the BSD-3-Clause license.
+// With modifications by Nounders DAO.
+//
+// Additional conditions of BSD-3-Clause can be found here: https://opensource.org/licenses/BSD-3-Clause
+//
+// MODIFICATIONS
+// NounsDAOExecutor.sol modifies Timelock to use Solidity 0.8.x receive(), fallback(), and built-in over/underflow protection
+// This contract acts as executor of Bleeps DAO governance and its treasury, so it has been modified to accept ETH.
+
+// Modifications for Bleeps
+// rename for Bleeps
+// use 0.8.9
+// add setFirstAdmin to solve the cyclic dependency between DAOGovernor and Executor
+
 pragma solidity 0.8.9;
 
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-
-contract Timelock {
-    using SafeMath for uint256;
-
+contract BleepsDAOExecutor {
     event NewAdmin(address indexed newAdmin);
     event NewPendingAdmin(address indexed newPendingAdmin);
     event NewDelay(uint256 indexed newDelay);
@@ -34,10 +51,9 @@ contract Timelock {
         uint256 eta
     );
 
-    // NOTE: THESE VALUES ARE FOR TESTING ONLY!
-    uint256 public constant GRACE_PERIOD = 2 days;
-    uint256 public constant MINIMUM_DELAY = 1 seconds;
-    uint256 public constant MAXIMUM_DELAY = 5 days;
+    uint256 public constant GRACE_PERIOD = 14 days;
+    uint256 public constant MINIMUM_DELAY = 2 days;
+    uint256 public constant MAXIMUM_DELAY = 30 days;
 
     address private firstAdmin;
     address public admin;
@@ -47,14 +63,15 @@ contract Timelock {
     mapping(bytes32 => bool) public queuedTransactions;
 
     constructor(address admin_, uint256 delay_) {
-        require(delay_ >= MINIMUM_DELAY, "Timelock::constructor: Delay must exceed minimum delay.");
-        require(delay_ <= MAXIMUM_DELAY, "Timelock::setDelay: Delay must not exceed maximum delay.");
+        require(delay_ >= MINIMUM_DELAY, "BleepsDAOExecutor::constructor: Delay must exceed minimum delay.");
+        require(delay_ <= MAXIMUM_DELAY, "BleepsDAOExecutor::setDelay: Delay must not exceed maximum delay.");
 
         firstAdmin = admin_;
         admin = admin_;
         delay = delay_;
     }
 
+    /// @notice allow to set admin first time to resolve cyclic dependencies between Governor and this TImeLock
     function setFirstAdmin(address admin_) public {
         require(firstAdmin == msg.sender, "FIRST_TIME_ADMIN_ONLY");
         firstAdmin = address(0);
@@ -62,19 +79,17 @@ contract Timelock {
         emit NewAdmin(admin);
     }
 
-    receive() external payable {}
-
     function setDelay(uint256 delay_) public {
-        require(msg.sender == address(this), "Timelock::setDelay: Call must come from Timelock.");
-        require(delay_ >= MINIMUM_DELAY, "Timelock::setDelay: Delay must exceed minimum delay.");
-        require(delay_ <= MAXIMUM_DELAY, "Timelock::setDelay: Delay must not exceed maximum delay.");
+        require(msg.sender == address(this), "BleepsDAOExecutor::setDelay: Call must come from BleepsDAOExecutor.");
+        require(delay_ >= MINIMUM_DELAY, "BleepsDAOExecutor::setDelay: Delay must exceed minimum delay.");
+        require(delay_ <= MAXIMUM_DELAY, "BleepsDAOExecutor::setDelay: Delay must not exceed maximum delay.");
         delay = delay_;
 
         emit NewDelay(delay);
     }
 
     function acceptAdmin() public {
-        require(msg.sender == pendingAdmin, "Timelock::acceptAdmin: Call must come from pendingAdmin.");
+        require(msg.sender == pendingAdmin, "BleepsDAOExecutor::acceptAdmin: Call must come from pendingAdmin.");
         admin = msg.sender;
         pendingAdmin = address(0);
 
@@ -82,7 +97,10 @@ contract Timelock {
     }
 
     function setPendingAdmin(address pendingAdmin_) public {
-        require(msg.sender == address(this), "Timelock::setPendingAdmin: Call must come from Timelock.");
+        require(
+            msg.sender == address(this),
+            "BleepsDAOExecutor::setPendingAdmin: Call must come from BleepsDAOExecutor."
+        );
         pendingAdmin = pendingAdmin_;
 
         emit NewPendingAdmin(pendingAdmin);
@@ -95,10 +113,10 @@ contract Timelock {
         bytes memory data,
         uint256 eta
     ) public returns (bytes32) {
-        require(msg.sender == admin, "Timelock::queueTransaction: Call must come from admin.");
+        require(msg.sender == admin, "BleepsDAOExecutor::queueTransaction: Call must come from admin.");
         require(
-            eta >= getBlockTimestamp().add(delay),
-            "Timelock::queueTransaction: Estimated execution block must satisfy delay."
+            eta >= getBlockTimestamp() + delay,
+            "BleepsDAOExecutor::queueTransaction: Estimated execution block must satisfy delay."
         );
 
         bytes32 txHash = keccak256(abi.encode(target, value, signature, data, eta));
@@ -115,7 +133,7 @@ contract Timelock {
         bytes memory data,
         uint256 eta
     ) public {
-        require(msg.sender == admin, "Timelock::cancelTransaction: Call must come from admin.");
+        require(msg.sender == admin, "BleepsDAOExecutor::cancelTransaction: Call must come from admin.");
 
         bytes32 txHash = keccak256(abi.encode(target, value, signature, data, eta));
         queuedTransactions[txHash] = false;
@@ -129,13 +147,19 @@ contract Timelock {
         string memory signature,
         bytes memory data,
         uint256 eta
-    ) public payable returns (bytes memory) {
-        require(msg.sender == admin, "Timelock::executeTransaction: Call must come from admin.");
+    ) public returns (bytes memory) {
+        require(msg.sender == admin, "BleepsDAOExecutor::executeTransaction: Call must come from admin.");
 
         bytes32 txHash = keccak256(abi.encode(target, value, signature, data, eta));
-        require(queuedTransactions[txHash], "Timelock::executeTransaction: Transaction hasn't been queued.");
-        require(getBlockTimestamp() >= eta, "Timelock::executeTransaction: Transaction hasn't surpassed time lock.");
-        require(getBlockTimestamp() <= eta.add(GRACE_PERIOD), "Timelock::executeTransaction: Transaction is stale.");
+        require(queuedTransactions[txHash], "BleepsDAOExecutor::executeTransaction: Transaction hasn't been queued.");
+        require(
+            getBlockTimestamp() >= eta,
+            "BleepsDAOExecutor::executeTransaction: Transaction hasn't surpassed time lock."
+        );
+        require(
+            getBlockTimestamp() <= eta + GRACE_PERIOD,
+            "BleepsDAOExecutor::executeTransaction: Transaction is stale."
+        );
 
         queuedTransactions[txHash] = false;
 
@@ -149,7 +173,7 @@ contract Timelock {
 
         // solium-disable-next-line security/no-call-value
         (bool success, bytes memory returnData) = target.call{value: value}(callData);
-        require(success, "Timelock::executeTransaction: Transaction execution reverted.");
+        require(success, "BleepsDAOExecutor::executeTransaction: Transaction execution reverted.");
 
         emit ExecuteTransaction(txHash, target, value, signature, data, eta);
 
@@ -160,4 +184,8 @@ contract Timelock {
         // solium-disable-next-line security/no-block-members
         return block.timestamp;
     }
+
+    receive() external payable {}
+
+    fallback() external payable {}
 }

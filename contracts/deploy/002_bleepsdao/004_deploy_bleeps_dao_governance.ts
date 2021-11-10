@@ -9,24 +9,24 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const bleeps = await deployments.get('Bleeps');
 
-  // TODO TimeLock should be called the BleepsDAOGovernance
-  const Timelock = await deploy('Timelock', {
+  // time Lock is the owner of the DAO
+  const BleepsDAOExecutor = await deploy('BleepsDAOExecutor', {
     from: deployer,
-    args: [deployer, 2], // 2 = timeLOckdelay
+    args: [deployer, 2 * 24 * 3600], // 2 * 24 * 3600 = timeLOckdelay
     log: true,
     autoMine: true,
   });
 
-  const BleepsDAOGovernance = await deploy('BleepsDAOGovernance', {
+  const BleepsDAOGovernor = await deploy('BleepsDAOGovernor', {
     from: deployer,
-    args: [bleeps.address, Timelock.address], // 2 = timeLOckdelay
+    args: [bleeps.address, BleepsDAOExecutor.address],
     log: true,
     autoMine: true,
   });
 
-  if (BleepsDAOGovernance.newlyDeployed) {
-    await execute('Timelock', {from: deployer, log: true}, 'setFirstAdmin', BleepsDAOGovernance.address);
+  if (BleepsDAOGovernor.newlyDeployed) {
+    await execute('BleepsDAOExecutor', {from: deployer, log: true}, 'setFirstAdmin', BleepsDAOGovernor.address);
   }
 };
 export default func;
-func.tags = ['BleepsDAOGovernance'];
+func.tags = ['BleepsDAOGovernor'];

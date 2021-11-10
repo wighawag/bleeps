@@ -5,7 +5,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, getNamedAccounts} = hre;
   const {deploy, execute, read} = deployments;
 
-  const {deployer, bleepsTokenURIAdmin, bleepsRoyaltyAdmin, bleepsMinterAdmin, checkpointingDisabler} =
+  const {deployer, bleepsTokenURIAdmin, bleepsRoyaltyAdmin, bleepsMinterAdmin, bleepsGuardian, checkpointingDisabler} =
     await getNamedAccounts();
 
   const tokenURIContract = await deploy('BleepsTokenURI', {
@@ -37,6 +37,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         bleepsTokenURIAdmin,
         bleepsRoyaltyAdmin,
         bleepsMinterAdmin,
+        bleepsGuardian,
         tokenURIContract.address,
         checkpointingDisabler,
       ],
