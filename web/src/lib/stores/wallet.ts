@@ -1,5 +1,4 @@
 import {initWeb3W} from 'web3w';
-import {TorusModuleLoader} from 'web3w-torus-loader';
 import {WalletConnectModuleLoader} from 'web3w-walletconnect-loader';
 import contractsInfo from '$lib/contracts.json';
 import {notifications} from './notifications';
@@ -22,9 +21,6 @@ const walletStores = initWeb3W({
   localStoragePrefix: base.startsWith('/ipfs/') || base.startsWith('/ipns/') ? base.slice(6) : undefined, // ensure local storage is not conflicting across web3w-based apps on ipfs gateways
   options: [
     'builtin',
-    new TorusModuleLoader({verifier: 'google', nodeUrl, chainId}),
-    new TorusModuleLoader({verifier: 'facebook', nodeUrl, chainId}),
-    new TorusModuleLoader({verifier: 'discord', nodeUrl, chainId}),
     new WalletConnectModuleLoader({
       nodeUrl,
       chainId,
