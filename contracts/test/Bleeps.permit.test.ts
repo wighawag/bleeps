@@ -1,6 +1,6 @@
 import {expect} from './chai-setup';
 import {ethers, deployments, getUnnamedAccounts} from 'hardhat';
-import {Bleeps, BleepsInitialSale} from '../typechain';
+import {Bleeps, IBleepsSale} from '../typechain';
 import {setupUsers, waitFor} from './utils';
 import {BigNumber, constants} from 'ethers';
 import {parseEther, solidityKeccak256} from 'ethers/lib/utils';
@@ -12,7 +12,7 @@ const setup = deployments.createFixture(async () => {
   await deployments.fixture(['Bleeps', 'BleepsInitialSale']);
   const contracts = {
     Bleeps: <Bleeps>await ethers.getContract('Bleeps'),
-    BleepsInitialSale: <BleepsInitialSale>await ethers.getContract('BleepsInitialSale'),
+    BleepsInitialSale: <IBleepsSale>await ethers.getContract('BleepsInitialSale'),
   };
   const BleepsPermitSigner = PermitSignerFactory.createSigner({
     verifyingContract: contracts.Bleeps.address,

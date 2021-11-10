@@ -4,7 +4,7 @@ pragma solidity 0.8.9;
 import "../base/Roles.sol";
 import "../base/ERC721Checkpointable.sol";
 
-import "./ITokenURI.sol";
+import "../interfaces/ITokenURI.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 import "../base/WithSupportForOpenSeaProxies.sol";

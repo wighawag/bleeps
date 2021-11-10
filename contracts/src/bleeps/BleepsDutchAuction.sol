@@ -2,9 +2,10 @@
 pragma solidity 0.8.9;
 
 import "./Bleeps.sol";
+import "../interfaces/IBleepsSale.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-contract BleepsInitialSale {
+contract BleepsDutchAuction is IBleepsSale {
     Bleeps internal immutable _bleeps;
     uint256 internal immutable _startTime;
     uint256 internal immutable _initPrice;

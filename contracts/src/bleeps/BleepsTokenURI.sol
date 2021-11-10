@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-1.0
 pragma solidity 0.8.9;
 
-import "./ITokenURI.sol";
+import "../interfaces/ITokenURI.sol";
 
 /* solhint-disable quotes */
 
@@ -138,7 +138,9 @@ contract BleepsTokenURI is ITokenURI {
                 '","description":"A%20sound%20fully%20generated%20onchain","external_url":"',
                 "https://bleeps.art/bleeps/%23id=",
                 bytes(uint2str(id)),
-                "\",\"image\":\"",imageStr(id),"\",",
+                '","image":"',
+                imageStr(id),
+                '",',
                 '"attributes":[{"trait_type":"Instrument","value":"',
                 instrument,
                 '"},{"trait_type":"Note","value":"',
@@ -176,7 +178,7 @@ contract BleepsTokenURI is ITokenURI {
         }
     }
 
-    function imageStr(uint256 id) internal pure returns(bytes memory) {
+    function imageStr(uint256 id) internal pure returns (bytes memory) {
         bytes memory freqTable = FREQUENCIES;
         bytes memory instrument = instrumentName(id, false);
         uint256 hz;
@@ -184,7 +186,16 @@ contract BleepsTokenURI is ITokenURI {
         assembly {
             hz := div(and(shr(232, mload(add(freqTable, add(32, mul(mod(id, 64), 3))))), 0xFFFFFF), 100)
         }
-        return bytes.concat("data:image/svg+xml,<svg%2520xmlns='http://www.w3.org/2000/svg'%2520viewBox='0%25200%2520512%2520512'%2520style='background-color:%2523000;stroke:%2523dab894;fill:%2523dab894;'><rect%2520x='6'%2520y='6'%2520width='500'%2520height='500'%2520rx='64'%2520style='stroke-width:8;fill:%2523000;'/><text%2520x='35'%2520y='35'%2520dominant-baseline='hanging'%2520text-anchor='start'%2520style='fill:%2523dab894;font-size:32px;'>",bytes(uint2str(hz)),"%2520hz</text><text%2520x='256'%2520y='170'%2520dominant-baseline='middle'%2520text-anchor='middle'%2520style='font-size:36px;'>",instrument,"</text><text%2520x='256'%2520y='330'%2520dominant-baseline='middle'%2520text-anchor='middle'%2520style='font-size:72px;'>",noteString(id, true),"</text></svg>");
+        return
+            bytes.concat(
+                "data:image/svg+xml,<svg%2520xmlns='http://www.w3.org/2000/svg'%2520viewBox='0%25200%2520512%2520512'%2520style='background-color:%2523000;stroke:%2523dab894;fill:%2523dab894;'><rect%2520x='6'%2520y='6'%2520width='500'%2520height='500'%2520rx='64'%2520style='stroke-width:8;fill:%2523000;'/><text%2520x='35'%2520y='35'%2520dominant-baseline='hanging'%2520text-anchor='start'%2520style='fill:%2523dab894;font-size:32px;'>",
+                bytes(uint2str(hz)),
+                "%2520hz</text><text%2520x='256'%2520y='170'%2520dominant-baseline='middle'%2520text-anchor='middle'%2520style='font-size:36px;'>",
+                instrument,
+                "</text><text%2520x='256'%2520y='330'%2520dominant-baseline='middle'%2520text-anchor='middle'%2520style='font-size:72px;'>",
+                noteString(id, true),
+                "</text></svg>"
+            );
     }
 
     function _finishBuffer(

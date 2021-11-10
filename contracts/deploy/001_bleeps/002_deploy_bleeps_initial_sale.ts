@@ -12,6 +12,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const Bleeps = await deployments.get('Bleeps');
 
   const BleepsInitialSale = await deploy('BleepsInitialSale', {
+    contract: 'BleepsDutchAuction',
     from: deployer,
     args: [
       Bleeps.address,
