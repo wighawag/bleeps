@@ -3,15 +3,18 @@ pragma solidity 0.8.9;
 
 import "./Bleeps.sol";
 import "../interfaces/IBleepsSale.sol";
+import "./SaleBase.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
-contract BleepsFixedPriceSale is IBleepsSale {
-    Bleeps internal immutable _bleeps;
+contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
+    using ECDSA for bytes32;
+
     uint256 internal immutable _price;
     bytes32 internal immutable _whitelistMerkleRoot;
-    address payable internal immutable _recipient;
-    IERC721 internal immutable _mandalas;
-    uint256 internal immutable _mandalasDiscountPercentage;
+
+    uint256 internal _passUsed_1;
+    uint256 internal _passUsed_2;
 
     constructor(
         Bleeps bleeps,
@@ -20,13 +23,9 @@ contract BleepsFixedPriceSale is IBleepsSale {
         address payable recipient,
         IERC721 mandalas,
         uint256 mandalasDiscountPercentage
-    ) {
-        _bleeps = bleeps;
+    ) SaleBase(bleeps, recipient, mandalas, mandalasDiscountPercentage) {
         _price = price;
         _whitelistMerkleRoot = whitelistMerkleRoot;
-        _recipient = recipient;
-        _mandalas = mandalas;
-        _mandalasDiscountPercentage = mandalasDiscountPercentage;
     }
 
     function priceInfo(address purchaser)
@@ -60,7 +59,66 @@ contract BleepsFixedPriceSale is IBleepsSale {
         hasMandalas = _hasMandalas(purchaser);
     }
 
+    function isPassUsed(uint256 passId) public returns (bool) {
+        if (passId > 511) {
+            return false;
+        } else if (passId > 255) {
+            uint256 mask = (1 << (passId - 256));
+            return _passUsed_2 & mask == mask;
+        }
+        uint256 mask = (1 << passId);
+        return (_passUsed_1 & mask) == mask;
+    }
+
     function mint(uint16 id, address to) external payable {
+        // fails if whitelist?
+        _mint(id, to);
+    }
+
+    function mintWithSalePass(
+        uint16 id,
+        address to,
+        uint256 passId,
+        bytes memory signature,
+        bytes32[] memory proof
+    ) external payable {
+        require(passId < 512, "INVALID_PASS_ID");
+        if (passId > 255) {
+            uint256 mask = (1 << (passId - 256));
+            require(_passUsed_2 & mask == 0, "PASS_ALREADY_USED");
+            _passUsed_2 = _passUsed_2 | mask;
+        } else {
+            uint256 mask = (1 << passId);
+            require(_passUsed_1 & mask == 0, "PASS_ALREADY_USED");
+            _passUsed_1 = _passUsed_1 | mask;
+        }
+
+        address signer = keccak256(abi.encodePacked(passId, to)).recover(signature);
+        bytes32 leaf = _generatePassHash(passId, signer);
+        require(_verify(proof, leaf), "INVALID_PROOF");
+
+        _mint(id, to);
+    }
+
+    function _generatePassHash(uint256 passId, address signer) internal pure returns (bytes32) {
+        return keccak256(abi.encodePacked(passId, signer));
+    }
+
+    function _verify(bytes32[] memory proof, bytes32 computedHash) internal view returns (bool) {
+        for (uint256 i = 0; i < proof.length; i++) {
+            bytes32 proofElement = proof[i];
+
+            if (computedHash < proofElement) {
+                computedHash = keccak256(abi.encodePacked(computedHash, proofElement));
+            } else {
+                computedHash = keccak256(abi.encodePacked(proofElement, computedHash));
+            }
+        }
+
+        return computedHash == _whitelistMerkleRoot;
+    }
+
+    function _mint(uint16 id, address to) internal {
         require(id < 576, "INVALID_SOUND");
         uint256 instr = (uint256(id) >> 6) % 16;
 
@@ -77,13 +135,5 @@ contract BleepsFixedPriceSale is IBleepsSale {
             _recipient.transfer(expectedValue);
         }
         _bleeps.mint(id, to);
-    }
-
-    function _hasMandalas(address owner) internal view returns (bool) {
-        (bool success, bytes memory returnData) = address(_mandalas).staticcall(
-            abi.encodeWithSignature("balanceOf(address)", owner)
-        );
-        uint256 numMandalas = success && returnData.length > 0 ? abi.decode(returnData, (uint256)) : 0;
-        return numMandalas > 0;
     }
 }
