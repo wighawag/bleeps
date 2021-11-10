@@ -29,8 +29,9 @@ contract MeloBleeps is ERC721Base, Roles {
         address initialTokenURIAdmin,
         address initialRoyaltyAdmin,
         address initialMinterAdmin,
+        address initialGuardian,
         MeloBleepsTokenURI initialTokenURIContract
-    ) Roles(initialTokenURIAdmin, initialRoyaltyAdmin, initialMinterAdmin) {
+    ) Roles(initialTokenURIAdmin, initialRoyaltyAdmin, initialMinterAdmin, initialGuardian) {
         tokenURIContract = initialTokenURIContract;
         emit TokenURIContractSet(initialTokenURIContract);
     }

@@ -31,11 +31,13 @@ const config: HardhatUserConfig = {
     bleepsTokenURIAdmin: 1,
     bleepsRoyaltyAdmin: 1,
     bleepsMinterAdmin: 1,
+    bleepsGuardian: 1,
     checkpointingDisabler: 1,
     saleRecipient: 1,
     melobleepsTokenURIAdmin: 1,
     melobleepsRoyaltyAdmin: 1,
     melobleepsMinterAdmin: 1,
+    melobleepsGuardian: 1,
   },
   networks: {
     hardhat: {

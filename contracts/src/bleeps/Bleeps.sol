@@ -31,6 +31,7 @@ contract Bleeps is IERC721, WithSupportForOpenSeaProxies, ERC721Checkpointable, 
     /// @param initialTokenURIAdmin admin able to update the tokenURI contract.
     /// @param initialRoyaltyAdmin admin able to update the royalty recipient and rates.
     /// @param initialMinterAdmin admin able to set the minter contract.
+    /// @param initialGuardian guardian able to immortalize rules
     /// @param initialTokenURIContract initial tokenURI contract that generate the metadata including the wav file.
     /// @param initialCheckpointingDisabler admin able to update the royalty recipient and rates.
     constructor(
@@ -38,11 +39,12 @@ contract Bleeps is IERC721, WithSupportForOpenSeaProxies, ERC721Checkpointable, 
         address initialTokenURIAdmin,
         address initialRoyaltyAdmin,
         address initialMinterAdmin,
+        address initialGuardian,
         ITokenURI initialTokenURIContract,
         address initialCheckpointingDisabler
     )
         WithSupportForOpenSeaProxies(openseaProxyRegistry)
-        Roles(initialTokenURIAdmin, initialRoyaltyAdmin, initialMinterAdmin)
+        Roles(initialTokenURIAdmin, initialRoyaltyAdmin, initialMinterAdmin, initialGuardian)
     {
         tokenURIContract = initialTokenURIContract;
         emit TokenURIContractSet(initialTokenURIContract);
