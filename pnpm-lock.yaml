@@ -196,7 +196,7 @@ importers:
       typescript: ^4.4.4
       vite: 2.6.7
       web3w: ^0.3.2-beta.9
-      web3w-walletconnect-loader: ^0.3.1
+      web3w-walletconnect-loader: ^0.3.2
       wonka: ^4.0.15
     dependencies:
       '@ethereumjs/tx': 3.3.2
@@ -215,7 +215,7 @@ importers:
       graphql: 15.6.1
       named-logs: 0.1.0
       web3w: 0.3.2-beta.9_5c043d418860e5468b6969654e29daa7
-      web3w-walletconnect-loader: 0.3.1
+      web3w-walletconnect-loader: 0.3.2
       wonka: 4.0.15
     devDependencies:
       '@sveltejs/adapter-node': 1.0.0-next.54
@@ -14366,8 +14366,8 @@ packages:
       web3-utils: 1.5.2
     dev: true
 
-  /web3w-walletconnect-loader/0.3.1:
-    resolution: {integrity: sha512-gF+SjsNKvl5lKUwFGAI8CHTsWl34YkLkr9BqlCi9CCVB9DgB5Rj8BpliFlLKAgomW9lSVG32Vzr6o0LYCYUd6A==}
+  /web3w-walletconnect-loader/0.3.2:
+    resolution: {integrity: sha512-6IgyNsnC92ermTq3cGmU0hLMM0LuGObyN3sZfR/Zp01haaMGi6GRrtx9BtHkBcHfO4lXbtx6iO3Chc71prtHrA==}
     dependencies:
       named-logs: 0.1.0
     dev: false
