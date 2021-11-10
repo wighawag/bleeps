@@ -17,7 +17,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const existingBleeps = await deployments.getOrNull('Bleeps');
 
   const openseaProxyRegistry =
-    (await deployments.getOrNull('WyvernProxyRegistry')) || '0x0000000000000000000000000000000000000000';
+    (await deployments.getOrNull('WyvernProxyRegistry'))?.address || '0x0000000000000000000000000000000000000000';
 
   let needUpdate = false;
   if (existingBleeps) {
