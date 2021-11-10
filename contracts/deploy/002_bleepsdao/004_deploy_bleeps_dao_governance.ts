@@ -19,7 +19,25 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const BleepsDAOGovernor = await deploy('BleepsDAOGovernor', {
     from: deployer,
-    args: [bleeps.address, BleepsDAOExecutor.address],
+    proxy: {
+      proxyContract: 'BleepsDAOProxy',
+      execute: {
+        init: {
+          methodName: 'initialize',
+          args: [bleeps.address, BleepsDAOExecutor.address],
+        },
+      },
+    },
+    args: [], //
+    // address timelock_,
+    // address nouns_,
+    // address vetoer_,
+    // address admin_,
+    // address implementation_,
+    // uint256 votingPeriod_,
+    // uint256 votingDelay_,
+    // uint256 proposalThresholdBPS_,
+    // uint256 quorumVotesBPS_
     log: true,
     autoMine: true,
   });
