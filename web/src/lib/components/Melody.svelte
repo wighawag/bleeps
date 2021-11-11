@@ -333,7 +333,7 @@
       min="0"
       bind:value={note.note}
       on:change={() => (sound = null)}
-      max="64"
+      max="63"
       type="range"
       orient="vertical"
     />
