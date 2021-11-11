@@ -1,8 +1,8 @@
 import {HardhatRuntimeEnvironment} from 'hardhat/types';
 import {DeployFunction} from 'hardhat-deploy/types';
 import {parseEther} from 'ethers/lib/utils';
-import {MerkleTree} from '../../utils/merkletree';
-import {hashLeaves, createLeaves} from '../../utils/merkletree/salepass';
+import {MerkleTree} from 'bleeps-common';
+import {createLeaves, hashLeaves} from 'bleeps-common';
 import {Wallet} from 'ethers';
 import fs from 'fs';
 

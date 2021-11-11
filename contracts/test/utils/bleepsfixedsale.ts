@@ -1,7 +1,7 @@
 import {deployments, ethers} from 'hardhat';
 import {parseEther, SigningKey, solidityKeccak256} from 'ethers/lib/utils';
-import {MerkleTree} from '../../utils/merkletree';
-import {calculateHash, hashLeaves} from '../../utils/merkletree/salepass';
+import {MerkleTree} from 'bleeps-common';
+import {calculateHash, hashLeaves} from 'bleeps-common';
 import {ContractTransaction, Wallet} from 'ethers';
 import {joinSignature} from '@ethersproject/bytes';
 import {BleepsFixedPriceSale} from '../../typechain/BleepsFixedPriceSale';

@@ -5,8 +5,8 @@ import {setupUsers, waitFor} from './utils';
 import {parseEther, SigningKey, solidityKeccak256} from 'ethers/lib/utils';
 import {Wallet} from 'ethers';
 import {joinSignature} from '@ethersproject/bytes';
-import {MerkleTree} from '../utils/merkletree';
-import {calculateHash, hashLeaves} from '../utils/merkletree/salepass';
+import {MerkleTree} from 'bleeps-common';
+import {calculateHash, hashLeaves} from 'bleeps-common';
 
 const setup = deployments.createFixture(async () => {
   await deployments.fixture(['Bleeps', 'BleepsInitialSale']);
