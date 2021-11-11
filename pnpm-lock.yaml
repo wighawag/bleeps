@@ -51,6 +51,7 @@ importers:
   contracts:
     specifiers:
       '@ethersproject/abstract-signer': ^5.5.0
+      '@ethersproject/bignumber': ^5.5.0
       '@ethersproject/bytes': ^5.4.0
       '@ethersproject/solidity': ^5.4.0
       '@ethersproject/wallet': ^5.4.0
@@ -89,6 +90,7 @@ importers:
       typescript: ^4.4.3
     devDependencies:
       '@ethersproject/abstract-signer': 5.5.0
+      '@ethersproject/bignumber': 5.5.0
       '@ethersproject/bytes': 5.5.0
       '@ethersproject/solidity': 5.4.0
       '@ethersproject/wallet': 5.4.0

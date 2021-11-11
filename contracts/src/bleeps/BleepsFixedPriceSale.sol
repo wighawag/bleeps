@@ -11,6 +11,8 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
     using ECDSA for bytes32;
 
     uint256 internal immutable _price;
+    uint256 internal immutable _whitelistPrice;
+    uint256 internal immutable _whitelistTimeLimit;
     bytes32 internal immutable _whitelistMerkleRoot;
 
     uint256 internal _passUsed_1;
@@ -19,12 +21,16 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
     constructor(
         Bleeps bleeps,
         uint256 price,
+        uint256 whitelistPrice,
+        uint256 whitelistTimeLimit,
         bytes32 whitelistMerkleRoot,
         address payable recipient,
         IERC721 mandalas,
         uint256 mandalasDiscountPercentage
     ) SaleBase(bleeps, recipient, mandalas, mandalasDiscountPercentage) {
         _price = price;
+        _whitelistPrice = whitelistPrice;
+        _whitelistTimeLimit = whitelistTimeLimit;
         _whitelistMerkleRoot = whitelistMerkleRoot;
     }
 
@@ -33,12 +39,21 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
         view
         returns (
             uint256 price,
+            uint256 whitelistPrice,
+            uint256 whitelistTimeLimit,
             bytes32 whitelistMerkleRoot,
             uint256 mandalasDiscountPercentage,
             bool hasMandalas
         )
     {
-        return (_price, _whitelistMerkleRoot, _mandalasDiscountPercentage, _hasMandalas(purchaser));
+        return (
+            _price,
+            _whitelistPrice,
+            _whitelistTimeLimit,
+            _whitelistMerkleRoot,
+            _mandalasDiscountPercentage,
+            _hasMandalas(purchaser)
+        );
     }
 
     function ownersAndPriceInfo(address purchaser, uint256[] calldata ids)
@@ -47,6 +62,8 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
         returns (
             address[] memory addresses,
             uint256 price,
+            uint256 whitelistPrice,
+            uint256 whitelistTimeLimit,
             bytes32 whitelistMerkleRoot,
             uint256 mandalasDiscountPercentage,
             bool hasMandalas
@@ -54,6 +71,8 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
     {
         addresses = _bleeps.owners(ids);
         price = _price;
+        whitelistPrice = _whitelistPrice;
+        whitelistTimeLimit = _whitelistTimeLimit;
         whitelistMerkleRoot = _whitelistMerkleRoot;
         mandalasDiscountPercentage = _mandalasDiscountPercentage;
         hasMandalas = _hasMandalas(purchaser);
@@ -70,9 +89,17 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
         return (_passUsed_1 & mask) == mask;
     }
 
-    function mint(uint16 id, address to) external payable {
-        // fails if whitelist?
-        _mint(id, to);
+    function mint(uint16 id, address to) public payable {
+        require(block.timestamp >= _whitelistTimeLimit, "REQUIRE_PASS_OR_WAIT");
+        _payAndMint(id, to);
+    }
+
+    function recipientMint(uint16 id, address to) external {
+        require(msg.sender == _recipient, "NOT_AUTHORIZED");
+        require(id < 576, "INVALID_SOUND");
+        uint256 instr = (uint256(id) >> 6) % 16;
+        require(instr == 6 || instr == 8, "for sale");
+        _bleeps.mint(id, to);
     }
 
     function mintWithSalePass(
@@ -82,22 +109,23 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
         bytes memory signature,
         bytes32[] memory proof
     ) external payable {
-        require(passId < 512, "INVALID_PASS_ID");
-        if (passId > 255) {
-            uint256 mask = (1 << (passId - 256));
-            require(_passUsed_2 & mask == 0, "PASS_ALREADY_USED");
-            _passUsed_2 = _passUsed_2 | mask;
-        } else {
-            uint256 mask = (1 << passId);
-            require(_passUsed_1 & mask == 0, "PASS_ALREADY_USED");
-            _passUsed_1 = _passUsed_1 | mask;
+        if (block.timestamp < _whitelistTimeLimit) {
+            require(passId < 512, "INVALID_PASS_ID");
+            if (passId > 255) {
+                uint256 mask = (1 << (passId - 256));
+                require(_passUsed_2 & mask == 0, "PASS_ALREADY_USED");
+                _passUsed_2 = _passUsed_2 | mask;
+            } else {
+                uint256 mask = (1 << passId);
+                require(_passUsed_1 & mask == 0, "PASS_ALREADY_USED");
+                _passUsed_1 = _passUsed_1 | mask;
+            }
+
+            address signer = keccak256(abi.encodePacked(passId, to)).recover(signature);
+            bytes32 leaf = _generatePassHash(passId, signer);
+            require(_verify(proof, leaf), "INVALID_PROOF");
         }
-
-        address signer = keccak256(abi.encodePacked(passId, to)).recover(signature);
-        bytes32 leaf = _generatePassHash(passId, signer);
-        require(_verify(proof, leaf), "INVALID_PROOF");
-
-        _mint(id, to);
+        _payAndMint(id, to);
     }
 
     function _generatePassHash(uint256 passId, address signer) internal pure returns (bytes32) {
@@ -118,22 +146,20 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
         return computedHash == _whitelistMerkleRoot;
     }
 
-    function _mint(uint16 id, address to) internal {
+    function _payAndMint(uint16 id, address to) internal {
         require(id < 576, "INVALID_SOUND");
         uint256 instr = (uint256(id) >> 6) % 16;
+        require(instr != 6 && instr != 8, "These bleeps are reserved");
 
-        if (instr == 6 || instr == 8) {
-            require(msg.sender == _recipient, "These bleeps are reserved");
-        } else {
-            uint256 expectedValue = _price;
+        uint256 expectedValue = block.timestamp >= _whitelistTimeLimit ? _price : _whitelistPrice;
 
-            if (_hasMandalas(msg.sender)) {
-                expectedValue = expectedValue - (expectedValue * _mandalasDiscountPercentage) / 100;
-            }
-            require(msg.value >= expectedValue, "NOT_ENOUGH");
-            payable(msg.sender).transfer(msg.value - expectedValue);
-            _recipient.transfer(expectedValue);
+        if (_mandalasDiscountPercentage > 0 && _hasMandalas(msg.sender)) {
+            expectedValue = expectedValue - (expectedValue * _mandalasDiscountPercentage) / 100;
         }
+        require(msg.value >= expectedValue, "NOT_ENOUGH");
+        payable(msg.sender).transfer(msg.value - expectedValue);
+        _recipient.transfer(expectedValue);
+
         _bleeps.mint(id, to);
     }
 }

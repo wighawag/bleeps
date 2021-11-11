@@ -6,6 +6,7 @@ import {BigNumber, constants} from 'ethers';
 import {parseEther, solidityKeccak256} from 'ethers/lib/utils';
 import {PermitSignerFactory, PermitForAllSignerFactory} from './utils/eip712';
 import {splitSignature} from '@ethersproject/bytes';
+import {mintViaSalePass} from './utils/bleepsfixedsale';
 const {AddressZero} = constants;
 
 const setup = deployments.createFixture(async () => {
@@ -35,12 +36,12 @@ describe('Bleeps Permit', function () {
     const {users, BleepsPermitSigner} = await setup();
 
     const tokenId = 1;
-    await waitFor(users[0].BleepsInitialSale.mint(tokenId, users[0].address, {value: parseEther('2')}));
-    await waitFor(users[0].BleepsInitialSale.mint(2, users[0].address, {value: parseEther('2')}));
-    await waitFor(users[0].BleepsInitialSale.mint(3, users[0].address, {value: parseEther('2')}));
-    await waitFor(users[0].BleepsInitialSale.mint(4, users[0].address, {value: parseEther('2')}));
-    await waitFor(users[0].BleepsInitialSale.mint(5, users[0].address, {value: parseEther('2')}));
-    await waitFor(users[0].BleepsInitialSale.mint(6, users[2].address, {value: parseEther('2')}));
+    await mintViaSalePass(tokenId, users[0].address, users[0].address);
+    await mintViaSalePass(2, users[0].address, users[0].address);
+    await mintViaSalePass(3, users[0].address, users[0].address);
+    await mintViaSalePass(4, users[0].address, users[0].address);
+    await mintViaSalePass(5, users[0].address, users[0].address);
+    await mintViaSalePass(6, users[0].address, users[2].address);
 
     const signer = users[0].address;
     const spender = users[1].address;
@@ -102,12 +103,12 @@ describe('Bleeps Permit', function () {
   it('permitForAll works', async function () {
     const {users, BleepsPermitForAllSigner} = await setup();
 
-    await waitFor(users[0].BleepsInitialSale.mint(1, users[0].address, {value: parseEther('2')}));
-    await waitFor(users[0].BleepsInitialSale.mint(2, users[0].address, {value: parseEther('2')}));
-    await waitFor(users[0].BleepsInitialSale.mint(3, users[0].address, {value: parseEther('2')}));
-    await waitFor(users[0].BleepsInitialSale.mint(4, users[0].address, {value: parseEther('2')}));
-    await waitFor(users[0].BleepsInitialSale.mint(5, users[0].address, {value: parseEther('2')}));
-    await waitFor(users[0].BleepsInitialSale.mint(6, users[0].address, {value: parseEther('2')}));
+    await mintViaSalePass(1, users[0].address, users[0].address);
+    await mintViaSalePass(2, users[0].address, users[0].address);
+    await mintViaSalePass(3, users[0].address, users[0].address);
+    await mintViaSalePass(4, users[0].address, users[0].address);
+    await mintViaSalePass(5, users[0].address, users[0].address);
+    await mintViaSalePass(6, users[0].address, users[0].address);
 
     const signer = users[0].address;
     const spender = users[1].address;

@@ -21,3 +21,5 @@ deployments/localhost
 
 .dapp/
 _lib/
+
+.privateKeys*
