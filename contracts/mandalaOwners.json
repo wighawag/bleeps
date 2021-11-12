@@ -1,0 +1,1037 @@
+[
+  {
+    "__typename": "Owner",
+    "id": "0x000000000000000000000000000000000000dead",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x000001f568875f378bf6d170b790967fe429c81a",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x0078c86e12186e2de1ff6fef5f1ada2bffde4ea5",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x024f1f8b3789bfdf9edb47f58a0d7a3afeaea804",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x049808d5eaa90a2665b9703d2246dded34f1eb73",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x05e8074088797c1f9057febf374deee0bc38e894",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x05ea539365d91df315e8ddd736e90431696fe8c4",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x09280340849e66948149804cac539cc7227512be",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x0946bc5c2f9848665cc3811458de403d0a78ad8e",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x0985224a811e65c235dbf4a2c2117712aabe4e39",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x0d0aca99686fced8e6fb39134aaed96f09b5283c",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x0d94b6e4c2aa9383964986020b3534d34885f700",
+    "numMandalas": "3"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x0dd544d0da95666d7c3d38460feb4b5f25eaa515",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x0ea59c05be4b7149aaed26be764b618ac0255643",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x10b28ee04853bdd30d1fd7b302fbe5691c144aa0",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x10f6c58b9dc9603cb24ee9a5220bb4a470781676",
+    "numMandalas": "5"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x12579783fbe8c2645d7a634b238da748405975a2",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x136c65a3f31682fcf683906ddbf3c76db2633f99",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x139d9a36ff2b6bfb8558dfbc22486da48c77a396",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x13b3a50f3947476eda74fe191344524e2d2d28e5",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x13e46ccd194ca86212236543d2e7376b00bafa42",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x1423fcc74da82fa03d70fa1f7a122db1ba231783",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x1436dbffbdde71d16a2c4d23f9116c3158c4d984",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x1527fa3a0778d574adfe714b7e60c7b2a1bf7c29",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x1974341df4b113a4c16f3d3f106176dec0e4da67",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x19b2ba0892da19d09d59e300d11da9edf96654ae",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x1c062628943a930b805849b494719c7d23c77bd5",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x1ec9503bbdad721ef3ad485b4b14ce0671dc9925",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x21c5edc237e95049f92059af6a571fdb700f2b82",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x2224acd07fd9b269ab5200a9a3df8062624deefb",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x230eb64900d027dfe372786b3342bd6178ec37d1",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x273c25abd33eca095e228fde0f15e8f7ec4eb4d9",
+    "numMandalas": "3"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x27d9b6692ec1fb802cc8ceef74270ca4b448076a",
+    "numMandalas": "4"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x290420874bf65691b98b67d042c06bbc31f85f11",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x2993db31d165c33d848e44a1c26a805ba411d324",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x2d2c46d26c8fec693586e067c4fc2b2ddc2b4cb3",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x2d79097b9e4c4f41654b2c91c39fd2c97af00c76",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x2de2299db048a9e3b8d1934b8dae11b8041cc4fd",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x2e50783188e23742dd3168682e39381ff5fa9731",
+    "numMandalas": "14"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x2e699391d1b3b8577557b4c0ef6a1d9e8a394f04",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x308bff328370fc4a9683ab9fcd79a21be6dc5ee4",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x342c6bfa287ce37b8b53eee0e5b6e6bcbea98c76",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x362f020fd4420c317e7a0722994ba8bc3380d0e8",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x3668a20653316a7dd85342f64a4c984d146cadfe",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x37b699d7eead58433d352d1c77b2db1391f11ce5",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x3ad353e2845b96fb1b58c1ca6cda46b870de8d6f",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x3d14410609731ec7924ea8b1f13de544bb46a9a6",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x4011d09a86d0aca8377a4a8bad691f1aceecd672",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x41a7276167b80da8815df5b0ddaba3be29984250",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x44dc2ec15b3483fc8590f6b396cea5f8f2fbf3bd",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x4530307f98208d3bd5b9631880bc7351770c8810",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x4a1d757699ab73dd4b48b15049b6f1479b2f3511",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x4b0bd713574e67a97b3ff8f647f329794a2cbb64",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x4d03a186b3c7d039ff9a212cd8e81dc34a670b35",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x4de4a829d42191007431d608775430f3ab072082",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x4e012d25472225f3385baa43ed64dfec5885c51d",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x4ffb72b66eba24521736924f87dfe10677d82286",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x50f27cdb650879a41fb07038bf2b818845c20e17",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x5285ac85a979b612f5c5320961311bba099670f0",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x530cf036ed4fa58f7301a9c788c9806624cefd19",
+    "numMandalas": "3"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x5310a9b64847c1b927f823a4bc8836e93f09dc78",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x54463aae905082c678708bb6c25226eb8f38d5a6",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x562bf1b67dc40d9b7c3ddd49e45ae58e61e1b76e",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x568b491fb2b4b9440f6d05e7723df0060fdaef1c",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x5b158f897f5ace2afefaf7ace8ce0cdbbbc9168a",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x5ba02f4ff6af1d9d2af8774d10fd32eb57d4e2e6",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x5bd685375c21375165438ca7f3eae7ec4fade8c5",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x5d9e720a1c16b98ab897165803c4d96e8060b8e4",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x5e01d9928ea32d1d3ae2f3263b6ec6c165dc2d76",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x5ee42438d0d8fc399c94ef3543665e993e847b49",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x5f8e56d7f3642dd8783774460da2d3a7c54aacda",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x5fb8b9512684d451d4e585a1a0aabfb48a253c67",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x6186290b28d511bff971631c916244a9fc539cfe",
+    "numMandalas": "14"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x62f099a34f01d57c67a100851184bea0d48b45f6",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x63244b5f1ebcb999ea012da652dffee6653bf8f5",
+    "numMandalas": "4"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x64e00561fa9b1f2f2048b2d4f571279689dd9541",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x65565244e5700b85c90358468faf37c85db55099",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x6584b48ccebd9c3e4413a1dd4cdbc38b2500cdf3",
+    "numMandalas": "3"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x65d88c64b01b9481352fa8a68b54ed1b3b687388",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x663d3947f03ef5b387992b880ac85940057c13e3",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x67c3097a968db89610825976ec9a5976a966c044",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x68016f094ebb7b55b04372af335455854b0e2eb6",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x6854dc5c9e3d3ce0b9dd7250d866908515465dc6",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x686e960ebd9aceb1771850444d4d3a7810a0dac9",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x6d7fd0438219c0f753a1ccf7c4885bb6cb260999",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x704c978d50590b21e4c2f43eb4da24fe61fcd707",
+    "numMandalas": "8"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x73e60cd967e957bc6e074f93320ffa1d52697d5b",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x75331ebbe0b00b97cab532384f13c9b479f074ec",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x75ef2eff7b12f5f900ef5c787036deab18423d1a",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x78885686feec340ab544428f161e7d621f520e29",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x79bebfcb560141f22959c62bbd2930d5c7e35d30",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x79fd2f15e0ea8c27b5192259f9da63f4e562f021",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x7a824bea2bed9399a68cd0e340224809521c81d9",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x7d6a8ffcaf98cac58340329b3a91759888cb1363",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x7e7a55b11dd9a02b4da169620adfc36b930100fc",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x80d0d54050c15971b21e877d95441800f5aa9ee8",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x8177598e08ee8199c160a48c7a0af31ab54bb59f",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x82410609593d876761681580cf304c794bd58d09",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x826f63afd9517364cbebe91a859f10b102505a40",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x836ef81a58e5565b8d1d555ec8e9a5c2792511c6",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x83d3c179e7906e7f6755658c70e106f1ed3c5782",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x84eeb7db3f93feb5a8a98f56dabb970a6797c187",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x865c2f85c9fea1c6ac7f53de07554d68cb92ed88",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x8725be0bb6ea759d10fbb52fedecc7dcd6890072",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x87dfef3b445667292aac89078b51f0f75795805f",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x88906af7616f88f610d1e479325a5c5f93ba1e2c",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x8a53b8b59877df193c6dae7b8d1d38251af563cf",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x8b5e90aa714c967efc8c286f46ce0fc822e1cfb0",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x8c0c3c60118b24b31806eae82ab4186821bf23f1",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x8c2e67bd3d0f432ef75d9ae6623cd0dfbce66050",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x8dc9d43df20681cd62ca0acb24ae7ce2794f835d",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x8df55ecf2c261b44d079302dc95327fe32f74eed",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x8ebbf8f59b7b7849e359f7e1cc395df6741c24b9",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x92e7faa1c7b1cf703e3cda42183978f16fa15713",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x932a824a4d3d0680e0b352de150e6f212b8ac841",
+    "numMandalas": "5"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x95a4350e1cb5e795d3ebe8bee63d9183de5449d1",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x96dc89dbe84970ee42a2f0b35fb50599e6745ff8",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x975ab68d4c15d6db02e101d5be03c5b49b9a3282",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x9de0b0402258a6a562331da7b3c13b29578789c4",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x9fc6d6c7326585fd3c2a743a1f505990d6e9df3f",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xa0863e36c30f4974a3a0e2cfc2802513cfaa22f1",
+    "numMandalas": "3"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xa0a6dc36041fb386378458006fecbddd02555ddd",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xa0d71d516c6149c958c489ab24223c99f5df906f",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xa0f838d02983161ee469bff969964b7051ac1cd9",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xa596370bc21dee36872b98009dfbbf465dbfefa3",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xa5975974cac3fefd831e42bdd2fe84cb5ee3b3de",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xa6157b7bb7ec05e2b6feafd686797f9ea05411cc",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xa6f4fa9840aa6825446c820af6d5eccf9f78ba05",
+    "numMandalas": "10"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xa77d9227eee861e01519548b6000acca8600eebe",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xa7d9f4fd84cdd4bee564adc1b18e3e8aa79d25f1",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xa88e4a192f3ff5e46dcc96efefb38dfec7bb250c",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xab2f02d8d409ee4f67fdda5aac5ca7a64a897271",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xac75cdc34283406b050cadf4ea5902a9310b138e",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xad9f9194c68bd83250a534a7da574687e1f102ff",
+    "numMandalas": "5"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xae8ce6bb2b95684f57c097b407f4e9b55d9ca432",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xaee2f40fe0568bd859bc6a518c7ef3252fdc9bf0",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xaf5cb828389bd6413e7bcd00ed2dcf2bdc1a015a",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xaf8fbf59e221d27b55dc3adc2366f9230bcf5096",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xb29b1936c11b77cec6061a9daf765ee2666c8f77",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xb347b5b99c49ce6c555071a1f0498c81511ad977",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xb3522064694ac9870dbf00eebc2712762193bb64",
+    "numMandalas": "3"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xb353268ce17d2c7f0f4f8aff152e548c43633df5",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xb66190f67ed8f0ca790ddfe541ee1bd0da53fe70",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xb7f9f538aa1b41ae2853eb63f1939187ffe70eb4",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xbb46c6e4d8a59520fbb11638c2d1228cc65f5a6c",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xbc10a3ae909b1b94f4c3e39607ad19d386dce32a",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xbd12aa424c207e90b66402c1f0aec357e8b1ded7",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xbe5be517537e53f09e88bcdf61da238477dca226",
+    "numMandalas": "3"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xbeeef66749b64afe43bbc9475635eb510cfe4922",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xbf1ed1ea654ad49472daedc21a31c8d28e6bb790",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xbfdb50dc66c8df9fd9688d8fe5a0c34126427645",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xc09d3402515676b81a2f768c365146ea3faa5605",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xc0e5e14bdecd9ed6954a9e14c74e97cebd91bb94",
+    "numMandalas": "16"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xc169699a825066f2f07e0b29c4082094b32a3f3e",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xc3a67c1437353bdc9c53060235a34018711de0cf",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xc42c694d0215b27bce1a871a4a2ad38cf0120a82",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xc555347d2b369b074be94fe6f7ae9ab43966b884",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xc665a60f22dda926b920deb8ffac0ef9d8a17460",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xc8286a9bf1f9bf8f3006fa014915c78b7e75111c",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xc8bace82793074fad3337424bdb84e306b2f8a44",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xc9a009bed9ed8a32499e18c20f7cd12132c8d6cb",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xca11d10ceb098f597a0cab28117fc3465991a63c",
+    "numMandalas": "3"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xcbd2f544073eb35b59a8eb19194a222a5361cd74",
+    "numMandalas": "10"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xcda685c8444f659ac3fe778f8d143aabdf1a21ab",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xcea78aaa93e917fb5e1802901db2b20aa4411b44",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xcef871b113d2bb5d3fa5dc96d2d288dd38082aae",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xcf680fb77c12e2aa2dec82f3ae0c0e527f549fe2",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xd1eddfcc4596cc8bd0bd7495beab9b979fc50336",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xd286064cc27514b914bab0f2fad2e1a89a91f314",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xd3e64b9dea13e4840a0da20965bd0ca37d05a12a",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xd651e2c626ee210fc38676124d5007ac822ad749",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xd657860fc512ec2250a7385a353f599e3276fddb",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xd6e02c13a6cc133c9d019495414667ea7bee05cc",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xdc190d7cea8e8bf0b381617062200c10cfff0a91",
+    "numMandalas": "6"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xdd6c81d6d587e2d49eaadffb4ce380564046002a",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xddb92a96054132801cae3943b2f966fc2c308ac8",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xdde3ca351d85a4b4cc6aff8d42c0840959859053",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xe120ed22a0cd12d5de6122aa7d5b6d93ac218b49",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xe20adb03a470b5573bf572dd918e052d0d17866e",
+    "numMandalas": "6"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xe363c2fba75cbd27487b17430e1efbdd2add374e",
+    "numMandalas": "3"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xe5a3d77d7788a83f3549dd7f08fc2aced7e262d2",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xe66e1e9e37e4e148b21eb22001431818e980d060",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xe7bd51dc30d4bdc9fddd42ea7c0a283590c9d416",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xeb42cd8a1fe1ff556960a9a03ca29aa13f8aa838",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xed0f30677c760ea8f0bff70c76eafc79d5f7c3c8",
+    "numMandalas": "3"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xeddd55a234240042695d7430bf0a09b9038a26ad",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xee4d308cc1cde3dd0adcb5a2c85edff22db64918",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xee9439a12a7c2a9b6600ca8a498620580d2f116e",
+    "numMandalas": "3"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xeeaf61935c0c48f8f8cc28c381683d7fa2f75e1c",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xef1271ae97bc1a1b356ab697e9ed0d1d4e05fcda",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xf19bc58f747d6ea11959bf2a0fa81e53285546ac",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xf1e1c701b49b1dc2405a9e8ef40f9f88802b80fa",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xf2b15320db6992ba49a7563e50e888c20edcbe3c",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xf341c3abb49feb96b4822e68227b54c6fb9f6318",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xf3493f6812b1f22b40f8539db2510e13ac251f96",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xf3b1b6e83be4d55695f1d30ac3d307d9d5ca98ff",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xf464d1a37d8ef9449722f44a4eeb715c0e0acdb3",
+    "numMandalas": "3"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xf6910d47fbb1f5518d60c721d4189936ecd5a1b6",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xf73c935815908ad9a056fc50269f95d8ba032e9d",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xf78cd306b23031de9e739a5bcde61764e82ad5ef",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xf942040710bedf7220beb24b220631c2255e87f1",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xf943e1d2db38db468f66a79b08ec23f8c4375ce3",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xfa46dedf812c5803b1e2cea10eef3f27dafeca56",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xfa9f104f338846b38b083c9e567ff6bbe43ab5f7",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xfd12799b9fb97dc61d9ad7ad4ffba5624004bc62",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xfe1e7dc61721f34a25c9eb4dc1a1a8f352c923ef",
+    "numMandalas": "2"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xfffff6e70842330948ca47254f2be673b1cb0db7",
+    "numMandalas": "1"
+  }
+]

@@ -2,7 +2,7 @@ import {HardhatRuntimeEnvironment} from 'hardhat/types';
 import {DeployFunction} from 'hardhat-deploy/types';
 import {parseEther} from 'ethers/lib/utils';
 import {MerkleTree} from 'bleeps-common';
-import {createLeaves, hashLeaves} from 'bleeps-common';
+import {createLeavesFromMandalaOwners, createLeavesFromPrivateKeys, hashLeaves} from 'bleeps-common';
 import {Wallet} from 'ethers';
 import fs from 'fs';
 
@@ -45,15 +45,20 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       }
     } catch (e) {}
 
-    if (privateKeys.length === 0) {
-      for (let i = 0; i < 512; i++) {
+    const mandalaOwners = JSON.parse(fs.readFileSync('mandalaOwners.json').toString());
+
+    const num = privateKeys.length + mandalaOwners.length;
+    if (num < 512) {
+      for (let i = num; i < 512; i++) {
         privateKeys.push(Wallet.createRandom().privateKey);
       }
     }
 
     const days = 24 * 3600;
 
-    const leaves = createLeaves(privateKeys);
+    const privateKeysLeaves = createLeavesFromPrivateKeys(0, privateKeys);
+    const mandalaLeaves = createLeavesFromMandalaOwners(privateKeysLeaves.length, mandalaOwners);
+    const leaves = privateKeysLeaves.concat(mandalaLeaves);
     const tree = new MerkleTree(hashLeaves(leaves));
     const merkleRootHash = tree.getRoot().hash;
 
@@ -70,7 +75,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         merkleRootHash,
         saleRecipient,
         MandalaToken.address,
-        20, // 20% discount
+        0, // 0% 20, // 20% discount
       ],
       linkedData:
         hre.network.name === 'hardhat'

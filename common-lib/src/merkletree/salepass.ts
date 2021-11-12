@@ -15,12 +15,28 @@ export function hashLeaves(data: {passId: string; signer: string}[]): string[] {
   return hashedLeaves;
 }
 
-export function createLeaves(privateKeys: string[]): {passId: string; signer: string}[] {
+export function createLeavesFromMandalaOwners(
+  startIndex: number,
+  owners: {id: string; numMandalas: number}[]
+): {passId: string; signer: string}[] {
+  const leaves: {passId: string; signer: string}[] = [];
+
+  for (let i = 0; i < owners.length; i++) {
+    leaves.push({passId: '' + (startIndex + i), signer: owners[i].id});
+  }
+
+  return leaves;
+}
+
+export function createLeavesFromPrivateKeys(
+  startIndex: number,
+  privateKeys: string[]
+): {passId: string; signer: string}[] {
   const leaves: {passId: string; signer: string}[] = [];
 
   for (let i = 0; i < privateKeys.length; i++) {
     const privateKey = privateKeys[i];
-    leaves.push({passId: '' + i, signer: new Wallet(privateKey).address});
+    leaves.push({passId: '' + (startIndex + i), signer: new Wallet(privateKey).address});
   }
 
   return leaves;

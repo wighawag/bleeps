@@ -11,7 +11,7 @@
 
   import {base} from '$app/paths';
   import contractsInfo from '$lib/contracts.json';
-  import {wallet} from '$lib/stores/wallet';
+  import {flow, wallet} from '$lib/stores/wallet';
 
   const title = 'Bleeps And The Bleeps DAO';
   const description = appDescription;
@@ -50,7 +50,7 @@
     {href: url('about/'), title: 'About'},
   ]}
 >
-  {#if $wallet.address}
+  {#if $wallet && $wallet.state === 'Ready' && $wallet.address}
     <span class="text-bleeps"
       >{$wallet.address.startsWith('0x') ? $wallet.address.slice(0, 6) + '...' : $wallet.address}<svg
         on:click={disconnect}
@@ -68,6 +68,8 @@
         />
       </svg></span
     >
+  {:else}
+    <span class="text-bleeps" on:click={() => flow.connect()}>connect</span>
   {/if}
 </NavBar>
 

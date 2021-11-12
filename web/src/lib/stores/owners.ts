@@ -154,6 +154,8 @@ class OwnersStateStore extends BaseStore<OwnersState> {
         } else {
           console.log('you are whitelisted (mandala owner)');
         }
+
+        this.setPartial({passId});
       }
 
       this.setPartial({
@@ -168,12 +170,12 @@ class OwnersStateStore extends BaseStore<OwnersState> {
           mandalasDiscountPercentage: result.mandalasDiscountPercentage,
           hasMandalas: result.hasMandalas,
         },
-        passId,
         timeLeftBeforePublic,
         numLeftPerInstr,
         normalExpectedValue,
         expectedValue,
       });
+
       if (this.priceInfoResolve) {
         this.priceInfoResolve();
       }
