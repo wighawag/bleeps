@@ -1,7 +1,3 @@
-<script context="module">
-  // export const hydrate = false;
-</script>
-
 <script lang="ts">
   import WalletAccess from '$lib/WalletAccess.svelte';
   import NavButton from '$lib/components/navigation/NavButton.svelte';
@@ -12,6 +8,14 @@
   import {base} from '$app/paths';
   import BleepsSvg from '$lib/components/BleepsSVG.svelte';
   import {instrumentName, instrumentNameFromId, noteName} from '$lib/utils/notes';
+  import {symbolSVG} from '$lib/utils/symbols';
+  import {calculateHash} from 'bleeps-common';
+  import {joinSignature} from '@ethersproject/bytes';
+  import {keccak256 as solidityKeccak256} from '@ethersproject/solidity';
+  import {now} from '$lib/stores/time';
+
+  // import {hashParams} from '$lib/config';
+  // import {onMount} from 'svelte';
 
   const name = 'Bleeps and The Bleeps DAO';
 
@@ -19,6 +23,11 @@
   let error: string | undefined;
 
   let selected = undefined;
+
+  // let passKey: string | undefined;
+  // onMount(() => {
+  //   passKey = hashParams['passKey'];
+  // });
 
   function fetchURI(id: number): Promise<{image: string; animation_url: string}> {
     const contracts = wallet.contracts || fallback.contracts;
@@ -57,18 +66,72 @@
       step = 'FETCHING_LAST_PRICE';
       await ownersState.waitFirstPriceInfo;
       step = 'TX_CREATION';
-      try {
-        const tx = await contracts.BleepsInitialSale.mint(bleepId, wallet.address, {
-          value: $ownersState.expectedValue,
-        });
-        step = 'TX_SBUMITTED';
-        await tx.wait();
-        step = 'IDLE';
-      } catch (e) {
-        if (e?.message && e?.message.indexOf('User denied') === -1) {
-          error = formatError(e);
+
+      if ($ownersState.timeLeftBeforePublic < 0) {
+        try {
+          const tx = await contracts.BleepsInitialSale.mint(bleepId, wallet.address, {
+            value: $ownersState.expectedValue,
+          });
+          step = 'TX_SBUMITTED';
+          await tx.wait();
+          step = 'IDLE';
+        } catch (e) {
+          if (e?.message && e?.message.indexOf('User denied') === -1) {
+            error = formatError(e);
+          }
+          step = 'IDLE';
         }
-        step = 'IDLE';
+      } else if (!$ownersState.passKeySigner) {
+        if ($ownersState.passId === undefined) {
+          throw new Error(`no pass wallet or pass key`);
+        }
+        const proof = $ownersState.merkleTree.getProof(calculateHash('' + $ownersState.passId, wallet.address));
+        try {
+          const tx = await contracts.BleepsInitialSale.mintWithPassId(
+            bleepId,
+            wallet.address,
+            $ownersState.passId,
+            proof,
+            {
+              value: $ownersState.expectedValue,
+            }
+          );
+          step = 'TX_SBUMITTED';
+          await tx.wait();
+          step = 'IDLE';
+        } catch (e) {
+          if (e?.message && e?.message.indexOf('User denied') === -1) {
+            error = formatError(e);
+          }
+          step = 'IDLE';
+        }
+      } else {
+        const signature = $ownersState.passKeySigner.signDigest(
+          solidityKeccak256(['uint256', 'address'], [$ownersState.passId, wallet.address])
+        );
+        const proof = $ownersState.merkleTree.getProof(
+          calculateHash('' + $ownersState.passId, $ownersState.passKeyWallet.address)
+        );
+        try {
+          const tx = await contracts.BleepsInitialSale.mintWithSalePass(
+            bleepId,
+            wallet.address,
+            $ownersState.passId,
+            joinSignature(signature),
+            proof,
+            {
+              value: $ownersState.expectedValue,
+            }
+          );
+          step = 'TX_SBUMITTED';
+          await tx.wait();
+          step = 'IDLE';
+        } catch (e) {
+          if (e?.message && e?.message.indexOf('User denied') === -1) {
+            error = formatError(e);
+          }
+          step = 'IDLE';
+        }
       }
     });
   }
@@ -88,19 +151,105 @@
 
     {#if $chain.state === 'Ready' || $fallback.state === 'Ready'}
       {#if $ownersState?.expectedValue}
-        {#if $ownersState?.priceInfo.hasMandalas}
+        {#if $ownersState?.priceInfo.hasMandalas && $ownersState?.priceInfo.mandalasDiscountPercentage.gt(0)}
           <p class="text-green-600 mb-2">
             As a owner of mandalas, you got a {$ownersState.priceInfo.mandalasDiscountPercentage}% discount!
           </p>
         {/if}
+
+        {#if $ownersState.priceInfo?.whitelistTimeLimit}
+          {#if now() < $ownersState.priceInfo.whitelistTimeLimit.toNumber()}
+            {#if $ownersState?.passId !== undefined}
+              <p class="text-green-600 mb-2">
+                You got a pass key, allowing you to purchase Bleeps before others (time limit: {new Date(
+                  $ownersState?.priceInfo.whitelistTimeLimit.mul(1000).toNumber()
+                ).toLocaleString()})
+                {#if !$ownersState?.expectedValue.eq($ownersState?.normalExpectedValue)}
+                  It also gives you a discount of {$ownersState.normalExpectedValue
+                    .sub($ownersState.expectedValue)
+                    .mul(100)
+                    .div($ownersState.normalExpectedValue)}% while it lasts
+                {/if}
+              </p>
+            {:else}
+              <p class="text-yellow-600 mb-2">
+                The Sale is not open yet, unless you get a pass key or have been a mandalas owner. Public Sale open on : {new Date(
+                  $ownersState?.priceInfo.whitelistTimeLimit.mul(1000).toNumber()
+                ).toLocaleString()}
+              </p>
+            {/if}
+          {/if}
+        {/if}
+      {:else}
+        <p class="text-blue-600 text-xl mb-2">Loading...</p>
       {/if}
 
       <div class="">
         <div class="inline-block border-white md:w-64 w-32 md:h-24 h-16 border-2 mx-auto rounded-md">
+          <svg
+            class="invisible md:visible z-30 absolute my-5 -mx-2 w-24 h-24"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 512 512"
+          >
+            <g transform="translate(210,0) scale(0.2,0.2)" style={`fill:#fff`}>{@html symbolSVG(0 << 6)}</g>
+          </svg><svg
+            class="invisible md:visible  z-30 absolute my-5 mx-10 w-24 h-24"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 512 512"
+          >
+            <g transform="translate(210,0) scale(0.2,0.2)" style={`fill:#fff`}>{@html symbolSVG(1 << 6)}</g>
+          </svg><svg
+            class="invisible md:visible  z-30 absolute my-5 mx-20 w-24 h-24"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 512 512"
+          >
+            <g transform="translate(210,0) scale(0.2,0.2)" style={`fill:#fff`}>{@html symbolSVG(2 << 6)}</g>
+          </svg><svg
+            class="invisible md:visible  z-30 absolute my-5 mx-32 w-24 h-24"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 512 512"
+          >
+            <g transform="translate(210,0) scale(0.2,0.2)" style={`fill:#fff`}>{@html symbolSVG(3 << 6)}</g>
+          </svg><svg
+            class="invisible md:visible  z-30 absolute my-5 mx-40 w-24 h-24"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 512 512"
+          >
+            <g transform="translate(210,0) scale(0.2,0.2)" style={`fill:#fff`}>{@html symbolSVG(4 << 6)}</g>
+          </svg><svg
+            class="invisible md:visible  z-30 absolute my-14 mx-3 w-24 h-24"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 512 512"
+          >
+            <g transform="translate(210,0) scale(0.2,0.2)" style={`fill:#fff`}>{@html symbolSVG(5 << 6)}</g>
+          </svg>
+          <!-- <svg
+            class="invisible md:visible  z-30 absolute my-14 mx-14 w-24 h-24"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 512 512"
+          >
+            <g transform="translate(210,0) scale(0.2,0.2)" style={`fill:#fff`}>{@html symbolSVG(6 << 6)}</g>
+          </svg> -->
+          <svg
+            class="invisible md:visible  z-30 absolute my-14 mx-28 w-24 h-24"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 512 512"
+          >
+            <g transform="translate(210,0) scale(0.2,0.2)" style={`fill:#fff`}>{@html symbolSVG(7 << 6)}</g>
+          </svg>
+          <!-- <svg
+            class="invisible md:visible  z-30 absolute my-14 mx-36 w-24 h-24"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 512 512"
+          >
+            <g transform="translate(210,0) scale(0.2,0.2)" style={`fill:#fff`}>{@html symbolSVG(8 << 6)}</g>
+          </svg> -->
           {#if $ownersState?.numLeftPerInstr !== undefined}
             <div
               style={`width:${
-                $ownersState?.numLeft !== 448 ? Math.max(((448 - $ownersState?.numLeft) * 100) / 448, 5) : 0
+                $ownersState?.numLeft - 128 !== 448
+                  ? Math.max(((448 - ($ownersState?.numLeft - 128)) * 100) / 448, 5)
+                  : 0
               }%; background-color:#dab894;height:100%;position:relative;line-height:inherit;`}
             />
           {:else}
@@ -120,7 +269,7 @@
       <div>
         <div class="inline-block md:w-64 w-32 mx-auto">
           {#if $ownersState?.numLeft !== undefined}
-            <p class="text-yellow-400">{448 - $ownersState?.numLeft} / 448 Minted</p>
+            <p class="text-yellow-400">{448 - ($ownersState?.numLeft - 128)} / 448 Minted</p>
           {/if}
         </div>
         <div class="inline-block md:w-24 w-12 mx-auto">
@@ -166,29 +315,46 @@
       <div class="max-w-2xl mx-auto py-2 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
         <div>
           {#each Array.from(Array(9)).map((v, i) => i) as instr}
-            <h2 class="mx-auto">{instrumentName(instr)}</h2>
-            <div class="border-white w-32 h-16 border-2 mx-auto rounded-md">
+            <div class={`${instr === 6 || instr === 8 ? 'text-gray-500' : 'text-white'}`}>
+              <h2 class="mx-auto">{instrumentName(instr)}</h2>
+
+              <div
+                class={`${
+                  instr === 6 || instr === 8 ? 'border-gray-500' : 'border-white'
+                } w-32 h-16 border-2 mx-auto rounded-md`}
+              >
+                {#if !(instr === 6 || instr === 8)}
+                  <svg
+                    class="z-30 absolute my-5 mx-3 w-24 h-24"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 512 512"
+                  >
+                    <g transform="translate(210,0) scale(0.2,0.2)" style={`fill:#fff`}>{@html symbolSVG(instr << 6)}</g>
+                  </svg>
+                {:else}
+                  <p class="my-5">reserved</p>
+                {/if}
+                {#if $ownersState?.numLeftPerInstr !== undefined}
+                  <div
+                    style={`width:${
+                      $ownersState?.numLeftPerInstr[instr] !== 64
+                        ? Math.max(((64 - $ownersState?.numLeftPerInstr[instr]) * 100) / 64, 5)
+                        : 0
+                    }%; background-color:#dab894;height:100%;position:relative;line-height:inherit;`}
+                  />
+                {:else}
+                  <div style="width:0%; background-color:#dab894;height:100%;position:relative;line-height:inherit;" />
+                {/if}
+              </div>
+
               {#if $ownersState?.numLeftPerInstr !== undefined}
-                <div
-                  style={`width:${
-                    $ownersState?.numLeftPerInstr[instr] !== 64
-                      ? Math.max(((64 - $ownersState?.numLeftPerInstr[instr]) * 100) / 64, 5)
-                      : 0
-                  }%; background-color:#dab894;height:100%;position:relative;line-height:inherit;`}
-                />
-              {:else}
-                <div style="width:0%; background-color:#dab894;height:100%;position:relative;line-height:inherit;" />
+                <p>{64 - $ownersState.numLeftPerInstr[instr]} / 64 Minted</p>
               {/if}
-            </div>
 
-            {#if $ownersState?.numLeftPerInstr !== undefined}
-              <p>{64 - $ownersState.numLeftPerInstr[instr]} / 64 Minted</p>
-            {/if}
-
-            <div class="grid grid-cols-8 mx-auto p-1 mb-16 gap-1 sm:gap-2 md:gap-4">
-              {#each Array.from(Array(64)).map((v, i) => i + instr * 64) as bleepId}
-                <div>
-                  <!-- <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" style="background-color:#000;">
+              <div class="grid grid-cols-8 mx-auto p-1 mb-16 gap-1 sm:gap-2 md:gap-4">
+                {#each Array.from(Array(64)).map((v, i) => i + instr * 64) as bleepId}
+                  <div>
+                    <!-- <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" style="background-color:#000;">
                     <rect x="0" width="32" height="32" rx="4" style="stroke-width:0.5;stroke:#dab894" />
                     <text
                       x="16"
@@ -199,15 +365,16 @@
                     ></svg
                   > -->
 
-                  <BleepsSvg
-                    id={bleepId}
-                    minted={$ownersState?.tokenOwners &&
-                      $ownersState.tokenOwners[bleepId] &&
-                      $ownersState.tokenOwners[bleepId] !== '0x0000000000000000000000000000000000000000'}
-                    on:click={() => select(bleepId)}
-                  />
+                    <BleepsSvg
+                      id={bleepId}
+                      disabled={instr === 6 || instr === 8}
+                      minted={$ownersState?.tokenOwners &&
+                        $ownersState.tokenOwners[bleepId] &&
+                        $ownersState.tokenOwners[bleepId] !== '0x0000000000000000000000000000000000000000'}
+                      on:click={() => select(bleepId)}
+                    />
 
-                  <!-- <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="height: 512px; width: 512px;"
+                    <!-- <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="height: 512px; width: 512px;"
                     ><path d="M0 0h512v512H0z" fill="#fff" fill-opacity="1" /><g
                       class=""
                       transform="translate(0,0)"
@@ -219,7 +386,7 @@
                       /></g
                     ></svg
                   > -->
-                  <!-- {#if $ownersState.tokenOwners && $ownersState.tokenOwners[bleepId]}
+                    <!-- {#if $ownersState.tokenOwners && $ownersState.tokenOwners[bleepId]}
                     {#if $ownersState.tokenOwners[bleepId] !== '0x0000000000000000000000000000000000000000'}
                       <NavButton label="listen" on:click={() => select(bleepId)}>listen</NavButton>
                     {:else}
@@ -229,9 +396,10 @@
                     <GreenNavButton label="listen" on:click={() => select(bleepId)}>listen</GreenNavButton>
                   {/if} -->
 
-                  <!-- More products... -->
-                </div>
-              {/each}
+                    <!-- More products... -->
+                  </div>
+                {/each}
+              </div>
             </div>
           {/each}
         </div>

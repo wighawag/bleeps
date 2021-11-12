@@ -102,6 +102,31 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
         _bleeps.mint(id, to);
     }
 
+    function mintWithPassId(
+        uint16 id,
+        address to,
+        uint256 passId,
+        bytes32[] memory proof
+    ) external payable {
+        if (block.timestamp < _whitelistTimeLimit) {
+            require(passId < 512, "INVALID_PASS_ID");
+            if (passId > 255) {
+                uint256 mask = (1 << (passId - 256));
+                require(_passUsed_2 & mask == 0, "PASS_ALREADY_USED");
+                _passUsed_2 = _passUsed_2 | mask;
+            } else {
+                uint256 mask = (1 << passId);
+                require(_passUsed_1 & mask == 0, "PASS_ALREADY_USED");
+                _passUsed_1 = _passUsed_1 | mask;
+            }
+
+            address signer = msg.sender;
+            bytes32 leaf = _generatePassHash(passId, signer);
+            require(_verify(proof, leaf), "INVALID_PROOF");
+        }
+        _payAndMint(id, to);
+    }
+
     function mintWithSalePass(
         uint16 id,
         address to,

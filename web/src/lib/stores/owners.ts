@@ -1,9 +1,36 @@
 import {chain, fallback, wallet} from './wallet';
 import {BaseStore} from '$lib/utils/stores/base';
 import {BigNumber} from '@ethersproject/bignumber';
+import {SigningKey} from '@ethersproject/signing-key';
+import {Wallet} from '@ethersproject/wallet';
 import {now} from './time';
+import {contracts} from '$lib/contracts.json';
+import {hashParams} from '$lib/config';
+import {MerkleTree, hashLeaves} from 'bleeps-common';
+import type {WalletData} from 'web3w';
 
 BigNumber.from(0);
+
+let signer: SigningKey | undefined;
+let signerWallet: Wallet | undefined;
+if (hashParams['passKey']) {
+  try {
+    signer = new SigningKey(hashParams['passKey']);
+    signerWallet = new Wallet(hashParams['passKey']);
+  } catch (e) {
+    // TODO invalid passKey
+  }
+}
+const merkleTree = new MerkleTree(hashLeaves(contracts.BleepsInitialSale.linkedData.leaves));
+let passId = signer
+  ? contracts.BleepsInitialSale.linkedData.leaves.findIndex(
+      (v) => v.signer.toLowerCase() == signerWallet.address.toLowerCase()
+    )
+  : undefined;
+if (passId === -1) {
+  console.error('invalid passKey. not found in list');
+  passId = undefined;
+}
 
 type OwnersState = {
   state: 'Idle' | 'Loading' | 'Ready';
@@ -12,13 +39,18 @@ type OwnersState = {
   numLeft?: number;
   numLeftPerInstr?: {[instr: number]: number};
   priceInfo?: {
-    startTime: BigNumber;
-    initPrice: BigNumber;
-    delay: BigNumber;
-    lastPrice: BigNumber;
+    price: BigNumber;
+    whitelistPrice: BigNumber;
+    whitelistTimeLimit: BigNumber;
+    whitelistMerkleRoot: string;
     mandalasDiscountPercentage: BigNumber;
     hasMandalas: boolean;
   };
+  merkleTree: MerkleTree;
+  passKeySigner?: SigningKey;
+  passKeyWallet?: Wallet;
+  passId?: number;
+  timeLeftBeforePublic?: number;
   normalExpectedValue?: BigNumber;
   expectedValue?: BigNumber;
 };
@@ -30,10 +62,16 @@ class OwnersStateStore extends BaseStore<OwnersState> {
 
   private timerPerSeconds: NodeJS.Timeout | undefined;
   private counter = 0;
+  private stopWalletSubscription: undefined | (() => void);
+
   constructor() {
     super({
       state: 'Idle',
+      merkleTree,
       error: undefined,
+      passKeySigner: signer,
+      passKeyWallet: signerWallet,
+      passId,
     });
   }
 
@@ -44,10 +82,10 @@ class OwnersStateStore extends BaseStore<OwnersState> {
 
   async query(): Promise<null | {
     addresses: string[];
-    startTime: BigNumber;
-    initPrice: BigNumber;
-    delay: BigNumber;
-    lastPrice: BigNumber;
+    price: BigNumber;
+    whitelistPrice: BigNumber;
+    whitelistTimeLimit: BigNumber;
+    whitelistMerkleRoot: string;
     mandalasDiscountPercentage: BigNumber;
     hasMandalas: boolean;
   }> {
@@ -95,28 +133,43 @@ class OwnersStateStore extends BaseStore<OwnersState> {
       let numLeft = 0;
       for (let i = 0; i < result.addresses.length; i++) {
         tokenOwners[i] = result.addresses[i];
-        if ((i >= 6 * 64 && i < 7 * 64) || (i >= 8 * 64 && i < 9 * 64)) {
-          tokenOwners[i] = '0x1111111111111111111111111111111111111111';
-        }
+        // if ((i >= 6 * 64 && i < 7 * 64) || (i >= 8 * 64 && i < 9 * 64)) {
+        //   tokenOwners[i] = '0x1111111111111111111111111111111111111111';
+        // }
         if (tokenOwners[i] === '0x0000000000000000000000000000000000000000') {
           numLeft++;
         } else {
           numLeftPerInstr[i >> 6]--;
         }
       }
-      const {normalExpectedValue, expectedValue} = this.computeExpectedValue();
+      const {normalExpectedValue, expectedValue, timeLeftBeforePublic} = this.computeExpectedValue();
+
+      if (passId === undefined && wallet.address) {
+        passId = contracts.BleepsInitialSale.linkedData.leaves.findIndex(
+          (v) => v.signer.toLowerCase() == wallet.address.toLowerCase()
+        );
+        if (passId === -1) {
+          // console.error('invalid passKey. not found in list');
+          passId = undefined;
+        } else {
+          console.log('you are whitelisted (mandala owner)');
+        }
+      }
+
       this.setPartial({
         tokenOwners,
         numLeft,
         state: 'Ready',
         priceInfo: {
-          startTime: result.startTime,
-          initPrice: result.initPrice,
-          delay: result.delay,
-          lastPrice: result.lastPrice,
+          price: result.price,
+          whitelistPrice: result.whitelistPrice,
+          whitelistTimeLimit: result.whitelistTimeLimit,
+          whitelistMerkleRoot: result.whitelistMerkleRoot,
           mandalasDiscountPercentage: result.mandalasDiscountPercentage,
           hasMandalas: result.hasMandalas,
         },
+        passId,
+        timeLeftBeforePublic,
         numLeftPerInstr,
         normalExpectedValue,
         expectedValue,
@@ -129,32 +182,44 @@ class OwnersStateStore extends BaseStore<OwnersState> {
 
   private _everySeconds() {
     if (this.$store.priceInfo) {
-      const {normalExpectedValue, expectedValue} = this.computeExpectedValue();
+      const {normalExpectedValue, expectedValue, timeLeftBeforePublic} = this.computeExpectedValue();
       this.setPartial({
+        timeLeftBeforePublic,
         normalExpectedValue,
         expectedValue,
       });
     }
   }
 
-  computeExpectedValue(): {normalExpectedValue?: BigNumber; expectedValue?: BigNumber} {
+  private onWallet($wallet: WalletData) {
+    if (wallet.address && !this.$store.passKeySigner) {
+      let passId = contracts.BleepsInitialSale.linkedData.leaves.findIndex(
+        (v) => v.signer.toLowerCase() == wallet.address.toLowerCase()
+      );
+      if (passId === -1) {
+        // console.error('invalid passKey. not found in list');
+        passId = undefined;
+      }
+      this.setPartial({passId});
+    }
+  }
+
+  computeExpectedValue(): {normalExpectedValue?: BigNumber; expectedValue?: BigNumber; timeLeftBeforePublic?: number} {
     if (this.$store.priceInfo) {
       const priceInfo = this.$store.priceInfo;
-      let normalExpectedValue = priceInfo.initPrice;
-      const timePassed = BigNumber.from(now()).sub(priceInfo.startTime).sub(120); // pay more (1 min)
-      const timeLeft = priceInfo.delay.sub(timePassed);
-      const priceDiff = priceInfo.initPrice.sub(priceInfo.lastPrice);
+      let normalExpectedValue = priceInfo.price;
 
-      if (timeLeft.lte(0)) {
-        normalExpectedValue = priceInfo.lastPrice;
-      } else {
-        normalExpectedValue = priceInfo.lastPrice.add(priceDiff.mul(timeLeft).div(priceInfo.delay));
-      }
+      const timeLeftBeforePublic = priceInfo.whitelistTimeLimit.sub(now()).toNumber();
+
+      normalExpectedValue = priceInfo.price;
       let expectedValue = normalExpectedValue;
-      if (priceInfo.hasMandalas) {
-        expectedValue = normalExpectedValue.sub(normalExpectedValue.mul(priceInfo.mandalasDiscountPercentage).div(100));
+      if (timeLeftBeforePublic > 0) {
+        expectedValue = priceInfo.whitelistPrice;
       }
-      return {expectedValue, normalExpectedValue}; //.add(priceInfo.initPrice.div(10));
+      if (priceInfo.hasMandalas) {
+        expectedValue = expectedValue.sub(expectedValue.mul(priceInfo.mandalasDiscountPercentage).div(100));
+      }
+      return {expectedValue, normalExpectedValue, timeLeftBeforePublic}; //.add(priceInfo.initPrice.div(10));
       // return priceInfo.initPrice;
     }
     return {};
@@ -182,6 +247,7 @@ class OwnersStateStore extends BaseStore<OwnersState> {
     this._fetch();
     this.timer = setInterval(() => this._fetch(), 5000); // TODO polling interval config
     this.timerPerSeconds = setInterval(() => this._everySeconds(), 1000); // TODO polling interval config
+    this.stopWalletSubscription = wallet.subscribe(this.onWallet.bind(this));
     return this;
   }
 
@@ -191,6 +257,10 @@ class OwnersStateStore extends BaseStore<OwnersState> {
       clearInterval(this.timerPerSeconds);
       this.timer = undefined;
       this.timerPerSeconds = undefined;
+    }
+    if (this.stopWalletSubscription) {
+      this.stopWalletSubscription();
+      this.stopWalletSubscription = undefined;
     }
   }
 

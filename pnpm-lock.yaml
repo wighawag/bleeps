@@ -166,7 +166,9 @@ importers:
       '@ethersproject/constants': ^5.5.0
       '@ethersproject/contracts': ^5.4.1
       '@ethersproject/providers': ^5.4.5
+      '@ethersproject/signing-key': ^5.5.0
       '@ethersproject/solidity': ^5.4.0
+      '@ethersproject/wallet': ^5.5.0
       '@sveltejs/adapter-node': 1.0.0-next.54
       '@sveltejs/adapter-static': 1.0.0-next.21
       '@sveltejs/kit': 1.0.0-next.182
@@ -213,7 +215,9 @@ importers:
       '@ethersproject/constants': 5.5.0
       '@ethersproject/contracts': 5.4.1
       '@ethersproject/providers': 5.4.5
+      '@ethersproject/signing-key': 5.5.0
       '@ethersproject/solidity': 5.4.0
+      '@ethersproject/wallet': 5.5.0
       '@urql/core': 2.3.3_graphql@15.6.1
       '@urql/devtools': 2.0.3_@urql+core@2.3.3+graphql@15.6.1
       ethereumjs-util: 7.1.3
