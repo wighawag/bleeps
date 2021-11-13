@@ -404,6 +404,7 @@
 
                     <BleepsSvg
                       id={bleepId}
+                      your={$ownersState.tokenOwners[bleepId].toLowerCase() === $wallet.address.toLowerCase()}
                       disabled={!isMintable($ownersState, bleepId)}
                       minted={$ownersState?.tokenOwners &&
                         $ownersState.tokenOwners[bleepId] &&
