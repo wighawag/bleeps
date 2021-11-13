@@ -34,7 +34,7 @@ if (passId === -1) {
   invalidPassId = true;
 }
 
-type OwnersState = {
+export type OwnersState = {
   state: 'Idle' | 'Loading' | 'Ready';
   error?: unknown;
   tokenOwners?: {[id: string]: string};

@@ -5,6 +5,7 @@
   import {wallet, flow, chain, fallback} from '$lib/stores/wallet';
   import Modal from '$lib/components/Modal.svelte';
   import {ownersState} from '$lib/stores/owners';
+  import type {OwnersState} from '$lib/stores/owners';
   import {base} from '$app/paths';
   import BleepsSvg from '$lib/components/BleepsSVG.svelte';
   import {instrumentName, instrumentNameFromId, noteName} from '$lib/utils/notes';
@@ -135,6 +136,30 @@
       }
     });
   }
+
+  function isMintable(state: OwnersState, id: number): boolean {
+    const instr = id >> 6;
+    return (
+      !(instr === 7 || instr === 8) &&
+      state.priceInfo?.uptoInstr?.gte(instr) &&
+      (state.timeLeftBeforePublic <= 0 || state.passId !== undefined) &&
+      !state.invalidPassId &&
+      !state.priceInfo?.passUsed &&
+      state.tokenOwners &&
+      state.tokenOwners[id] === '0x0000000000000000000000000000000000000000'
+    );
+  }
+
+  function isInstrumentMintable(state: OwnersState, instr: number): boolean {
+    return (
+      !(instr === 7 || instr === 8) &&
+      state.priceInfo?.uptoInstr?.gte(instr) &&
+      (state.timeLeftBeforePublic <= 0 || state.passId !== undefined) &&
+      !state.invalidPassId &&
+      !state.priceInfo?.passUsed &&
+      state.numLeftPerInstr[instr] > 0
+    );
+  }
 </script>
 
 <!-- {$ownersState.state} TODO show loading  -->
@@ -229,20 +254,20 @@
           >
             <g transform="translate(210,0) scale(0.2,0.2)" style={`fill:#fff`}>{@html symbolSVG(5 << 6)}</g>
           </svg>
-          <!-- <svg
+          <svg
             class="invisible md:visible  z-30 absolute my-14 mx-14 w-24 h-24"
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 512 512"
           >
             <g transform="translate(210,0) scale(0.2,0.2)" style={`fill:#fff`}>{@html symbolSVG(6 << 6)}</g>
-          </svg> -->
-          <svg
+          </svg>
+          <!-- <svg
             class="invisible md:visible  z-30 absolute my-14 mx-28 w-24 h-24"
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 512 512"
           >
             <g transform="translate(210,0) scale(0.2,0.2)" style={`fill:#fff`}>{@html symbolSVG(7 << 6)}</g>
-          </svg>
+          </svg> -->
           <!-- <svg
             class="invisible md:visible  z-30 absolute my-14 mx-36 w-24 h-24"
             xmlns="http://www.w3.org/2000/svg"
@@ -321,23 +346,15 @@
       <div class="max-w-2xl mx-auto py-2 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
         <div>
           {#each Array.from(Array(9)).map((v, i) => i) as instr}
-            <div
-              class={`${
-                instr === 6 || instr === 8 || $ownersState?.priceInfo?.uptoInstr.lt(instr)
-                  ? 'text-gray-500'
-                  : 'text-white'
-              }`}
-            >
+            <div class={`${isInstrumentMintable($ownersState, instr) ? 'text-white' : 'text-gray-500'}`}>
               <h2 class="mx-auto">{instrumentName(instr)}</h2>
 
               <div
                 class={`${
-                  instr === 6 || instr === 8 || $ownersState?.priceInfo?.uptoInstr.lt(instr)
-                    ? 'border-gray-500'
-                    : 'border-white'
+                  isInstrumentMintable($ownersState, instr) ? 'border-white' : 'border-gray-500'
                 } w-32 h-16 border-2 mx-auto rounded-md`}
               >
-                {#if !(instr === 6 || instr === 8)}
+                {#if !(instr === 7 || instr === 8)}
                   {#if $ownersState?.priceInfo?.uptoInstr.lt(instr)}
                     <p class="my-5">sale later</p>
                   {:else}
@@ -387,7 +404,7 @@
 
                     <BleepsSvg
                       id={bleepId}
-                      disabled={instr === 6 || instr === 8 || $ownersState?.priceInfo?.uptoInstr.lt(instr)}
+                      disabled={!isMintable($ownersState, bleepId)}
                       minted={$ownersState?.tokenOwners &&
                         $ownersState.tokenOwners[bleepId] &&
                         $ownersState.tokenOwners[bleepId] !== '0x0000000000000000000000000000000000000000'}
@@ -463,20 +480,13 @@
       {/if}
       <GreenNavButton
         label="mint"
-        active={$ownersState.priceInfo?.uptoInstr?.gte(selected >> 6) &&
-          !$ownersState.invalidPassId &&
-          !$ownersState.priceInfo?.passUsed &&
-          $ownersState.tokenOwners &&
-          $ownersState.tokenOwners[selected] === '0x0000000000000000000000000000000000000000'}
-        disabled={!(
-          $ownersState.priceInfo?.uptoInstr?.gte(selected >> 6) &&
-          !$ownersState.invalidPassId &&
-          !$ownersState.priceInfo?.passUsed &&
-          $ownersState.tokenOwners &&
-          $ownersState.tokenOwners[selected] === '0x0000000000000000000000000000000000000000'
-        )}
+        active={isMintable($ownersState, selected)}
+        disabled={!isMintable($ownersState, selected)}
         on:click={() => {
           if (
+            $ownersState.priceInfo?.uptoInstr?.gte(selected >> 6) &&
+            !$ownersState.invalidPassId &&
+            !$ownersState.priceInfo?.passUsed &&
             $ownersState.tokenOwners &&
             $ownersState.tokenOwners[selected] === '0x0000000000000000000000000000000000000000'
           ) {

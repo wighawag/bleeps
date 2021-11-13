@@ -17,9 +17,9 @@ export function instrumentName(instr: number): string {
     case 5:
       return 'ORGAN';
     case 6:
-      return 'NOISE';
-    case 7:
       return 'PHASER';
+    case 7:
+      return 'NOISE';
     case 8:
       return 'FUNKY SAW';
   }

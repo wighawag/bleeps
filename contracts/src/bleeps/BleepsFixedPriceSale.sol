@@ -104,7 +104,7 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
 
     function isReserved(uint256 id) public returns (bool) {
         uint256 instr = (uint256(id) >> 6) % 16;
-        return (instr == 6 || instr == 8);
+        return (instr == 7 || instr == 8);
     }
 
     function isOpenForSale(uint256 id) public returns (bool) {

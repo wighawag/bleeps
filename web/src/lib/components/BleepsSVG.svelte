@@ -7,7 +7,7 @@
   export let minted: boolean;
   export let disabled: boolean;
 
-  $: color = disabled ? '#666' : minted ? '#dab894' : '#ddd';
+  $: color = minted ? '#dab894' : disabled ? '#666' : '#ddd';
 
   $: if (minted) console.log({minted, id});
 
@@ -19,18 +19,19 @@
   const dispatch = createEventDispatcher();
 
   function forward(event) {
-    if (!disabled) {
-      dispatch('click', event);
-    }
+    // if (!disabled) {
+    dispatch('click', event);
+    // }
   }
 </script>
 
 <svg
   xmlns="http://www.w3.org/2000/svg"
   viewBox="0 0 512 512"
-  style={`background-color:#000; ${disabled ? '' : 'cursor:pointer;'}`}
+  style={`background-color:#000;cursor:pointer;`}
   on:click={forward}
 >
+  <!-- ${disabled ? '' : 'cursor:pointer;'}-->
   <rect x="0" width="512" height="512" rx="64" style={`stroke-width:8;stroke:${color}`} />
   <text x="30" y="30" dominant-baseline="hanging" text-anchor="start" style={`fill: ${color}; font-size: 32px;`}
     >{hz}</text

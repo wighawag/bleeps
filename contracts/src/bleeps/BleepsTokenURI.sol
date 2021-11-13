@@ -12,7 +12,7 @@ contract BleepsTokenURI is ITokenURI {
         hex"00198d001b12001cae001e6200203100221b00242200264800288f002af8002d8600303b00331900362300395b003cc4004061004435004844004c9000511d0055f0005b0c006076006633006c460072b60079890080c300886b00908700992000a23a00abe000b61800c0ec00cc6500d88d00e56d00f3110101850110d601210f01323f0144750157c0016c310181d90198ca01b11901cada01e62302030b0221ab02421e02647e0288ea02af8002d8620303b10331940362320395b403cc4604061604435704843c04c8fc0511d4055f0005b0c306076306632906c464072b6707988b080c2c0886ad0908770991f90a23a80abe000b61860c0ec5";
 
     string internal constant noteNames = "C C#D D#E F F#G G#A A#B ";
-    // string internal constant instrumentNames = "TRIANGLE TILTED SAW  SAW SQUARE PULSE ORGAN NOISE PHASER";
+    // string internal constant instrumentNames = "TRIANGLE TILTED SAW  SAW SQUARE PULSE ORGAN PHASER NOISE FUNKY SAW";
 
     // settings for sound quality
     uint256 internal constant SAMPLE_RATE = 11000;
@@ -83,9 +83,9 @@ contract BleepsTokenURI is ITokenURI {
         } else if (instr == 5) {
             str = "ORGAN";
         } else if (instr == 6) {
-            str = "NOISE";
-        } else if (instr == 7) {
             str = "PHASER";
+        } else if (instr == 7) {
+            str = "NOISE";
         } else if (instr == 8) {
             str = "FUNKY_SAW";
         }
@@ -412,6 +412,17 @@ contract BleepsTokenURI is ITokenURI {
                             )
                         }
                         if eq(instr, 6) {
+                            // phaser (detuned_tri)
+                            intValue := mul(pos, 2)
+                            intValue := add(
+                                sub(abs(sub(smod(intValue, TWO), ONE)), HALF),
+                                sub(
+                                    sdiv(sub(abs(sub(smod(sdiv(mul(intValue, 127), 128), TWO), ONE)), HALF), 2),
+                                    sdiv(ONE, 4)
+                                )
+                            )
+                        }
+                        if eq(instr, 7) {
                             // noise
                             let rand := mload(add(noise_handler, 32))
                             let lastx := mload(add(noise_handler, 64))
@@ -441,18 +452,6 @@ contract BleepsTokenURI is ITokenURI {
                             mstore(add(noise_handler, 96), sample)
                             mstore(add(noise_handler, 128), lsample)
                         }
-
-                        if eq(instr, 7) {
-                            // phaser (detuned_tri)
-                            intValue := mul(pos, 2)
-                            intValue := add(
-                                sub(abs(sub(smod(intValue, TWO), ONE)), HALF),
-                                sub(
-                                    sdiv(sub(abs(sub(smod(sdiv(mul(intValue, 127), 128), TWO), ONE)), HALF), 2),
-                                    sdiv(ONE, 4)
-                                )
-                            )
-                        }
                         if eq(instr, 8) {
                             intValue := mul(pos, 2)
                             intValue := sdiv(
@@ -469,6 +468,7 @@ contract BleepsTokenURI is ITokenURI {
                                 7
                             )
                         }
+
                         intValue := sdiv(mul(intValue, vol), 700)
                         intValue := add(sdiv(mul(intValue, 256), TWO), 128)
                     }

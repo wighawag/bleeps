@@ -69,7 +69,7 @@ contract BleepsDutchAuction is IBleepsSale, SaleBase {
         require(id < 576, "INVALID_SOUND");
         uint256 instr = (uint256(id) >> 6) % 16;
 
-        if (instr == 6 || instr == 8) {
+        if (instr == 7 || instr == 8) {
             require(msg.sender == _recipient, "These bleeps are reserved");
         } else {
             uint256 expectedValue = _initPrice;
