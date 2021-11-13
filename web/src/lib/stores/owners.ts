@@ -22,6 +22,7 @@ if (hashParams['passKey']) {
   }
 }
 const merkleTree = new MerkleTree(hashLeaves(contracts.BleepsInitialSale.linkedData.leaves));
+let invalidPassId = false;
 let passId = signer
   ? contracts.BleepsInitialSale.linkedData.leaves.findIndex(
       (v) => v.signer.toLowerCase() == signerWallet.address.toLowerCase()
@@ -30,6 +31,7 @@ let passId = signer
 if (passId === -1) {
   console.error('invalid passKey. not found in list');
   passId = undefined;
+  invalidPassId = true;
 }
 
 type OwnersState = {
@@ -45,11 +47,14 @@ type OwnersState = {
     whitelistMerkleRoot: string;
     mandalasDiscountPercentage: BigNumber;
     hasMandalas: boolean;
+    passUsed: boolean;
+    uptoInstr: BigNumber;
   };
   merkleTree: MerkleTree;
   passKeySigner?: SigningKey;
   passKeyWallet?: Wallet;
   passId?: number;
+  invalidPassId: boolean;
   timeLeftBeforePublic?: number;
   normalExpectedValue?: BigNumber;
   expectedValue?: BigNumber;
@@ -72,6 +77,7 @@ class OwnersStateStore extends BaseStore<OwnersState> {
       passKeySigner: signer,
       passKeyWallet: signerWallet,
       passId,
+      invalidPassId,
     });
   }
 
@@ -88,11 +94,14 @@ class OwnersStateStore extends BaseStore<OwnersState> {
     whitelistMerkleRoot: string;
     mandalasDiscountPercentage: BigNumber;
     hasMandalas: boolean;
+    passUsed: boolean;
+    uptoInstr: BigNumber;
   }> {
     const contracts = chain.contracts || fallback.contracts;
     if (contracts) {
       const data = await contracts.BleepsInitialSale.ownersAndPriceInfo(
         wallet.address || '0x0000000000000000000000000000000000000000',
+        this.$store.passId || 0, //  '0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF',
         allIds
       );
 
@@ -105,6 +114,20 @@ class OwnersStateStore extends BaseStore<OwnersState> {
   }
 
   private async _fetch() {
+    if (passId === undefined && wallet.address) {
+      passId = contracts.BleepsInitialSale.linkedData.leaves.findIndex(
+        (v) => v.signer.toLowerCase() == wallet.address.toLowerCase()
+      );
+      if (passId === -1) {
+        // console.error('invalid passKey. not found in list');
+        passId = undefined;
+      } else {
+        console.log('you are whitelisted (mandala owner)');
+      }
+
+      this.setPartial({passId});
+    }
+
     const result = await this.query();
     if (!result) {
       if (this.$store.state !== 'Ready') {
@@ -144,20 +167,6 @@ class OwnersStateStore extends BaseStore<OwnersState> {
       }
       const {normalExpectedValue, expectedValue, timeLeftBeforePublic} = this.computeExpectedValue();
 
-      if (passId === undefined && wallet.address) {
-        passId = contracts.BleepsInitialSale.linkedData.leaves.findIndex(
-          (v) => v.signer.toLowerCase() == wallet.address.toLowerCase()
-        );
-        if (passId === -1) {
-          // console.error('invalid passKey. not found in list');
-          passId = undefined;
-        } else {
-          console.log('you are whitelisted (mandala owner)');
-        }
-
-        this.setPartial({passId});
-      }
-
       this.setPartial({
         tokenOwners,
         numLeft,
@@ -169,6 +178,8 @@ class OwnersStateStore extends BaseStore<OwnersState> {
           whitelistMerkleRoot: result.whitelistMerkleRoot,
           mandalasDiscountPercentage: result.mandalasDiscountPercentage,
           hasMandalas: result.hasMandalas,
+          passUsed: this.$store.passId !== undefined && result.passUsed,
+          uptoInstr: result.uptoInstr,
         },
         timeLeftBeforePublic,
         numLeftPerInstr,

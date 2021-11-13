@@ -22,7 +22,7 @@
   let step: 'FETCHING_LAST_PRICE' | 'TX_CREATION' | 'TX_SBUMITTED' | 'IDLE' = 'IDLE';
   let error: string | undefined;
 
-  let selected = undefined;
+  let selected: number | undefined = undefined;
 
   // let passKey: string | undefined;
   // onMount(() => {
@@ -61,7 +61,7 @@
     }
   }
 
-  async function mint(bleepId: string) {
+  async function mint(bleepId: number) {
     flow.execute(async (contracts) => {
       step = 'FETCHING_LAST_PRICE';
       await ownersState.waitFirstPriceInfo;
@@ -159,18 +159,24 @@
 
         {#if $ownersState.priceInfo?.whitelistTimeLimit}
           {#if now() < $ownersState.priceInfo.whitelistTimeLimit.toNumber()}
-            {#if $ownersState?.passId !== undefined}
-              <p class="text-green-600 mb-2">
-                You got a pass key, allowing you to purchase Bleeps before others (time limit: {new Date(
-                  $ownersState?.priceInfo.whitelistTimeLimit.mul(1000).toNumber()
-                ).toLocaleString()})
-                {#if !$ownersState?.expectedValue.eq($ownersState?.normalExpectedValue)}
-                  It also gives you a discount of {$ownersState.normalExpectedValue
-                    .sub($ownersState.expectedValue)
-                    .mul(100)
-                    .div($ownersState.normalExpectedValue)}% while it lasts
-                {/if}
-              </p>
+            {#if $ownersState.invalidPassId}
+              <p class="text-yellow-600 mb-2">Your pass is invalid.</p>
+            {:else if $ownersState?.passId !== undefined}
+              {#if $ownersState?.priceInfo?.passUsed}
+                <p class="text-yellow-600 mb-2">your sale pass has already been used.</p>
+              {:else}
+                <p class="text-green-600 mb-2">
+                  You got a pass key, allowing you to purchase Bleeps before others (time limit: {new Date(
+                    $ownersState?.priceInfo.whitelistTimeLimit.mul(1000).toNumber()
+                  ).toLocaleString()})
+                  {#if !$ownersState?.expectedValue.eq($ownersState?.normalExpectedValue)}
+                    It also gives you a discount of {$ownersState.normalExpectedValue
+                      .sub($ownersState.expectedValue)
+                      .mul(100)
+                      .div($ownersState.normalExpectedValue)}% while it lasts
+                  {/if}
+                </p>
+              {/if}
             {:else}
               <p class="text-yellow-600 mb-2">
                 The Sale is not open yet, unless you get a pass key or have been a mandalas owner. Public Sale open on : {new Date(
@@ -285,7 +291,7 @@
           <p class="text-bleeps">
             {#if $ownersState?.expectedValue}
               Current Price: {$ownersState?.expectedValue.div('1000000000000000').toNumber() / 1000} ETH
-              {#if $ownersState?.priceInfo.hasMandalas}
+              {#if $ownersState?.priceInfo.hasMandalas && $ownersState?.priceInfo.mandalasDiscountPercentage.gt(0)}
                 <span class="text-gray-500"
                   >(instead of {$ownersState?.normalExpectedValue.div('1000000000000000').toNumber() / 1000} ETH)</span
                 >
@@ -315,22 +321,36 @@
       <div class="max-w-2xl mx-auto py-2 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
         <div>
           {#each Array.from(Array(9)).map((v, i) => i) as instr}
-            <div class={`${instr === 6 || instr === 8 ? 'text-gray-500' : 'text-white'}`}>
+            <div
+              class={`${
+                instr === 6 || instr === 8 || $ownersState?.priceInfo?.uptoInstr.lt(instr)
+                  ? 'text-gray-500'
+                  : 'text-white'
+              }`}
+            >
               <h2 class="mx-auto">{instrumentName(instr)}</h2>
 
               <div
                 class={`${
-                  instr === 6 || instr === 8 ? 'border-gray-500' : 'border-white'
+                  instr === 6 || instr === 8 || $ownersState?.priceInfo?.uptoInstr.lt(instr)
+                    ? 'border-gray-500'
+                    : 'border-white'
                 } w-32 h-16 border-2 mx-auto rounded-md`}
               >
                 {#if !(instr === 6 || instr === 8)}
-                  <svg
-                    class="z-30 absolute my-5 mx-3 w-24 h-24"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 512 512"
-                  >
-                    <g transform="translate(210,0) scale(0.2,0.2)" style={`fill:#fff`}>{@html symbolSVG(instr << 6)}</g>
-                  </svg>
+                  {#if $ownersState?.priceInfo?.uptoInstr.lt(instr)}
+                    <p class="my-5">sale later</p>
+                  {:else}
+                    <svg
+                      class="z-30 absolute my-5 mx-3 w-24 h-24"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 512 512"
+                    >
+                      <g transform="translate(210,0) scale(0.2,0.2)" style={`fill:#fff`}
+                        >{@html symbolSVG(instr << 6)}</g
+                      >
+                    </svg>
+                  {/if}
                 {:else}
                   <p class="my-5">reserved</p>
                 {/if}
@@ -367,7 +387,7 @@
 
                     <BleepsSvg
                       id={bleepId}
-                      disabled={instr === 6 || instr === 8}
+                      disabled={instr === 6 || instr === 8 || $ownersState?.priceInfo?.uptoInstr.lt(instr)}
                       minted={$ownersState?.tokenOwners &&
                         $ownersState.tokenOwners[bleepId] &&
                         $ownersState.tokenOwners[bleepId] !== '0x0000000000000000000000000000000000000000'}
@@ -443,10 +463,18 @@
       {/if}
       <GreenNavButton
         label="mint"
-        active={$ownersState.tokenOwners &&
+        active={$ownersState.priceInfo?.uptoInstr?.gte(selected >> 6) &&
+          !$ownersState.invalidPassId &&
+          !$ownersState.priceInfo?.passUsed &&
+          $ownersState.tokenOwners &&
           $ownersState.tokenOwners[selected] === '0x0000000000000000000000000000000000000000'}
-        disabled={$ownersState.tokenOwners &&
-          $ownersState.tokenOwners[selected] !== '0x0000000000000000000000000000000000000000'}
+        disabled={!(
+          $ownersState.priceInfo?.uptoInstr?.gte(selected >> 6) &&
+          !$ownersState.invalidPassId &&
+          !$ownersState.priceInfo?.passUsed &&
+          $ownersState.tokenOwners &&
+          $ownersState.tokenOwners[selected] === '0x0000000000000000000000000000000000000000'
+        )}
         on:click={() => {
           if (
             $ownersState.tokenOwners &&

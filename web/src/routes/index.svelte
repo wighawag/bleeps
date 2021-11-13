@@ -55,7 +55,7 @@
 </section>
 
 <div class="w-full mx-auto text-center">
-  <NavButton class="w-64 mx-auto" label="Mint" href={url('mint/')}>Bleeps Auction Sale</NavButton>
+  <NavButton class="w-64 mx-auto" label="Mint" href={url('mint/')}>Bleeps Sale</NavButton>
   <a class="block m-8 underline text-bleeps" href={url('about/')}>Learn More</a>
 
   <p class="mx-8 mt-8">And feel free to join our Discord server!</p>

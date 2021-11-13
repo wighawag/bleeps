@@ -33,6 +33,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   //   autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
   // });
 
+  if (hre.network.name === 'localhost') {
+    await deployments.delete('BleepsInitialSale');
+  }
+
   let BleepsInitialSale = await deployments.getOrNull('BleepsInitialSale');
 
   if (!BleepsInitialSale) {
@@ -79,6 +83,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         saleRecipient,
         MandalaToken.address,
         0, // 0% 20, // 20% discount
+        2, // 3 first instrument are open
       ],
       linkedData:
         hre.network.name === 'hardhat'

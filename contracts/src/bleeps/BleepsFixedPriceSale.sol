@@ -15,6 +15,7 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
     uint256 internal immutable _whitelistTimeLimit;
     bytes32 internal immutable _whitelistMerkleRoot;
 
+    uint256 _uptoInstr;
     mapping(uint256 => uint256) internal _passUsed;
 
     constructor(
@@ -25,12 +26,14 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
         bytes32 whitelistMerkleRoot,
         address payable recipient,
         IERC721 mandalas,
-        uint256 mandalasDiscountPercentage
+        uint256 mandalasDiscountPercentage,
+        uint256 uptoInstr
     ) SaleBase(bleeps, recipient, mandalas, mandalasDiscountPercentage) {
         _price = price;
         _whitelistPrice = whitelistPrice;
         _whitelistTimeLimit = whitelistTimeLimit;
         _whitelistMerkleRoot = whitelistMerkleRoot;
+        _uptoInstr = uptoInstr;
     }
 
     function priceInfo(address purchaser)
@@ -55,7 +58,11 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
         );
     }
 
-    function ownersAndPriceInfo(address purchaser, uint256[] calldata ids)
+    function ownersAndPriceInfo(
+        address purchaser,
+        uint256 passId,
+        uint256[] calldata ids
+    )
         external
         view
         returns (
@@ -65,7 +72,9 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
             uint256 whitelistTimeLimit,
             bytes32 whitelistMerkleRoot,
             uint256 mandalasDiscountPercentage,
-            bool hasMandalas
+            bool hasMandalas,
+            bool passUsed,
+            uint256 uptoInstr
         )
     {
         addresses = _bleeps.owners(ids);
@@ -75,17 +84,32 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
         whitelistMerkleRoot = _whitelistMerkleRoot;
         mandalasDiscountPercentage = _mandalasDiscountPercentage;
         hasMandalas = _hasMandalas(purchaser);
+        passUsed = isPassUsed(passId);
+        uptoInstr = _uptoInstr;
     }
 
-    function isPassUsed(uint256 passId) public returns (bool) {
+    function isPassUsed(uint256 passId) public view returns (bool) {
         uint256 passBlock = passId / 256;
         uint256 mask = (1 << (passId - (256 * passBlock)));
         return _passUsed[passBlock] & mask == mask;
     }
 
+    function usePassIfAvailable(uint256 passId) internal {
+        uint256 passBlock = passId / 256;
+        uint256 mask = (1 << (passId - (256 * passBlock)));
+        uint256 passBitMask = _passUsed[passBlock];
+        require(passBitMask & mask == 0, "PASS_ALREADY_USED");
+        _passUsed[passBlock] = passBitMask | mask;
+    }
+
     function isReserved(uint256 id) public returns (bool) {
         uint256 instr = (uint256(id) >> 6) % 16;
         return (instr == 6 || instr == 8);
+    }
+
+    function isOpenForSale(uint256 id) public returns (bool) {
+        uint256 instr = (uint256(id) >> 6) % 16;
+        return instr <= _uptoInstr;
     }
 
     function mint(uint16 id, address to) public payable {
@@ -107,7 +131,7 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
         bytes32[] memory proof
     ) external payable {
         if (block.timestamp < _whitelistTimeLimit) {
-            require(!isPassUsed(passId), "PASS_ALREADY_USED");
+            usePassIfAvailable(passId);
 
             address signer = msg.sender;
             bytes32 leaf = _generatePassHash(passId, signer);
@@ -124,7 +148,7 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
         bytes32[] memory proof
     ) external payable {
         if (block.timestamp < _whitelistTimeLimit) {
-            require(!isPassUsed(passId), "PASS_ALREADY_USED");
+            usePassIfAvailable(passId);
 
             address signer = keccak256(abi.encodePacked(passId, to)).recover(signature);
             bytes32 leaf = _generatePassHash(passId, signer);
@@ -153,6 +177,7 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
 
     function _payAndMint(uint16 id, address to) internal {
         require(id < 576, "INVALID_SOUND");
+        require(isOpenForSale(id), "INSTURMENT_NOT_YET_FOR_SALE");
         require(!isReserved(id), "RESERVED");
 
         uint256 expectedValue = block.timestamp >= _whitelistTimeLimit ? _price : _whitelistPrice;
