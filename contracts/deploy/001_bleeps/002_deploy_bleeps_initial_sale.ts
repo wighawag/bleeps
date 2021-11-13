@@ -72,8 +72,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       from: deployer,
       args: [
         Bleeps.address,
-        parseEther('0.2'), // normal price
-        parseEther('0.18'), // whitelistPrice
+        parseEther('0.1'), // normal price
+        parseEther('0.1'), // whitelistPrice
         Math.floor(Date.now() / 1000) + 3 * days,
         merkleRootHash,
         saleRecipient,

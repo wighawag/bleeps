@@ -15,8 +15,7 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
     uint256 internal immutable _whitelistTimeLimit;
     bytes32 internal immutable _whitelistMerkleRoot;
 
-    uint256 internal _passUsed_1;
-    uint256 internal _passUsed_2;
+    mapping(uint256 => uint256) internal _passUsed;
 
     constructor(
         Bleeps bleeps,
@@ -79,14 +78,14 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
     }
 
     function isPassUsed(uint256 passId) public returns (bool) {
-        if (passId > 511) {
-            return false;
-        } else if (passId > 255) {
-            uint256 mask = (1 << (passId - 256));
-            return _passUsed_2 & mask == mask;
-        }
-        uint256 mask = (1 << passId);
-        return (_passUsed_1 & mask) == mask;
+        uint256 passBlock = passId / 256;
+        uint256 mask = (1 << (passId - (256 * passBlock)));
+        return _passUsed[passBlock] & mask == mask;
+    }
+
+    function isReserved(uint256 id) public returns (bool) {
+        uint256 instr = (uint256(id) >> 6) % 16;
+        return (instr == 6 || instr == 8);
     }
 
     function mint(uint16 id, address to) public payable {
@@ -97,8 +96,7 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
     function recipientMint(uint16 id, address to) external {
         require(msg.sender == _recipient, "NOT_AUTHORIZED");
         require(id < 576, "INVALID_SOUND");
-        uint256 instr = (uint256(id) >> 6) % 16;
-        require(instr == 6 || instr == 8, "for sale");
+        require(isReserved(id), "NOT_RESERVED");
         _bleeps.mint(id, to);
     }
 
@@ -109,16 +107,7 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
         bytes32[] memory proof
     ) external payable {
         if (block.timestamp < _whitelistTimeLimit) {
-            require(passId < 512, "INVALID_PASS_ID");
-            if (passId > 255) {
-                uint256 mask = (1 << (passId - 256));
-                require(_passUsed_2 & mask == 0, "PASS_ALREADY_USED");
-                _passUsed_2 = _passUsed_2 | mask;
-            } else {
-                uint256 mask = (1 << passId);
-                require(_passUsed_1 & mask == 0, "PASS_ALREADY_USED");
-                _passUsed_1 = _passUsed_1 | mask;
-            }
+            require(!isPassUsed(passId), "PASS_ALREADY_USED");
 
             address signer = msg.sender;
             bytes32 leaf = _generatePassHash(passId, signer);
@@ -135,16 +124,7 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
         bytes32[] memory proof
     ) external payable {
         if (block.timestamp < _whitelistTimeLimit) {
-            require(passId < 512, "INVALID_PASS_ID");
-            if (passId > 255) {
-                uint256 mask = (1 << (passId - 256));
-                require(_passUsed_2 & mask == 0, "PASS_ALREADY_USED");
-                _passUsed_2 = _passUsed_2 | mask;
-            } else {
-                uint256 mask = (1 << passId);
-                require(_passUsed_1 & mask == 0, "PASS_ALREADY_USED");
-                _passUsed_1 = _passUsed_1 | mask;
-            }
+            require(!isPassUsed(passId), "PASS_ALREADY_USED");
 
             address signer = keccak256(abi.encodePacked(passId, to)).recover(signature);
             bytes32 leaf = _generatePassHash(passId, signer);
@@ -173,8 +153,7 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
 
     function _payAndMint(uint16 id, address to) internal {
         require(id < 576, "INVALID_SOUND");
-        uint256 instr = (uint256(id) >> 6) % 16;
-        require(instr != 6 && instr != 8, "These bleeps are reserved");
+        require(!isReserved(id), "RESERVED");
 
         uint256 expectedValue = block.timestamp >= _whitelistTimeLimit ? _price : _whitelistPrice;
 
