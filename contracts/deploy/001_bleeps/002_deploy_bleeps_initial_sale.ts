@@ -62,8 +62,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const tree = new MerkleTree(hashLeaves(leaves));
     const merkleRootHash = tree.getRoot().hash;
 
-    fs.writeFileSync('.privateKeys.tmp', JSON.stringify(privateKeys));
+    const privateKeysFilepath = `.privateKeys.json`;
+    const privateKeysTMPFilepath = privateKeysFilepath + '.tmp';
+    const privateKeysJsonString = JSON.stringify(privateKeys);
 
+    await deployments.saveDotFile(privateKeysTMPFilepath, privateKeysJsonString);
     BleepsInitialSale = await deploy('BleepsInitialSale', {
       contract: 'BleepsFixedPriceSale',
       from: deployer,
@@ -89,8 +92,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
     });
 
-    fs.writeFileSync('.privateKeys', JSON.stringify(privateKeys));
-    fs.unlinkSync('.privateKeys.tmp');
+    await deployments.saveDotFile(privateKeysFilepath, privateKeysJsonString);
+    await deployments.deleteDotFile(privateKeysTMPFilepath);
   }
 
   const currentMinter = await read('Bleeps', 'minter');
