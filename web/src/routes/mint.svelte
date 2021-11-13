@@ -72,9 +72,13 @@
         try {
           const tx = await contracts.BleepsInitialSale.mint(bleepId, wallet.address, {
             value: $ownersState.expectedValue,
+            metadata: {
+              type: 'mint',
+              id: bleepId,
+            },
           });
-          step = 'TX_SBUMITTED';
-          await tx.wait();
+          // step = 'TX_SBUMITTED';
+          // await tx.wait();
           step = 'IDLE';
         } catch (e) {
           if (e?.message && e?.message.indexOf('User denied') === -1) {
@@ -95,10 +99,15 @@
             proof,
             {
               value: $ownersState.expectedValue,
+              metadata: {
+                type: 'mint',
+                id: bleepId,
+                passId: $ownersState.passId,
+              },
             }
           );
-          step = 'TX_SBUMITTED';
-          await tx.wait();
+          // step = 'TX_SBUMITTED';
+          // await tx.wait();
           step = 'IDLE';
         } catch (e) {
           if (e?.message && e?.message.indexOf('User denied') === -1) {
@@ -122,10 +131,15 @@
             proof,
             {
               value: $ownersState.expectedValue,
+              metadata: {
+                type: 'mint',
+                id: bleepId,
+                passId: $ownersState.passId,
+              },
             }
           );
-          step = 'TX_SBUMITTED';
-          await tx.wait();
+          // step = 'TX_SBUMITTED';
+          // await tx.wait();
           step = 'IDLE';
         } catch (e) {
           if (e?.message && e?.message.indexOf('User denied') === -1) {
@@ -404,7 +418,9 @@
 
                     <BleepsSvg
                       id={bleepId}
-                      your={$ownersState.tokenOwners[bleepId].toLowerCase() === $wallet.address.toLowerCase()}
+                      your={$ownersState.tokenOwners &&
+                        $ownersState.tokenOwners[bleepId] &&
+                        $ownersState.tokenOwners[bleepId].toLowerCase() === $wallet.address.toLowerCase()}
                       disabled={!isMintable($ownersState, bleepId)}
                       minted={$ownersState?.tokenOwners &&
                         $ownersState.tokenOwners[bleepId] &&

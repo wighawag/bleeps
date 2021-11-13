@@ -206,7 +206,7 @@ importers:
       tslib: ^2.3.1
       typescript: ^4.4.4
       vite: 2.6.7
-      web3w: ^0.3.2-beta.9
+      web3w: ^0.3.2-beta.11
       web3w-walletconnect-loader: ^0.3.2
       wonka: ^4.0.15
     dependencies:
@@ -227,7 +227,7 @@ importers:
       ethereumjs-util: 7.1.3
       graphql: 15.6.1
       named-logs: 0.1.0
-      web3w: 0.3.2-beta.9_5c043d418860e5468b6969654e29daa7
+      web3w: 0.3.2-beta.11_5c043d418860e5468b6969654e29daa7
       web3w-walletconnect-loader: 0.3.2
       wonka: 4.0.15
     devDependencies:
@@ -14587,8 +14587,8 @@ packages:
       named-logs: 0.1.0
     dev: false
 
-  /web3w/0.3.2-beta.9_5c043d418860e5468b6969654e29daa7:
-    resolution: {integrity: sha512-JPhkFwfMN8y1T7m79sBabG6tffslgCcgpflXCiqRf3EgkEd31C55TsKJB17S1RZsCowMODT18xxCx0OgXaVYRQ==}
+  /web3w/0.3.2-beta.11_5c043d418860e5468b6969654e29daa7:
+    resolution: {integrity: sha512-5lZFGsNrGOjcD8NQqU223xGzQ0Uvs0Oge+tl29WKEldWYg1Dz313X3fFXcBhwhp+L8apzfp+r7mjq/UnuL/nUQ==}
     peerDependencies:
       '@ethersproject/abi': ^5.0.0
       '@ethersproject/bignumber': ^5.0.0
