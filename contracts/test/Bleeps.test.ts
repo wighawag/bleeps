@@ -35,7 +35,7 @@ describe('Bleeps', function () {
   it('tokenURI works', async function () {
     const {users, Bleeps} = await setup();
     const note = 3;
-    const instr = 6;
+    const instr = 2;
     const tokenID = note + instr * 64;
     // await expect(users[0].Bleeps.mint(tokenID, users[0].address, {value: parseEther('3')}))
     //   .to.emit(Bleeps, 'Transfer')
@@ -57,7 +57,7 @@ describe('Bleeps', function () {
   it('minting works', async function () {
     const {users, Bleeps, BleepsInitialSale} = await setup();
     const note = 3;
-    const instr = 5;
+    const instr = 2;
     const tokenID = note + instr * 64;
 
     await expect(mintViaSalePass(tokenID, users[0].address, users[0].address))

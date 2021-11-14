@@ -34,6 +34,7 @@ const config: HardhatUserConfig = {
     bleepsGuardian: 1,
     checkpointingDisabler: 1,
     saleRecipient: 1,
+    daoGuardian: 1,
     melobleepsTokenURIAdmin: 1,
     melobleepsRoyaltyAdmin: 1,
     melobleepsMinterAdmin: 1,
