@@ -202,7 +202,11 @@
               <p class="text-yellow-600 mb-2">Your pass is invalid.</p>
             {:else if $ownersState?.passId !== undefined}
               {#if $ownersState?.priceInfo?.passUsed}
-                <p class="text-yellow-600 mb-2">your sale pass has already been used.</p>
+                {#if $ownersState?.passKeySigner}
+                  <p class="text-yellow-600 mb-2">your sale pass has already been used.</p>
+                {:else}
+                  <p class="text-yellow-600 mb-2">You already used your mandala owner right to purchase one Bleep.</p>
+                {/if}
               {:else}
                 <p class="text-green-600 mb-2">
                   {#if $ownersState?.passKeySigner}
