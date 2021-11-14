@@ -2,11 +2,16 @@
 pragma solidity 0.8.9;
 
 import "@openzeppelin/contracts/governance/Governor.sol";
-import "@openzeppelin/contracts/governance/compatibility/GovernorCompatibilityBravo.sol";
+import "../base/GovernorCompatibilityBravoWithVeto.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorVotesComp.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorTimelockCompound.sol";
 
-contract BleepsDAOGovernor is Governor, GovernorCompatibilityBravo, GovernorVotesComp, GovernorTimelockCompound {
+contract BleepsDAOGovernor is
+    Governor,
+    GovernorCompatibilityBravoWithVeto,
+    GovernorVotesComp,
+    GovernorTimelockCompound
+{
     uint64 constant MIN_VOTING_DELAY = 1;
     uint64 constant MAX_VOTING_DELAY = 45818; // 1 week;
 
@@ -27,8 +32,13 @@ contract BleepsDAOGovernor is Governor, GovernorCompatibilityBravo, GovernorVote
     }
     Config internal _config;
 
-    constructor(ERC20VotesComp _token, ICompoundTimelock _timelock)
+    constructor(
+        ERC20VotesComp _token,
+        ICompoundTimelock _timelock,
+        address initialVetoer
+    )
         Governor("BleepsDAOGovernor")
+        GovernorCompatibilityBravoWithVeto(initialVetoer)
         GovernorVotesComp(_token)
         GovernorTimelockCompound(_timelock)
     {
@@ -111,7 +121,7 @@ contract BleepsDAOGovernor is Governor, GovernorCompatibilityBravo, GovernorVote
         uint256[] memory values,
         bytes[] memory calldatas,
         string memory description
-    ) public override(Governor, GovernorCompatibilityBravo, IGovernor) returns (uint256) {
+    ) public override(Governor, GovernorCompatibilityBravoWithVeto, IGovernor) returns (uint256) {
         return super.propose(targets, values, calldatas, description);
     }
 

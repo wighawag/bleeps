@@ -5,14 +5,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, getNamedAccounts} = hre;
   const {deploy} = deployments;
 
-  const {deployer} = await getNamedAccounts();
+  const {deployer, daoVetoer} = await getNamedAccounts();
 
   const Bleeps = await deployments.get('Bleeps');
   const BleepsDAOAccount = await deployments.get('BleepsDAOAccount');
 
   await deploy('BleepsDAOGovernor', {
     from: deployer,
-    args: [Bleeps.address, BleepsDAOAccount.address],
+    args: [Bleeps.address, BleepsDAOAccount.address, daoVetoer],
     skipIfAlreadyDeployed: true,
     log: true,
     autoMine: true,
