@@ -87,7 +87,7 @@ if (passId === -1) {
 export type OwnersState = {
   state: 'Idle' | 'Loading' | 'Ready';
   error?: unknown;
-  tokenOwners?: {[id: string]: string};
+  tokenOwners?: {[id: string]: {address: string; pending: boolean}};
   numLeft?: number;
   numLeftPerInstr?: {[instr: number]: number};
   priceInfo?: {
@@ -229,6 +229,8 @@ class OwnersStateStore extends BaseStore<OwnersState> {
       //   map[i] = processedResult.addresses[i];
       // }
 
+      const pendings: {[id: string]: boolean} = {};
+
       for (const tx of this.transactions) {
         const metadata = tx.metadata as {type: string; id: number; passId?: number} | undefined;
         if (metadata && metadata.type === 'mint') {
@@ -237,11 +239,14 @@ class OwnersStateStore extends BaseStore<OwnersState> {
             if (this.$store.passId === metadata.passId) {
               processedResult.passUsed = true;
             }
+            if (tx.status === 'pending') {
+              pendings[metadata.id] = true;
+            }
           }
         }
       }
 
-      const tokenOwners = {};
+      const tokenOwners: {[id: string]: {address: string; pending: boolean}} = {};
       const numLeftPerInstr = {
         0: 64,
         1: 64,
@@ -262,11 +267,11 @@ class OwnersStateStore extends BaseStore<OwnersState> {
       };
       let numLeft = 0;
       for (let i = 0; i < processedResult.addresses.length; i++) {
-        tokenOwners[i] = processedResult.addresses[i];
+        tokenOwners[i] = {address: processedResult.addresses[i], pending: pendings[i]};
         // if ((i >= 6 * 64 && i < 7 * 64) || (i >= 8 * 64 && i < 9 * 64)) {
         //   tokenOwners[i] = '0x1111111111111111111111111111111111111111';
         // }
-        if (tokenOwners[i] === '0x0000000000000000000000000000000000000000') {
+        if (tokenOwners[i].address === '0x0000000000000000000000000000000000000000') {
           numLeft++;
         } else {
           numLeftPerInstr[i >> 6]--;

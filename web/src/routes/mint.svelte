@@ -160,7 +160,7 @@
       !state.invalidPassId &&
       !state.priceInfo?.passUsed &&
       state.tokenOwners &&
-      state.tokenOwners[id] === '0x0000000000000000000000000000000000000000'
+      state.tokenOwners[id].address === '0x0000000000000000000000000000000000000000'
     );
   }
 
@@ -202,7 +202,11 @@
               <p class="text-yellow-600 mb-2">Your pass is invalid.</p>
             {:else if $ownersState?.passId !== undefined}
               {#if $ownersState?.priceInfo?.passUsed}
-                <p class="text-yellow-600 mb-2">your sale pass has already been used.</p>
+                {#if $ownersState?.passKeySigner}
+                  <p class="text-yellow-600 mb-2">your sale pass has already been used.</p>
+                {:else}
+                  <p class="text-yellow-600 mb-2">You already used your mandala owner right to purchase one Bleep.</p>
+                {/if}
               {:else}
                 <p class="text-green-600 mb-2">
                   {#if $ownersState?.passKeySigner}
@@ -439,13 +443,16 @@
 
                     <BleepsSvg
                       id={bleepId}
+                      pending={$ownersState.tokenOwners &&
+                        $ownersState.tokenOwners[bleepId] &&
+                        $ownersState.tokenOwners[bleepId].pending}
                       your={$ownersState.tokenOwners &&
                         $ownersState.tokenOwners[bleepId] &&
-                        $ownersState.tokenOwners[bleepId].toLowerCase() === $wallet.address.toLowerCase()}
+                        $ownersState.tokenOwners[bleepId].address.toLowerCase() === $wallet.address.toLowerCase()}
                       disabled={!isMintable($ownersState, bleepId)}
                       minted={$ownersState?.tokenOwners &&
                         $ownersState.tokenOwners[bleepId] &&
-                        $ownersState.tokenOwners[bleepId] !== '0x0000000000000000000000000000000000000000'}
+                        $ownersState.tokenOwners[bleepId].address !== '0x0000000000000000000000000000000000000000'}
                       on:click={() => select(bleepId)}
                     />
 
@@ -462,7 +469,7 @@
                     ></svg
                   > -->
                     <!-- {#if $ownersState.tokenOwners && $ownersState.tokenOwners[bleepId]}
-                    {#if $ownersState.tokenOwners[bleepId] !== '0x0000000000000000000000000000000000000000'}
+                    {#if $ownersState.tokenOwners[bleepId].address !== '0x0000000000000000000000000000000000000000'}
                       <NavButton label="listen" on:click={() => select(bleepId)}>listen</NavButton>
                     {:else}
                       <GreenNavButton label="listen" on:click={() => select(bleepId)}>listen</GreenNavButton>
@@ -526,7 +533,7 @@
             !$ownersState.invalidPassId &&
             !$ownersState.priceInfo?.passUsed &&
             $ownersState.tokenOwners &&
-            $ownersState.tokenOwners[selected] === '0x0000000000000000000000000000000000000000'
+            $ownersState.tokenOwners[selected].address === '0x0000000000000000000000000000000000000000'
           ) {
             mint(selected);
             selected = undefined;
