@@ -205,9 +205,18 @@
                 <p class="text-yellow-600 mb-2">your sale pass has already been used.</p>
               {:else}
                 <p class="text-green-600 mb-2">
-                  You got a pass key, allowing you to purchase Bleeps before others (time limit: {new Date(
+                  {#if $ownersState?.passKeySigner}
+                    You got a pass key, allowing you to purchase one Bleep before others
+                  {:else}
+                    As a <a href="https://mandalas.eth.limo" target="_blank" class="underline">mandala</a> owner, you are
+                    allowed to purchase one Bleep before others
+                  {/if}
+                  (public sale open on {new Date(
                     $ownersState?.priceInfo.whitelistTimeLimit.mul(1000).toNumber()
-                  ).toLocaleString()})
+                  ).toLocaleString() +
+                    ' (' +
+                    Intl.DateTimeFormat().resolvedOptions().timeZone +
+                    ')'})
                   {#if !$ownersState?.expectedValue.eq($ownersState?.normalExpectedValue)}
                     It also gives you a discount of {$ownersState.normalExpectedValue
                       .sub($ownersState.expectedValue)
@@ -232,36 +241,42 @@
       <div class="">
         <div class="inline-block border-white md:w-64 w-32 md:h-24 h-16 border-2 mx-auto rounded-md">
           <svg
+            on:click={() => document.getElementById('instr_0').scrollIntoView()}
             class="invisible md:visible z-30 absolute my-5 -mx-2 w-24 h-24"
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 512 512"
           >
             <g transform="translate(210,0) scale(0.2,0.2)" style={`fill:#fff`}>{@html symbolSVG(0 << 6)}</g>
           </svg><svg
+            on:click={() => document.getElementById('instr_1').scrollIntoView()}
             class="invisible md:visible  z-30 absolute my-5 mx-10 w-24 h-24"
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 512 512"
           >
             <g transform="translate(210,0) scale(0.2,0.2)" style={`fill:#fff`}>{@html symbolSVG(1 << 6)}</g>
           </svg><svg
+            on:click={() => document.getElementById('instr_2').scrollIntoView()}
             class="invisible md:visible  z-30 absolute my-5 mx-20 w-24 h-24"
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 512 512"
           >
             <g transform="translate(210,0) scale(0.2,0.2)" style={`fill:#fff`}>{@html symbolSVG(2 << 6)}</g>
           </svg><svg
+            on:click={() => document.getElementById('instr_3').scrollIntoView()}
             class="invisible md:visible  z-30 absolute my-5 mx-32 w-24 h-24"
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 512 512"
           >
             <g transform="translate(210,0) scale(0.2,0.2)" style={`fill:#fff`}>{@html symbolSVG(3 << 6)}</g>
           </svg><svg
+            on:click={() => document.getElementById('instr_4').scrollIntoView()}
             class="invisible md:visible  z-30 absolute my-5 mx-40 w-24 h-24"
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 512 512"
           >
             <g transform="translate(210,0) scale(0.2,0.2)" style={`fill:#fff`}>{@html symbolSVG(4 << 6)}</g>
           </svg><svg
+            on:click={() => document.getElementById('instr_5').scrollIntoView()}
             class="invisible md:visible  z-30 absolute my-14 mx-3 w-24 h-24"
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 512 512"
@@ -269,6 +284,7 @@
             <g transform="translate(210,0) scale(0.2,0.2)" style={`fill:#fff`}>{@html symbolSVG(5 << 6)}</g>
           </svg>
           <svg
+            on:click={() => document.getElementById('instr_6').scrollIntoView()}
             class="invisible md:visible  z-30 absolute my-14 mx-14 w-24 h-24"
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 512 512"
@@ -276,6 +292,7 @@
             <g transform="translate(210,0) scale(0.2,0.2)" style={`fill:#fff`}>{@html symbolSVG(6 << 6)}</g>
           </svg>
           <!-- <svg
+            on:click={() => document.getElementById('instr_7').scrollIntoView()}
             class="invisible md:visible  z-30 absolute my-14 mx-28 w-24 h-24"
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 512 512"
@@ -283,6 +300,7 @@
             <g transform="translate(210,0) scale(0.2,0.2)" style={`fill:#fff`}>{@html symbolSVG(7 << 6)}</g>
           </svg> -->
           <!-- <svg
+            on:click={() => document.getElementById('instr_8').scrollIntoView()}
             class="invisible md:visible  z-30 absolute my-14 mx-36 w-24 h-24"
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 512 512"
@@ -360,7 +378,10 @@
       <div class="max-w-2xl mx-auto py-2 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
         <div>
           {#each Array.from(Array(9)).map((v, i) => i) as instr}
-            <div class={`${isInstrumentMintable($ownersState, instr) ? 'text-white' : 'text-gray-500'}`}>
+            <div
+              id={`instr_${instr}`}
+              class={`${isInstrumentMintable($ownersState, instr) ? 'text-white' : 'text-gray-500'}`}
+            >
               <h2 class="mx-auto">{instrumentName(instr)}</h2>
 
               <div

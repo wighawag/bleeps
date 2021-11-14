@@ -5,6 +5,7 @@ import {MerkleTree} from 'bleeps-common';
 import {createLeavesFromMandalaOwners, createLeavesFromPrivateKeys, hashLeaves} from 'bleeps-common';
 import {Wallet} from 'ethers';
 import fs from 'fs';
+import {getUnnamedAccounts} from 'hardhat';
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, getNamedAccounts} = hre;
@@ -51,9 +52,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     const mandalaOwners = JSON.parse(fs.readFileSync('mandalaOwners.json').toString());
 
+    if (hre.network.name === 'localhost' || hre.network.name === 'hardhat') {
+      const unnamedAcounts = await getUnnamedAccounts();
+      for (let i = 0; i < 2; i++) {
+        mandalaOwners.push({id: unnamedAcounts[i], numMandalas: 0}); // fake mandala owners
+      }
+    }
+
+    const totalNumPassKeys = 1024;
     const num = privateKeys.length + mandalaOwners.length;
-    if (num < 512) {
-      for (let i = num; i < 512; i++) {
+    if (num < totalNumPassKeys) {
+      for (let i = num; i < totalNumPassKeys; i++) {
         privateKeys.push(Wallet.createRandom().privateKey);
       }
     }
