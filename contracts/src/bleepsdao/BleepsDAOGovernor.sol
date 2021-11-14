@@ -7,26 +7,73 @@ import "@openzeppelin/contracts/governance/extensions/GovernorVotesComp.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorTimelockCompound.sol";
 
 contract BleepsDAOGovernor is Governor, GovernorCompatibilityBravo, GovernorVotesComp, GovernorTimelockCompound {
+    uint64 constant MIN_VOTING_DELAY = 1;
+    uint64 constant MAX_VOTING_DELAY = 45818; // 1 week;
+
+    uint64 constant MIN_VOTING_PERIOD = 19635; // 3 day;
+    uint64 constant MAX_VOTING_PERIOD = 91636; // 2 weeks
+
+    uint64 constant MIN_QUORUM = 16;
+    uint64 constant MAX_QUORUM = 128;
+
+    uint64 constant MIN_PROPOSAL_THRESHOLD = 1;
+    uint64 constant MAX_PROPOSAL_THRESHOLD = 64;
+
+    struct Config {
+        uint64 votingDelay;
+        uint64 votingPeriod;
+        uint64 quorum;
+        uint64 proposalThreshold;
+    }
+    Config internal _config;
+
     constructor(ERC20VotesComp _token, ICompoundTimelock _timelock)
-        Governor("BleepsDAO")
+        Governor("BleepsDAOGovernor")
         GovernorVotesComp(_token)
         GovernorTimelockCompound(_timelock)
-    {}
-
-    function votingDelay() public pure override returns (uint256) {
-        return 1; // 1 block
+    {
+        _config.votingDelay = 1;
+        _config.votingPeriod = 45818; // 1 week
+        _config.quorum = 64; // 64 / 576 = 11.111.. % if new Bleeps are minted (max supply = 1024), this should be updated
+        _config.proposalThreshold = 1;
     }
 
-    function votingPeriod() public pure override returns (uint256) {
-        return 2; // 1 week
+    function setConfig(
+        uint64 newVotingDelay,
+        uint64 newVotingPeriod,
+        uint64 newQuorum,
+        uint64 newProposalThreshold
+    ) external onlyGovernance {
+        require(newVotingDelay >= MIN_VOTING_DELAY && newVotingDelay <= MAX_VOTING_DELAY, "INVALID_VOTING_DELAY");
+        _config.votingDelay = newVotingDelay;
+
+        require(newVotingPeriod >= MIN_VOTING_PERIOD && newVotingPeriod <= MAX_VOTING_PERIOD, "INVALID_VOTING_PERIOD");
+        _config.votingPeriod = newVotingPeriod;
+
+        require(newQuorum >= MIN_QUORUM && newQuorum <= MAX_QUORUM, "INVALID_QUORUM");
+        _config.quorum = newQuorum;
+
+        require(
+            newProposalThreshold >= MIN_PROPOSAL_THRESHOLD && newProposalThreshold <= MAX_PROPOSAL_THRESHOLD,
+            "INVALID_PROPOSAL_THRESHOLD"
+        );
+        _config.proposalThreshold = newProposalThreshold;
     }
 
-    function quorum(uint256) public pure override returns (uint256) {
-        return 3;
+    function votingDelay() public view override returns (uint256) {
+        return _config.votingDelay;
     }
 
-    function proposalThreshold() public pure override returns (uint256) {
-        return 2;
+    function votingPeriod() public view override returns (uint256) {
+        return _config.votingPeriod;
+    }
+
+    function quorum(uint256) public view override returns (uint256) {
+        return _config.quorum;
+    }
+
+    function proposalThreshold() public view override returns (uint256) {
+        return _config.proposalThreshold;
     }
 
     // The following functions are overrides required by Solidity.
