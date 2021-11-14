@@ -1,7 +1,7 @@
 import {deployments, getUnnamedAccounts, getNamedAccounts, network, ethers} from 'hardhat';
 
 import {erc721} from 'ethereum-contracts-test-suite';
-import {parseEther} from 'ethers/lib/utils';
+import {mintViaSalePass} from './utils/bleepsfixedsale';
 
 erc721.runMochaTests('Bleeps ERC721', {}, async () => {
   //{burn: true}
@@ -13,9 +13,7 @@ erc721.runMochaTests('Bleeps ERC721', {}, async () => {
   async function mint(to: string): Promise<{hash: string; tokenId: string}> {
     const tokenId = nextTokenId;
     nextTokenId++;
-    const BleepsInitialSale = await ethers.getContract('BleepsInitialSale', to);
-    const tx = await BleepsInitialSale.mint(tokenId, to, {value: parseEther('3')});
-    await tx.wait();
+    const tx = await mintViaSalePass(tokenId, to, to);
     return {
       tokenId: '' + tokenId,
       hash: tx.hash,

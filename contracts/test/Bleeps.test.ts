@@ -1,9 +1,10 @@
 import {expect} from './chai-setup';
 import {ethers, deployments, getUnnamedAccounts} from 'hardhat';
-import {Bleeps, BleepsInitialSale} from '../typechain';
+import {Bleeps, IBleepsSale} from '../typechain';
 import {setupUsers} from './utils';
 import {BigNumber, constants} from 'ethers';
 import {parseEther, solidityKeccak256} from 'ethers/lib/utils';
+import {mintViaSalePass} from './utils/bleepsfixedsale';
 const {AddressZero} = constants;
 // import Sound from 'node-aplay';
 // import fs from 'fs';
@@ -12,7 +13,7 @@ const setup = deployments.createFixture(async () => {
   await deployments.fixture(['Bleeps', 'BleepsInitialSale']);
   const contracts = {
     Bleeps: <Bleeps>await ethers.getContract('Bleeps'),
-    BleepsInitialSale: <BleepsInitialSale>await ethers.getContract('BleepsInitialSale'),
+    BleepsInitialSale: <IBleepsSale>await ethers.getContract('BleepsInitialSale'),
   };
   const users = await setupUsers(await getUnnamedAccounts(), contracts);
   return {
@@ -59,7 +60,7 @@ describe('Bleeps', function () {
     const instr = 5;
     const tokenID = note + instr * 64;
 
-    await expect(users[0].BleepsInitialSale.mint(tokenID, users[0].address, {value: parseEther('2')}))
+    await expect(mintViaSalePass(tokenID, users[0].address, users[0].address))
       .to.emit(Bleeps, 'Transfer')
       .withArgs(AddressZero, users[0].address, tokenID);
 

@@ -36,5 +36,8 @@
     "lint:fix": "eslint --fix \"**/*.ts\"",
     "format": "prettier --check \"**/*.ts\"",
     "format:fix": "prettier --write \"**/*.ts\""
+  },
+  "dependencies": {
+    "@ethersproject/wallet": "^5.5.0"
   }
 }

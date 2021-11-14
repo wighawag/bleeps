@@ -16,6 +16,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const existingBleeps = await deployments.getOrNull('MeloBleeps');
 
+  // TODO
+  // const openseaProxyRegistry =
+  //   (await deployments.getOrNull('WyvernProxyRegistry'))?.address || '0x0000000000000000000000000000000000000000';
+
   let needUpdate = false;
   if (existingBleeps) {
     const currentTokenURIContract = await read('MeloBleeps', 'tokenURIContract');

@@ -1,24 +1,111 @@
-import {chain, fallback, wallet} from './wallet';
+import {chain, fallback, transactions, wallet} from './wallet';
 import {BaseStore} from '$lib/utils/stores/base';
 import {BigNumber} from '@ethersproject/bignumber';
+import {SigningKey} from '@ethersproject/signing-key';
+import {Wallet} from '@ethersproject/wallet';
 import {now} from './time';
+import {contracts} from '$lib/contracts.json';
+import {hashParams} from '$lib/config';
+import {MerkleTree, hashLeaves} from 'bleeps-common';
+import type {WalletData} from 'web3w';
 
 BigNumber.from(0);
 
-type OwnersState = {
+// TODO export from web3w:
+type TransactionStatus = 'pending' | 'cancelled' | 'success' | 'failure' | 'mined';
+type ParsedEvent = {args: Record<string, unknown>; name: string; signature: string};
+type EventsABI = {
+  anonymous: boolean;
+  inputs: {indexed: boolean; internalType: string; name: string; type: string}[];
+  name: string;
+  type: 'event';
+}[];
+
+type TransactionRecord = {
+  hash: string;
+  from: string;
+  submissionBlockTime: number;
+  acknowledged: boolean;
+  status: TransactionStatus;
+  nonce: number;
+  confirmations: number;
+  finalized: boolean;
+  lastAcknowledgment?: TransactionStatus;
+  to?: string;
+  gasLimit?: string;
+  gasPrice?: string;
+  maxPriorityFeePerGas?: string;
+  maxFeePerGas?: string;
+  data?: string;
+  value?: string;
+  contractName?: string;
+  method?: string;
+  args?: unknown[];
+  eventsABI?: EventsABI;
+  metadata?: unknown;
+  lastCheck?: number;
+  blockHash?: string;
+  blockNumber?: number;
+  events?: ParsedEvent[];
+};
+
+type QueryResult = {
+  addresses: string[];
+  price: BigNumber;
+  whitelistPrice: BigNumber;
+  whitelistTimeLimit: BigNumber;
+  whitelistMerkleRoot: string;
+  mandalasDiscountPercentage: BigNumber;
+  hasMandalas: boolean;
+  passUsed: boolean;
+  uptoInstr: BigNumber;
+};
+
+let signer: SigningKey | undefined;
+let signerWallet: Wallet | undefined;
+if (hashParams['passKey']) {
+  try {
+    signer = new SigningKey(hashParams['passKey']);
+    signerWallet = new Wallet(hashParams['passKey']);
+  } catch (e) {
+    // TODO invalid passKey
+  }
+}
+const merkleTree = new MerkleTree(hashLeaves(contracts.BleepsInitialSale.linkedData.leaves));
+let invalidPassId = false;
+let passId = signer
+  ? contracts.BleepsInitialSale.linkedData.leaves.findIndex(
+      (v) => v.signer.toLowerCase() == signerWallet.address.toLowerCase()
+    )
+  : undefined;
+if (passId === -1) {
+  console.error('invalid passKey. not found in list');
+  passId = undefined;
+  invalidPassId = true;
+}
+
+export type OwnersState = {
   state: 'Idle' | 'Loading' | 'Ready';
   error?: unknown;
   tokenOwners?: {[id: string]: string};
   numLeft?: number;
   numLeftPerInstr?: {[instr: number]: number};
   priceInfo?: {
-    startTime: BigNumber;
-    initPrice: BigNumber;
-    delay: BigNumber;
-    lastPrice: BigNumber;
+    price: BigNumber;
+    whitelistPrice: BigNumber;
+    whitelistTimeLimit: BigNumber;
+    whitelistMerkleRoot: string;
     mandalasDiscountPercentage: BigNumber;
     hasMandalas: boolean;
+    passUsed: boolean;
+    uptoInstr: BigNumber;
   };
+  merkleTree: MerkleTree;
+  passKeySigner?: SigningKey;
+  passKeyWallet?: Wallet;
+  passId?: number;
+  invalidPassId: boolean;
+  timeLeftBeforePublic?: number;
   normalExpectedValue?: BigNumber;
   expectedValue?: BigNumber;
 };
@@ -30,10 +117,21 @@ class OwnersStateStore extends BaseStore<OwnersState> {
 
   private timerPerSeconds: NodeJS.Timeout | undefined;
   private counter = 0;
+  private stopWalletSubscription: undefined | (() => void);
+  private stopTransactionSubscription: undefined | (() => void);
+
+  private transactions: TransactionRecord[] = [];
+  private lastResult: QueryResult | undefined | null;
+
   constructor() {
     super({
       state: 'Idle',
+      merkleTree,
       error: undefined,
+      passKeySigner: signer,
+      passKeyWallet: signerWallet,
+      passId,
+      invalidPassId,
     });
   }
 
@@ -42,19 +140,12 @@ class OwnersStateStore extends BaseStore<OwnersState> {
     this.priceInfoResolve = resolve;
   });
 
-  async query(): Promise<null | {
-    addresses: string[];
-    startTime: BigNumber;
-    initPrice: BigNumber;
-    delay: BigNumber;
-    lastPrice: BigNumber;
-    mandalasDiscountPercentage: BigNumber;
-    hasMandalas: boolean;
-  }> {
+  async query(): Promise<null | QueryResult> {
     const contracts = chain.contracts || fallback.contracts;
     if (contracts) {
       const data = await contracts.BleepsInitialSale.ownersAndPriceInfo(
         wallet.address || '0x0000000000000000000000000000000000000000',
+        this.$store.passId || 0, //  '0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF',
         allIds
       );
 
@@ -67,12 +158,89 @@ class OwnersStateStore extends BaseStore<OwnersState> {
   }
 
   private async _fetch() {
-    const result = await this.query();
+    if (passId === undefined && wallet.address) {
+      passId = contracts.BleepsInitialSale.linkedData.leaves.findIndex(
+        (v) => v.signer.toLowerCase() == wallet.address.toLowerCase()
+      );
+      if (passId === -1) {
+        // console.error('invalid passKey. not found in list');
+        passId = undefined;
+      } else {
+        console.log('you are whitelisted (mandala owner)');
+      }
+
+      this.setPartial({passId});
+    }
+
+    this.lastResult = await this.query();
+    this.processQuery(this.lastResult);
+  }
+
+  private _everySeconds() {
+    if (this.$store.priceInfo) {
+      const {normalExpectedValue, expectedValue, timeLeftBeforePublic} = this.computeExpectedValue();
+      this.setPartial({
+        timeLeftBeforePublic,
+        normalExpectedValue,
+        expectedValue,
+      });
+    }
+  }
+
+  private onWallet($wallet: WalletData) {
+    if (wallet.address && !this.$store.passKeySigner) {
+      let passId = contracts.BleepsInitialSale.linkedData.leaves.findIndex(
+        (v) => v.signer.toLowerCase() == wallet.address.toLowerCase()
+      );
+      if (passId === -1) {
+        // console.error('invalid passKey. not found in list');
+        passId = undefined;
+      }
+      this.setPartial({passId});
+    }
+  }
+
+  private onTransactions($transactions: TransactionRecord[]) {
+    this.transactions = $transactions;
+    if (this.lastResult) {
+      this.processQuery(this.lastResult);
+    }
+  }
+
+  processQuery(result?: QueryResult) {
     if (!result) {
       if (this.$store.state !== 'Ready') {
         this.setPartial({tokenOwners: {}, state: 'Loading'});
       }
     } else {
+      const processedResult: QueryResult = {
+        addresses: result.addresses.concat(),
+        hasMandalas: result.hasMandalas,
+        mandalasDiscountPercentage: result.mandalasDiscountPercentage,
+        passUsed: result.passUsed,
+        price: result.price.add(0),
+        uptoInstr: result.uptoInstr.add(0),
+        whitelistMerkleRoot: result.whitelistMerkleRoot,
+        whitelistPrice: result.whitelistPrice.add(0),
+        whitelistTimeLimit: result.whitelistTimeLimit.add(0),
+      };
+      // const map: {[id: number]: string} = {};
+      // for (let i = 0; i < 576; i++) {
+      //   map[i] = processedResult.addresses[i];
+      // }
+
+      for (const tx of this.transactions) {
+        const metadata = tx.metadata as {type: string; id: number; passId?: number} | undefined;
+        if (metadata && metadata.type === 'mint') {
+          if ((wallet.address && tx.status === 'pending') || tx.status === 'success') {
+            processedResult.addresses[metadata.id] = wallet.address;
+            if (this.$store.passId === metadata.passId) {
+              processedResult.passUsed = true;
+            }
+          }
+        }
+      }
+
       const tokenOwners = {};
       const numLeftPerInstr = {
         0: 64,
@@ -93,68 +261,61 @@ class OwnersStateStore extends BaseStore<OwnersState> {
         15: 64,
       };
       let numLeft = 0;
-      for (let i = 0; i < result.addresses.length; i++) {
-        tokenOwners[i] = result.addresses[i];
-        if ((i >= 6 * 64 && i < 7 * 64) || (i >= 8 * 64 && i < 9 * 64)) {
-          tokenOwners[i] = '0x1111111111111111111111111111111111111111';
-        }
+      for (let i = 0; i < processedResult.addresses.length; i++) {
+        tokenOwners[i] = processedResult.addresses[i];
+        // if ((i >= 6 * 64 && i < 7 * 64) || (i >= 8 * 64 && i < 9 * 64)) {
+        //   tokenOwners[i] = '0x1111111111111111111111111111111111111111';
+        // }
         if (tokenOwners[i] === '0x0000000000000000000000000000000000000000') {
           numLeft++;
         } else {
           numLeftPerInstr[i >> 6]--;
         }
       }
-      const {normalExpectedValue, expectedValue} = this.computeExpectedValue();
+      const {normalExpectedValue, expectedValue, timeLeftBeforePublic} = this.computeExpectedValue();
+
       this.setPartial({
         tokenOwners,
         numLeft,
         state: 'Ready',
         priceInfo: {
-          startTime: result.startTime,
-          initPrice: result.initPrice,
-          delay: result.delay,
-          lastPrice: result.lastPrice,
-          mandalasDiscountPercentage: result.mandalasDiscountPercentage,
-          hasMandalas: result.hasMandalas,
+          price: processedResult.price,
+          whitelistPrice: processedResult.whitelistPrice,
+          whitelistTimeLimit: processedResult.whitelistTimeLimit,
+          whitelistMerkleRoot: processedResult.whitelistMerkleRoot,
+          mandalasDiscountPercentage: processedResult.mandalasDiscountPercentage,
+          hasMandalas: processedResult.hasMandalas,
+          passUsed: this.$store.passId !== undefined && processedResult.passUsed,
+          uptoInstr: processedResult.uptoInstr,
         },
+        timeLeftBeforePublic,
         numLeftPerInstr,
         normalExpectedValue,
         expectedValue,
       });
+
       if (this.priceInfoResolve) {
         this.priceInfoResolve();
       }
     }
   }
 
-  private _everySeconds() {
-    if (this.$store.priceInfo) {
-      const {normalExpectedValue, expectedValue} = this.computeExpectedValue();
-      this.setPartial({
-        normalExpectedValue,
-        expectedValue,
-      });
-    }
-  }
-
-  computeExpectedValue(): {normalExpectedValue?: BigNumber; expectedValue?: BigNumber} {
+  computeExpectedValue(): {normalExpectedValue?: BigNumber; expectedValue?: BigNumber; timeLeftBeforePublic?: number} {
     if (this.$store.priceInfo) {
       const priceInfo = this.$store.priceInfo;
-      let normalExpectedValue = priceInfo.initPrice;
-      const timePassed = BigNumber.from(now()).sub(priceInfo.startTime).sub(120); // pay more (1 min)
-      const timeLeft = priceInfo.delay.sub(timePassed);
-      const priceDiff = priceInfo.initPrice.sub(priceInfo.lastPrice);
+      let normalExpectedValue = priceInfo.price;
 
-      if (timeLeft.lte(0)) {
-        normalExpectedValue = priceInfo.lastPrice;
-      } else {
-        normalExpectedValue = priceInfo.lastPrice.add(priceDiff.mul(timeLeft).div(priceInfo.delay));
-      }
+      const timeLeftBeforePublic = priceInfo.whitelistTimeLimit.sub(now()).toNumber();
+
+      normalExpectedValue = priceInfo.price;
       let expectedValue = normalExpectedValue;
-      if (priceInfo.hasMandalas) {
-        expectedValue = normalExpectedValue.sub(normalExpectedValue.mul(priceInfo.mandalasDiscountPercentage).div(100));
+      if (timeLeftBeforePublic > 0) {
+        expectedValue = priceInfo.whitelistPrice;
       }
-      return {expectedValue, normalExpectedValue}; //.add(priceInfo.initPrice.div(10));
+      if (priceInfo.hasMandalas) {
+        expectedValue = expectedValue.sub(expectedValue.mul(priceInfo.mandalasDiscountPercentage).div(100));
+      }
+      return {expectedValue, normalExpectedValue, timeLeftBeforePublic}; //.add(priceInfo.initPrice.div(10));
       // return priceInfo.initPrice;
     }
     return {};
@@ -182,6 +343,8 @@ class OwnersStateStore extends BaseStore<OwnersState> {
     this._fetch();
     this.timer = setInterval(() => this._fetch(), 5000); // TODO polling interval config
     this.timerPerSeconds = setInterval(() => this._everySeconds(), 1000); // TODO polling interval config
+    this.stopWalletSubscription = wallet.subscribe(this.onWallet.bind(this));
+    this.stopTransactionSubscription = transactions.subscribe(this.onTransactions.bind(this));
     return this;
   }
 
@@ -191,6 +354,14 @@ class OwnersStateStore extends BaseStore<OwnersState> {
       clearInterval(this.timerPerSeconds);
       this.timer = undefined;
       this.timerPerSeconds = undefined;
+    }
+    if (this.stopWalletSubscription) {
+      this.stopWalletSubscription();
+      this.stopWalletSubscription = undefined;
+    }
+    if (this.stopTransactionSubscription) {
+      this.stopTransactionSubscription();
+      this.stopTransactionSubscription = undefined;
     }
   }
 

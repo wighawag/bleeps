@@ -3,7 +3,6 @@ pragma solidity 0.8.9;
 
 import "./ERC721Base.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 interface IERC1271 {
     function isValidSignature(bytes32 hash, bytes calldata signature) external view returns (bytes4 magicValue);
@@ -11,7 +10,6 @@ interface IERC1271 {
 
 abstract contract ERC721BaseWithPermit is ERC721Base {
     using Address for address;
-    using ECDSA for bytes32;
 
     bytes4 internal constant ERC1271_MAGICVALUE = 0x1626ba7e;
 

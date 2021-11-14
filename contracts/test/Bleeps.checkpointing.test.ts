@@ -1,18 +1,18 @@
 import {expect} from './chai-setup';
 import {ethers, deployments, getUnnamedAccounts} from 'hardhat';
-import {Bleeps, BleepsInitialSale} from '../typechain';
+import {Bleeps, IBleepsSale} from '../typechain';
 import {setupUsers, waitFor} from './utils';
 import {constants} from 'ethers';
 import {parseEther} from 'ethers/lib/utils';
 import {DelegationSignerFactory} from './utils/eip712';
 import {splitSignature} from '@ethersproject/bytes';
-const {AddressZero} = constants;
+import {mintViaSalePass} from './utils/bleepsfixedsale';
 
 const setup = deployments.createFixture(async () => {
   await deployments.fixture(['Bleeps', 'BleepsInitialSale']);
   const contracts = {
     Bleeps: <Bleeps>await ethers.getContract('Bleeps'),
-    BleepsInitialSale: <BleepsInitialSale>await ethers.getContract('BleepsInitialSale'),
+    BleepsInitialSale: <IBleepsSale>await ethers.getContract('BleepsInitialSale'),
   };
   const DelegationSigner = DelegationSignerFactory.createSigner({
     verifyingContract: contracts.Bleeps.address,
@@ -20,11 +20,11 @@ const setup = deployments.createFixture(async () => {
 
   const users = await setupUsers(await getUnnamedAccounts(), contracts);
 
-  await waitFor(users[0].BleepsInitialSale.mint(1, users[0].address, {value: parseEther('2')}));
-  await waitFor(users[0].BleepsInitialSale.mint(2, users[0].address, {value: parseEther('2')}));
-  await waitFor(users[0].BleepsInitialSale.mint(3, users[0].address, {value: parseEther('2')}));
-  await waitFor(users[0].BleepsInitialSale.mint(4, users[0].address, {value: parseEther('2')}));
-  await waitFor(users[0].BleepsInitialSale.mint(5, users[0].address, {value: parseEther('2')}));
+  await mintViaSalePass(1, users[0].address, users[0].address);
+  await mintViaSalePass(2, users[0].address, users[0].address);
+  await mintViaSalePass(3, users[0].address, users[0].address);
+  await mintViaSalePass(4, users[0].address, users[0].address);
+  await mintViaSalePass(5, users[0].address, users[0].address);
 
   const tokenHolder = users[0];
   users.shift();

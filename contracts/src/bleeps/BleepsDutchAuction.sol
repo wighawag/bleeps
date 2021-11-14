@@ -2,17 +2,15 @@
 pragma solidity 0.8.9;
 
 import "./Bleeps.sol";
+import "../interfaces/IBleepsSale.sol";
+import "./SaleBase.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-contract BleepsInitialSale {
-    Bleeps internal immutable _bleeps;
+contract BleepsDutchAuction is IBleepsSale, SaleBase {
     uint256 internal immutable _startTime;
     uint256 internal immutable _initPrice;
     uint256 internal immutable _delay;
     uint256 internal immutable _lastPrice;
-    address payable internal immutable _recipient;
-    IERC721 internal immutable _mandalas;
-    uint256 internal immutable _mandalasDiscountPercentage;
 
     constructor(
         Bleeps bleeps,
@@ -23,15 +21,11 @@ contract BleepsInitialSale {
         address payable recipient,
         IERC721 mandalas,
         uint256 mandalasDiscountPercentage
-    ) {
-        _bleeps = bleeps;
+    ) SaleBase(bleeps, recipient, mandalas, mandalasDiscountPercentage) {
         _initPrice = initPrice;
         _delay = delay;
         _lastPrice = lastPrice;
         _startTime = startTime;
-        _recipient = recipient;
-        _mandalas = mandalas;
-        _mandalasDiscountPercentage = mandalasDiscountPercentage;
     }
 
     function priceInfo(address purchaser)
@@ -75,7 +69,7 @@ contract BleepsInitialSale {
         require(id < 576, "INVALID_SOUND");
         uint256 instr = (uint256(id) >> 6) % 16;
 
-        if (instr == 6 || instr == 8) {
+        if (instr == 7 || instr == 8) {
             require(msg.sender == _recipient, "These bleeps are reserved");
         } else {
             uint256 expectedValue = _initPrice;
@@ -95,13 +89,5 @@ contract BleepsInitialSale {
             _recipient.transfer(expectedValue);
         }
         _bleeps.mint(id, to);
-    }
-
-    function _hasMandalas(address owner) internal view returns (bool) {
-        (bool success, bytes memory returnData) = address(_mandalas).staticcall(
-            abi.encodeWithSignature("balanceOf(address)", owner)
-        );
-        uint256 numMandalas = success && returnData.length > 0 ? abi.decode(returnData, (uint256)) : 0;
-        return numMandalas > 0;
     }
 }

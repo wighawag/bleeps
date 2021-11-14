@@ -8,3 +8,6 @@ export function combine(address: string, name: string): BigNumber {
   );
   return n;
 }
+
+export * from './merkletree';
+export * from './merkletree/salepass';

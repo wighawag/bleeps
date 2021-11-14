@@ -277,6 +277,17 @@ contract MeloBleepsTokenURI {
                             )
                         }
                         if eq(instr, 6) {
+                            // phaser (detuned_tri)
+                            intValue := mul(pos, 2)
+                            intValue := add(
+                                sub(abs(sub(smod(intValue, TWO), ONE)), HALF),
+                                sub(
+                                    sdiv(sub(abs(sub(smod(sdiv(mul(intValue, 127), 128), TWO), ONE)), HALF), 2),
+                                    sdiv(ONE, 4)
+                                )
+                            )
+                        }
+                        if eq(instr, 7) {
                             // noise
                             let rand := mload(add(noise_handler, 32))
                             let lastx := mload(add(noise_handler, 64))
@@ -305,18 +316,6 @@ contract MeloBleepsTokenURI {
                             mstore(add(noise_handler, 64), lastx)
                             mstore(add(noise_handler, 96), sample)
                             mstore(add(noise_handler, 128), lsample)
-                        }
-
-                        if eq(instr, 7) {
-                            // phaser (detuned_tri)
-                            intValue := mul(pos, 2)
-                            intValue := add(
-                                sub(abs(sub(smod(intValue, TWO), ONE)), HALF),
-                                sub(
-                                    sdiv(sub(abs(sub(smod(sdiv(mul(intValue, 127), 128), TWO), ONE)), HALF), 2),
-                                    sdiv(ONE, 4)
-                                )
-                            )
                         }
                         if eq(instr, 8) {
                             intValue := mul(pos, 2)
