@@ -7,6 +7,7 @@
   export let minted: boolean;
   export let disabled: boolean;
   export let your: boolean;
+  export let pending: boolean;
 
   $: color = minted ? '#dab894' : disabled ? '#666' : '#ddd';
 
@@ -30,7 +31,11 @@
   xmlns="http://www.w3.org/2000/svg"
   viewBox="0 0 512 512"
   style={`background-color:#000;cursor:pointer;${
-    your ? 'border: none; border-radius: 10pt;box-shadow: 0 0 0 4pt green;outline: none;transition: .1s;' : ''
+    your && !pending
+      ? 'border: none; border-radius: 10pt;box-shadow: 0 0 0 4pt green;outline: none;'
+      : your && pending
+      ? 'border: dashed 4px green;'
+      : ''
   }`}
   on:click={forward}
 >
