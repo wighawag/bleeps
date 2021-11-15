@@ -18,10 +18,12 @@ contract BleepsDutchAuction is IBleepsSale, SaleBase {
         uint256 delay,
         uint256 lastPrice,
         uint256 startTime,
-        address payable recipient,
+        address payable projectCreator,
+        uint256 creatorFeePer10000,
+        address payable saleRecipient,
         IERC721 mandalas,
         uint256 mandalasDiscountPercentage
-    ) SaleBase(bleeps, recipient, mandalas, mandalasDiscountPercentage) {
+    ) SaleBase(bleeps, projectCreator, creatorFeePer10000, saleRecipient, mandalas, mandalasDiscountPercentage) {
         _initPrice = initPrice;
         _delay = delay;
         _lastPrice = lastPrice;
@@ -70,7 +72,7 @@ contract BleepsDutchAuction is IBleepsSale, SaleBase {
         uint256 instr = (uint256(id) >> 6) % 16;
 
         if (instr == 7 || instr == 8) {
-            require(msg.sender == _recipient, "These bleeps are reserved");
+            require(msg.sender == _projectCreator, "These bleeps are reserved");
         } else {
             uint256 expectedValue = _initPrice;
             uint256 timePassed = (block.timestamp - _startTime);
@@ -86,7 +88,7 @@ contract BleepsDutchAuction is IBleepsSale, SaleBase {
             }
             require(msg.value >= expectedValue, "NOT_ENOUGH");
             payable(msg.sender).transfer(msg.value - expectedValue);
-            _recipient.transfer(expectedValue);
+            _paymentToRecipient(expectedValue);
         }
         _bleeps.mint(id, to);
     }

@@ -168,6 +168,23 @@ contract Bleeps is IERC721, WithSupportForOpenSeaProxies, ERC721Checkpointable, 
         _safeTransferFrom(address(0), to, id, "");
     }
 
+    /// @notice mint multiple bleeps if not already minted. Can only be called by `minter`.
+    /// @param ids list of bleep id which represent each a pair of (note, instrument).
+    /// @param to address that will receive the Bleeps.
+    function multiMint(uint16[] calldata ids, address to) external {
+        require(msg.sender == minter, "ONLY_MINTER_ALLOWED");
+        require(to != address(0), "NOT_TO_ZEROADDRESS");
+        require(to != address(this), "NOT_TO_THIS");
+
+        for (uint256 i = 0; i < ids.length; i++) {
+            uint256 id = ids[i];
+            require(id < 1024, "INVALID_SOUND");
+            address owner = _ownerOf(id);
+            require(owner == address(0), "ALREADY_CREATED");
+            _safeTransferFrom(address(0), to, id, "");
+        }
+    }
+
     /// @notice gives the note and instrument for a particular Bleep id.
     /// @param id bleep id which represent a pair of (note, instrument).
     /// @return note the note index (0 to 63) starting from C2 to D#7

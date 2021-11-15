@@ -26,4 +26,4 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 };
 export default func;
 func.tags = ['MeloBleepsAuction'];
-func.dependencies = ['Bleeps', 'MeloBleeps', 'BleepsDAOAccount'];
+func.dependencies = ['Bleeps_deploy', 'MeloBleeps_deploy', 'BleepsDAOAccount_deploy'];

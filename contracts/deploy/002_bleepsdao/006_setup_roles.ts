@@ -21,5 +21,5 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   }
 };
 export default func;
-func.tags = ['BleepsDAOAccount', 'BleepsDAOGovernor'];
+func.tags = ['BleepsDAOAccount', 'BleepsDAOGovernor', 'BleepsDAOAccount_setup', 'BleepsDAOGovernor_setup'];
 func.dependencies = ['BleepsDAOAccount_deploy', 'BleepsDAOGovernor_deploy'];

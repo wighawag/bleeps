@@ -15,24 +15,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const MandalaToken = await deployments.get('MandalaToken');
   const Bleeps = await deployments.get('Bleeps');
-
-  // const BleepsInitialSale = await deploy('BleepsInitialSale', {
-  //   contract: 'BleepsDutchAuction',
-  //   from: deployer,
-  //   args: [
-  //     Bleeps.address,
-  //     parseEther('2'),
-  //     2 * 24 * 3600,
-  //     parseEther('0.1'),
-  //     Math.floor(Date.now() / 1000), // TODO double check
-  //     saleRecipient,
-  //     MandalaToken.address,
-  //     20, // 20% discount
-  //   ],
-  //   skipIfAlreadyDeployed: true,
-  //   log: true,
-  //   autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
-  // });
+  const BleepsDAOAccount = await deployments.get('BleepsDAOAccount');
 
   if (hre.network.name === 'localhost') {
     await deployments.delete('BleepsInitialSale');
@@ -90,6 +73,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         Math.floor(Date.now() / 1000) + 3 * days,
         merkleRootHash,
         saleRecipient,
+        2000, // 20% (2000 / 10000)
+        BleepsDAOAccount.address,
         MandalaToken.address,
         0, // 0% 20, // 20% discount
         2, // 3 first instrument are open
@@ -117,4 +102,4 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 };
 export default func;
 func.tags = ['BleepsInitialSale'];
-func.dependencies = ['Bleeps', 'MandalaToken'];
+func.dependencies = ['Bleeps_deploy', 'MandalaToken', 'BleepsDAOAccount_deploy'];

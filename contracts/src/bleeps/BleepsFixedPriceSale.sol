@@ -24,11 +24,13 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
         uint256 whitelistPrice,
         uint256 whitelistTimeLimit,
         bytes32 whitelistMerkleRoot,
-        address payable recipient,
+        address payable projectCreator,
+        uint256 creatorFeePer10000,
+        address payable saleRecipient,
         IERC721 mandalas,
         uint256 mandalasDiscountPercentage,
         uint256 uptoInstr
-    ) SaleBase(bleeps, recipient, mandalas, mandalasDiscountPercentage) {
+    ) SaleBase(bleeps, projectCreator, creatorFeePer10000, saleRecipient, mandalas, mandalasDiscountPercentage) {
         _price = price;
         _whitelistPrice = whitelistPrice;
         _whitelistTimeLimit = whitelistTimeLimit;
@@ -117,11 +119,24 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
         _payAndMint(id, to);
     }
 
-    function recipientMint(uint16 id, address to) external {
-        require(msg.sender == _recipient, "NOT_AUTHORIZED");
+    function creatorMint(uint16 id, address to) external {
+        require(msg.sender == _projectCreator, "NOT_AUTHORIZED");
         require(id < 576, "INVALID_SOUND");
         require(isReserved(id), "NOT_RESERVED");
         _bleeps.mint(id, to);
+    }
+
+    function creatorMultiMint(uint16[] calldata ids, address to) external {
+        require(msg.sender == _projectCreator, "NOT_AUTHORIZED");
+
+        // check if reserved
+        for (uint256 i = 0; i < ids.length; i++) {
+            require(ids[i] < 576, "INVALID_SOUND");
+            require(isReserved(ids[i]), "NOT_RESERVED");
+        }
+
+        // mint all ids
+        _bleeps.multiMint(ids, to);
     }
 
     function mintWithPassId(
@@ -187,8 +202,7 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
         }
         require(msg.value >= expectedValue, "NOT_ENOUGH");
         payable(msg.sender).transfer(msg.value - expectedValue);
-        _recipient.transfer(expectedValue);
-
+        _paymentToRecipient(expectedValue);
         _bleeps.mint(id, to);
     }
 }
