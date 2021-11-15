@@ -9,7 +9,7 @@ import {getUnnamedAccounts} from 'hardhat';
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, getNamedAccounts} = hre;
-  const {deploy, execute, read} = deployments;
+  const {deploy, execute, read, log} = deployments;
 
   const {deployer, saleRecipient, bleepsMinterAdmin} = await getNamedAccounts();
 
@@ -44,6 +44,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     const totalNumPassKeys = 1024;
     const num = privateKeys.length + mandalaOwners.length;
+    log(`generating ${totalNumPassKeys - num} private keys...`);
     if (num < totalNumPassKeys) {
       for (let i = num; i < totalNumPassKeys; i++) {
         privateKeys.push(Wallet.createRandom().privateKey);
@@ -97,7 +98,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const currentMinter = await read('Bleeps', 'minter');
   if (currentMinter?.toLowerCase() !== BleepsInitialSale.address.toLowerCase()) {
-    await execute('Bleeps', {from: bleepsMinterAdmin, log: true}, 'setMinter', BleepsInitialSale.address);
+    await execute(
+      'Bleeps',
+      {from: bleepsMinterAdmin, log: true, autoMine: true},
+      'setMinter',
+      BleepsInitialSale.address
+    );
   }
 };
 export default func;

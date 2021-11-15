@@ -14,7 +14,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     return true;
   }
   if (skip()) {
-    log('TODO : move rights to DAO...');
+    log('TODO : move bleeps rights to DAO...');
     return;
   }
 

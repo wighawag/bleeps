@@ -31,7 +31,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   if (needUpdate) {
     await execute(
       'MeloBleeps',
-      {from: melobleepsTokenURIAdmin, log: true},
+      {from: melobleepsTokenURIAdmin, log: true, autoMine: true},
       'setTokenURIContract',
       tokenURIContract.address
     );
