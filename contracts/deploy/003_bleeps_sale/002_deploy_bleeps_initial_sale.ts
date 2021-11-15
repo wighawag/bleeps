@@ -76,6 +76,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         saleRecipient,
         2000, // 20% (2000 / 10000)
         BleepsDAOAccount.address,
+        parseEther('3.5'), // TODO revisit (cost dto deploy the set of contracts)
         MandalaToken.address,
         0, // 0% 20, // 20% discount
         2, // 3 first instrument are open

@@ -15,7 +15,7 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
     uint256 internal immutable _whitelistTimeLimit;
     bytes32 internal immutable _whitelistMerkleRoot;
 
-    uint256 _uptoInstr;
+    uint256 internal _uptoInstr;
     mapping(uint256 => uint256) internal _passUsed;
 
     constructor(
@@ -27,15 +27,27 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
         address payable projectCreator,
         uint256 creatorFeePer10000,
         address payable saleRecipient,
+        uint256 deploymentCostToPay,
         IERC721 mandalas,
         uint256 mandalasDiscountPercentage,
         uint256 uptoInstr
-    ) SaleBase(bleeps, projectCreator, creatorFeePer10000, saleRecipient, mandalas, mandalasDiscountPercentage) {
+    )
+        SaleBase(
+            bleeps,
+            projectCreator,
+            creatorFeePer10000,
+            saleRecipient,
+            deploymentCostToPay,
+            mandalas,
+            mandalasDiscountPercentage
+        )
+    {
         _price = price;
         _whitelistPrice = whitelistPrice;
         _whitelistTimeLimit = whitelistTimeLimit;
         _whitelistMerkleRoot = whitelistMerkleRoot;
         _uptoInstr = uptoInstr;
+        _deploymentCostToPay = deploymentCostToPay;
     }
 
     function priceInfo(address purchaser)

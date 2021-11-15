@@ -21,9 +21,20 @@ contract BleepsDutchAuction is IBleepsSale, SaleBase {
         address payable projectCreator,
         uint256 creatorFeePer10000,
         address payable saleRecipient,
+        uint256 deploymentCostToPay,
         IERC721 mandalas,
         uint256 mandalasDiscountPercentage
-    ) SaleBase(bleeps, projectCreator, creatorFeePer10000, saleRecipient, mandalas, mandalasDiscountPercentage) {
+    )
+        SaleBase(
+            bleeps,
+            projectCreator,
+            creatorFeePer10000,
+            saleRecipient,
+            deploymentCostToPay,
+            mandalas,
+            mandalasDiscountPercentage
+        )
+    {
         _initPrice = initPrice;
         _delay = delay;
         _lastPrice = lastPrice;

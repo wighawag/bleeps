@@ -12,11 +12,14 @@ contract SaleBase {
     IERC721 internal immutable _mandalas;
     uint256 internal immutable _mandalasDiscountPercentage;
 
+    uint256 internal _deploymentCostToPay;
+
     constructor(
         Bleeps bleeps,
         address payable projectCreator,
         uint256 creatorFeePer10000,
         address payable saleRecipient,
+        uint256 deploymentCostToPay,
         IERC721 mandalas,
         uint256 mandalasDiscountPercentage
     ) {
@@ -24,6 +27,7 @@ contract SaleBase {
         _projectCreator = projectCreator;
         _creatorFeePer10000 = creatorFeePer10000;
         _saleRecipient = saleRecipient;
+        _deploymentCostToPay = deploymentCostToPay;
         _mandalas = mandalas;
         _mandalasDiscountPercentage = mandalasDiscountPercentage;
     }
@@ -37,13 +41,28 @@ contract SaleBase {
     }
 
     function _paymentToRecipient(uint256 expectedValue) internal {
-        if (_creatorFeePer10000 > 0) {
-            uint256 fee = (expectedValue * _creatorFeePer10000) / 10000;
-            _projectCreator.transfer(fee);
-            expectedValue = expectedValue - fee;
+        uint256 costToPay = _deploymentCostToPay;
+        if (costToPay > 0) {
+            if (expectedValue > costToPay) {
+                _projectCreator.transfer(costToPay);
+                expectedValue = expectedValue - costToPay;
+                _deploymentCostToPay = 0;
+            } else {
+                _projectCreator.transfer(expectedValue);
+                _deploymentCostToPay = costToPay - expectedValue;
+                return;
+            }
         }
+
         if (expectedValue > 0) {
-            _saleRecipient.transfer(expectedValue);
+            if (_creatorFeePer10000 > 0) {
+                uint256 fee = (expectedValue * _creatorFeePer10000) / 10000;
+                _projectCreator.transfer(fee);
+                expectedValue = expectedValue - fee;
+            }
+            if (expectedValue > 0) {
+                _saleRecipient.transfer(expectedValue);
+            }
         }
     }
 }
