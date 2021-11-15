@@ -159,7 +159,7 @@ contract Bleeps is IERC721, WithSupportForOpenSeaProxies, ERC721Checkpointable, 
     /// @param to address that will receive the Bleep.
     function mint(uint16 id, address to) external {
         require(msg.sender == minter, "ONLY_MINTER_ALLOWED");
-        require(id < 1024, "INVALID_SOUND");
+        require(id < 1024, "INVALID_BLEEP");
 
         require(to != address(0), "NOT_TO_ZEROADDRESS");
         require(to != address(this), "NOT_TO_THIS");
@@ -178,7 +178,7 @@ contract Bleeps is IERC721, WithSupportForOpenSeaProxies, ERC721Checkpointable, 
 
         for (uint256 i = 0; i < ids.length; i++) {
             uint256 id = ids[i];
-            require(id < 1024, "INVALID_SOUND");
+            require(id < 1024, "INVALID_BLEEP");
             address owner = _ownerOf(id);
             require(owner == address(0), "ALREADY_CREATED");
             _safeTransferFrom(address(0), to, id, "");
