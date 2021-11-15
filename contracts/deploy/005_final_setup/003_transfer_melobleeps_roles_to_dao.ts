@@ -7,8 +7,7 @@ import {AddressZero} from '@ethersproject/constants';
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, getNamedAccounts, ethers} = hre;
   const {log} = deployments;
-  const {bleepsTokenURIAdmin, bleepsRoyaltyAdmin, bleepsMinterAdmin, bleepsGuardian, checkpointingDisabler} =
-    await getNamedAccounts();
+  const {bleepsTokenURIAdmin, bleepsRoyaltyAdmin, bleepsMinterAdmin, bleepsGuardian} = await getNamedAccounts();
 
   function skip() {
     return true;
