@@ -43,9 +43,11 @@ contract BleepsRoles {
         tokenURIAdmin = initialTokenURIAdmin;
         royaltyAdmin = initialRoyaltyAdmin;
         minterAdmin = initialMinterAdmin;
+        guardian = initialGuardian;
         emit TokenURIAdminSet(initialTokenURIAdmin);
         emit RoyaltyAdminSet(initialRoyaltyAdmin);
         emit MinterAdminSet(initialMinterAdmin);
+        emit GuardianSet(initialGuardian);
     }
 
     /**

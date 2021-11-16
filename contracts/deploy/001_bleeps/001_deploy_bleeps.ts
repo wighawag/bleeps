@@ -9,6 +9,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     deployer,
     initialBleepsTokenURIAdmin,
     initialBleepsRoyaltyAdmin,
+    initialBleepsRoyaltyRecipient,
     initialBleepsMinterAdmin,
     bleepsGuardian,
     initialCheckpointingDisabler,
@@ -48,6 +49,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         deployer,
         initialBleepsTokenURIAdmin,
         initialBleepsRoyaltyAdmin,
+        initialBleepsRoyaltyRecipient,
+        500, // 5%
         initialBleepsMinterAdmin,
         bleepsGuardian,
         tokenURIContract.address,

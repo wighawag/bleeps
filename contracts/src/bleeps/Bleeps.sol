@@ -13,6 +13,7 @@ import "../base/WithSupportForOpenSeaProxies.sol";
 contract Bleeps is IERC721, WithSupportForOpenSeaProxies, ERC721Checkpointable, BleepsRoles {
     using Address for address;
 
+    event RoyaltySet(address receiver, uint256 royaltyPer10Thousands);
     event TokenURIContractSet(ITokenURI newTokenURIContract);
     event CheckpointingDisablerSet(address newCheckpointingDisabler);
     event CheckpointingDisabled();
@@ -20,11 +21,12 @@ contract Bleeps is IERC721, WithSupportForOpenSeaProxies, ERC721Checkpointable, 
     /// @notice the contract that actually generate the sound (and all metadata via the a data: uri via tokenURI call).
     ITokenURI public tokenURIContract;
 
-    /// @dev recipient of royalty, default to zero.
-    address internal _royaltyRecipient;
+    struct Royalty {
+        address receiver;
+        uint96 per10Thousands;
+    }
 
-    /// @dev share of royalty, default to zero.
-    uint256 internal _royaltyPer10Thousands;
+    Royalty internal _royalty;
 
     /// @dev address that is able to switch off the use of checkpointing, this will make token transfers much cheaper in term of gas, but require the design of a new governance system.
     address public checkpointingDisabler;
@@ -33,16 +35,20 @@ contract Bleeps is IERC721, WithSupportForOpenSeaProxies, ERC721Checkpointable, 
     /// @param openseaProxyRegistry allow Bleeps to be sold on opensea without prior approval tx as long as the user have already an opensea proxy.
     /// @param initialOwner address that can execute on behalf of Bleeps (example: can claim ENS name).
     /// @param initialTokenURIAdmin admin able to update the tokenURI contract.
-    /// @param initialRoyaltyAdmin admin able to update the royalty recipient and rates.
+    /// @param initialRoyaltyAdmin admin able to update the royalty receiver and rates.
+    /// @param initialRoyaltyReceiver receiver of royalties
+    /// @param imitialRoyaltyPer10Thousands amount of royalty in 10,000 basis point
     /// @param initialMinterAdmin admin able to set the minter contract.
     /// @param initialGuardian guardian able to immortalize rules
     /// @param initialTokenURIContract initial tokenURI contract that generate the metadata including the wav file.
-    /// @param initialCheckpointingDisabler admin able to update the royalty recipient and rates.
+    /// @param initialCheckpointingDisabler admin able to cancel checkpointing
     constructor(
         address openseaProxyRegistry,
         address initialOwner,
         address initialTokenURIAdmin,
         address initialRoyaltyAdmin,
+        address initialRoyaltyReceiver,
+        uint96 imitialRoyaltyPer10Thousands,
         address initialMinterAdmin,
         address initialGuardian,
         ITokenURI initialTokenURIContract,
@@ -55,6 +61,10 @@ contract Bleeps is IERC721, WithSupportForOpenSeaProxies, ERC721Checkpointable, 
         emit TokenURIContractSet(initialTokenURIContract);
         checkpointingDisabler = initialCheckpointingDisabler;
         emit CheckpointingDisablerSet(initialCheckpointingDisabler);
+
+        _royalty.receiver = initialRoyaltyReceiver;
+        _royalty.per10Thousands = imitialRoyaltyPer10Thousands;
+        emit RoyaltySet(initialRoyaltyReceiver, imitialRoyaltyPer10Thousands);
     }
 
     /// @notice A descriptive name for a collection of NFTs in this contract.
@@ -69,7 +79,7 @@ contract Bleeps is IERC721, WithSupportForOpenSeaProxies, ERC721Checkpointable, 
 
     /// @notice Returns the Uniform Resource Identifier (URI) for the token collection.
     function contractURI() external view returns (string memory) {
-        return tokenURIContract.contractURI();
+        return tokenURIContract.contractURI(_royalty.receiver, _royalty.per10Thousands);
     }
 
     /// @notice Returns the Uniform Resource Identifier (URI) for token `id`.
@@ -136,18 +146,19 @@ contract Bleeps is IERC721, WithSupportForOpenSeaProxies, ERC721Checkpointable, 
         view
         returns (address receiver, uint256 royaltyAmount)
     {
-        receiver = _royaltyRecipient;
-        royaltyAmount = (salePrice * _royaltyPer10Thousands) / 10000;
+        receiver = _royalty.receiver;
+        royaltyAmount = (salePrice * uint256(_royalty.per10Thousands)) / 10000;
     }
 
-    /// @notice set a new royalty recipient and rate, Can only be set by the `royaltyAdmin`.
-    /// @param newRecipient the address that should receive the royalty proceeds.
-    /// @param royaltyPer10Thousands the share of the salePrice (in 1/10000) given to the recipient.
-    function setRoyaltyParameters(address newRecipient, uint256 royaltyPer10Thousands) external {
+    /// @notice set a new royalty receiver and rate, Can only be set by the `royaltyAdmin`.
+    /// @param newReceiver the address that should receive the royalty proceeds.
+    /// @param royaltyPer10Thousands the share of the salePrice (in 1/10000) given to the receiver.
+    function setRoyaltyParameters(address newReceiver, uint96 royaltyPer10Thousands) external {
         require(msg.sender == royaltyAdmin, "NOT_AUTHORIZED");
         // require(royaltyPer10Thousands <= 50, "ROYALTY_TOO_HIGH"); ?
-        _royaltyRecipient = newRecipient;
-        _royaltyPer10Thousands = royaltyPer10Thousands;
+        _royalty.receiver = newReceiver;
+        _royalty.per10Thousands = royaltyPer10Thousands;
+        emit RoyaltySet(newReceiver, royaltyPer10Thousands);
     }
 
     /// @notice disable checkpointing overhead

@@ -31,6 +31,7 @@ const config: HardhatUserConfig = {
     initialBleepsOwner: 1,
     initialBleepsTokenURIAdmin: 1,
     initialBleepsRoyaltyAdmin: 1,
+    initialBleepsRoyaltyRecipient: 1,
     initialBleepsMinterAdmin: 1,
     bleepsGuardian: 1,
     initialCheckpointingDisabler: 1,

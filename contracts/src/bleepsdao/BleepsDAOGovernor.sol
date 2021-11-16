@@ -42,11 +42,11 @@ contract BleepsDAOGovernor is
         GovernorVotesComp(_token)
         GovernorTimelockCompound(_timelock)
     {
-        uint64 votingDelay = 1;
-        uint64 votingPeriod = 45818; // 1 week
-        uint64 quorum = 64; // 64 / 576 = 11.111.. % if new Bleeps are minted (max supply = 1024), this should be updated
-        uint64 proposalThreshold = 1;
-        _setConfig(votingDelay, votingPeriod, quorum, proposalThreshold);
+        uint64 initialVotingDelay = 1;
+        uint64 initialVotingPeriod = 45818; // 1 week
+        uint64 initialQuorum = 64; // 64 / 576 = 11.111.. % if new Bleeps are minted (max supply = 1024), this should be updated
+        uint64 initialProposalThreshold = 1;
+        _setConfig(initialVotingDelay, initialVotingPeriod, initialQuorum, initialProposalThreshold);
     }
 
     function votingDelay() public view override returns (uint256) {

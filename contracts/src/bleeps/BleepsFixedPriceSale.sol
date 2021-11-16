@@ -116,12 +116,12 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
         _passUsed[passBlock] = passBitMask | mask;
     }
 
-    function isReserved(uint256 id) public returns (bool) {
+    function isReserved(uint256 id) public pure returns (bool) {
         uint256 instr = (uint256(id) >> 6) % 16;
         return (instr == 7 || instr == 8);
     }
 
-    function isOpenForSale(uint256 id) public returns (bool) {
+    function isOpenForSale(uint256 id) public view returns (bool) {
         uint256 instr = (uint256(id) >> 6) % 16;
         return instr <= _uptoInstr;
     }
