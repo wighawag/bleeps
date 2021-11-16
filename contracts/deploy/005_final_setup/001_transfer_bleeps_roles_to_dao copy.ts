@@ -7,8 +7,14 @@ import {AddressZero} from '@ethersproject/constants';
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, getNamedAccounts, ethers} = hre;
   const {log} = deployments;
-  const {bleepsTokenURIAdmin, bleepsRoyaltyAdmin, bleepsMinterAdmin, bleepsGuardian, checkpointingDisabler} =
-    await getNamedAccounts();
+  const {
+    initialBleepsOwner,
+    initialBleepsTokenURIAdmin,
+    initialBleepsRoyaltyAdmin,
+    initialBleepsMinterAdmin,
+    bleepsGuardian,
+    initialCheckpointingDisabler,
+  } = await getNamedAccounts();
 
   function skip() {
     return true;
@@ -22,18 +28,23 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const Bleeps = await ethers.getContract('Bleeps');
 
   if ((await Bleeps.callStatic.tokenURIAdmin()) !== BleepsDAOAccount.address) {
-    const BleepsAsTokenURIAdmin = <Bleeps>await ethers.getContract('Bleeps', bleepsTokenURIAdmin);
+    const BleepsAsTokenURIAdmin = <Bleeps>await ethers.getContract('Bleeps', initialBleepsTokenURIAdmin);
     await waitFor(BleepsAsTokenURIAdmin.setTokenURIAdmin(BleepsDAOAccount.address));
   }
 
   if ((await Bleeps.callStatic.royaltyAdmin()) !== BleepsDAOAccount.address) {
-    const BleepsAsRoyaltyAdmin = <Bleeps>await ethers.getContract('Bleeps', bleepsRoyaltyAdmin);
+    const BleepsAsRoyaltyAdmin = <Bleeps>await ethers.getContract('Bleeps', initialBleepsRoyaltyAdmin);
     await waitFor(BleepsAsRoyaltyAdmin.setRoyaltyAdmin(BleepsDAOAccount.address));
   }
 
   if ((await Bleeps.callStatic.minterAdmin()) !== BleepsDAOAccount.address) {
-    const BleepsAsMinterAdmin = <Bleeps>await ethers.getContract('Bleeps', bleepsMinterAdmin);
+    const BleepsAsMinterAdmin = <Bleeps>await ethers.getContract('Bleeps', initialBleepsMinterAdmin);
     await waitFor(BleepsAsMinterAdmin.setMinterAdmin(BleepsDAOAccount.address));
+  }
+
+  if ((await Bleeps.callStatic.owner()) !== BleepsDAOAccount.address) {
+    const BleepsAsMinterAdmin = <Bleeps>await ethers.getContract('Bleeps', initialBleepsOwner);
+    await waitFor(BleepsAsMinterAdmin.transferOwnership(BleepsDAOAccount.address));
   }
 
   // disable guardian
@@ -43,8 +54,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   }
 
   // disable checkpoint disabler
-  if ((await Bleeps.callStatic.checkpointingDisabler()) !== AddressZero) {
-    const BleepsAsCheckpointDisabler = <Bleeps>await ethers.getContract('Bleeps', checkpointingDisabler);
+  if ((await Bleeps.callStatic.initialCheckpointingDisabler()) !== AddressZero) {
+    const BleepsAsCheckpointDisabler = <Bleeps>await ethers.getContract('Bleeps', initialCheckpointingDisabler);
     await waitFor(BleepsAsCheckpointDisabler.setCheckpointingDisabler(AddressZero));
   }
 };

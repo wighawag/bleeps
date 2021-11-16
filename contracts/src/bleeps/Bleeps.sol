@@ -1,15 +1,18 @@
 // SPDX-License-Identifier: AGPL-1.0
 pragma solidity 0.8.9;
 
-import "../base/Roles.sol";
+import "./BleepsRoles.sol";
 import "../base/ERC721Checkpointable.sol";
 
 import "../interfaces/ITokenURI.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 
 import "../base/WithSupportForOpenSeaProxies.sol";
 
-contract Bleeps is IERC721, WithSupportForOpenSeaProxies, ERC721Checkpointable, Roles {
+contract Bleeps is IERC721, WithSupportForOpenSeaProxies, ERC721Checkpointable, BleepsRoles {
+    using Address for address;
+
     event TokenURIContractSet(ITokenURI newTokenURIContract);
     event CheckpointingDisablerSet(address newCheckpointingDisabler);
     event CheckpointingDisabled();
@@ -28,6 +31,7 @@ contract Bleeps is IERC721, WithSupportForOpenSeaProxies, ERC721Checkpointable, 
 
     /// @dev Create the Bleeps contract
     /// @param openseaProxyRegistry allow Bleeps to be sold on opensea without prior approval tx as long as the user have already an opensea proxy.
+    /// @param initialOwner address that can execute on behalf of Bleeps (example: can claim ENS name).
     /// @param initialTokenURIAdmin admin able to update the tokenURI contract.
     /// @param initialRoyaltyAdmin admin able to update the royalty recipient and rates.
     /// @param initialMinterAdmin admin able to set the minter contract.
@@ -36,6 +40,7 @@ contract Bleeps is IERC721, WithSupportForOpenSeaProxies, ERC721Checkpointable, 
     /// @param initialCheckpointingDisabler admin able to update the royalty recipient and rates.
     constructor(
         address openseaProxyRegistry,
+        address initialOwner,
         address initialTokenURIAdmin,
         address initialRoyaltyAdmin,
         address initialMinterAdmin,
@@ -44,7 +49,7 @@ contract Bleeps is IERC721, WithSupportForOpenSeaProxies, ERC721Checkpointable, 
         address initialCheckpointingDisabler
     )
         WithSupportForOpenSeaProxies(openseaProxyRegistry)
-        Roles(initialTokenURIAdmin, initialRoyaltyAdmin, initialMinterAdmin, initialGuardian)
+        BleepsRoles(initialOwner, initialTokenURIAdmin, initialRoyaltyAdmin, initialMinterAdmin, initialGuardian)
     {
         tokenURIContract = initialTokenURIContract;
         emit TokenURIContractSet(initialTokenURIContract);
@@ -70,6 +75,15 @@ contract Bleeps is IERC721, WithSupportForOpenSeaProxies, ERC721Checkpointable, 
     /// @notice Returns the Uniform Resource Identifier (URI) for token `id`.
     function tokenURI(uint256 id) external view returns (string memory) {
         return tokenURIContract.tokenURI(id);
+    }
+
+    function execute(
+        address target,
+        bytes memory data,
+        uint256 value
+    ) external {
+        require(msg.sender == owner, "NOT_AUTHORIZED");
+        target.functionCallWithValue(data, value);
     }
 
     /// @notice set a new tokenURI contract, that generate the metadata including the wav file, Can only be set by the `tokenURIAdmin`.

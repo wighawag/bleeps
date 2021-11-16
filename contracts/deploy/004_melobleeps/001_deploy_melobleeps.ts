@@ -5,8 +5,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, getNamedAccounts} = hre;
   const {deploy, execute, read} = deployments;
 
-  const {deployer, melobleepsTokenURIAdmin, melobleepsRoyaltyAdmin, melobleepsMinterAdmin, melobleepsGuardian} =
-    await getNamedAccounts();
+  const {
+    deployer,
+    initialMeloBleepsOwner,
+    initialMeloBleepsTokenURIAdmin,
+    initialMeloBleepsRoyaltyAdmin,
+    initialMeloBleepsMinterAdmin,
+    melobleepsGuardian,
+  } = await getNamedAccounts();
 
   const tokenURIContract = await deploy('MeloBleepsTokenURI', {
     from: deployer,
@@ -31,7 +37,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   if (needUpdate) {
     await execute(
       'MeloBleeps',
-      {from: melobleepsTokenURIAdmin, log: true, autoMine: true},
+      {from: initialMeloBleepsTokenURIAdmin, log: true, autoMine: true},
       'setTokenURIContract',
       tokenURIContract.address
     );
@@ -39,9 +45,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await deploy('MeloBleeps', {
       from: deployer,
       args: [
-        melobleepsTokenURIAdmin,
-        melobleepsRoyaltyAdmin,
-        melobleepsMinterAdmin,
+        initialMeloBleepsOwner,
+        initialMeloBleepsTokenURIAdmin,
+        initialMeloBleepsRoyaltyAdmin,
+        initialMeloBleepsMinterAdmin,
         melobleepsGuardian,
         tokenURIContract.address,
       ],

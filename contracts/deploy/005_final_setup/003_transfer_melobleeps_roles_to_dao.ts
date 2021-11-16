@@ -7,7 +7,13 @@ import {AddressZero} from '@ethersproject/constants';
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, getNamedAccounts, ethers} = hre;
   const {log} = deployments;
-  const {bleepsTokenURIAdmin, bleepsRoyaltyAdmin, bleepsMinterAdmin, bleepsGuardian} = await getNamedAccounts();
+  const {
+    initialMeloBleepsOwner,
+    initialBleepsTokenURIAdmin,
+    initialBleepsRoyaltyAdmin,
+    initialBleepsMinterAdmin,
+    bleepsGuardian,
+  } = await getNamedAccounts();
 
   function skip() {
     return true;
@@ -21,18 +27,23 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const MeloBleeps = <MeloBleeps>await ethers.getContract('MeloBleeps');
 
   if ((await MeloBleeps.callStatic.tokenURIAdmin()) !== BleepsDAOAccount.address) {
-    const BleepsAsTokenURIAdmin = <MeloBleeps>await ethers.getContract('MeloBleeps', bleepsTokenURIAdmin);
+    const BleepsAsTokenURIAdmin = <MeloBleeps>await ethers.getContract('MeloBleeps', initialBleepsTokenURIAdmin);
     await waitFor(BleepsAsTokenURIAdmin.setTokenURIAdmin(BleepsDAOAccount.address));
   }
 
   if ((await MeloBleeps.callStatic.royaltyAdmin()) !== BleepsDAOAccount.address) {
-    const BleepsAsRoyaltyAdmin = <MeloBleeps>await ethers.getContract('MeloBleeps', bleepsRoyaltyAdmin);
+    const BleepsAsRoyaltyAdmin = <MeloBleeps>await ethers.getContract('MeloBleeps', initialBleepsRoyaltyAdmin);
     await waitFor(BleepsAsRoyaltyAdmin.setRoyaltyAdmin(BleepsDAOAccount.address));
   }
 
   if ((await MeloBleeps.callStatic.minterAdmin()) !== BleepsDAOAccount.address) {
-    const BleepsAsMinterAdmin = <MeloBleeps>await ethers.getContract('MeloBleeps', bleepsMinterAdmin);
+    const BleepsAsMinterAdmin = <MeloBleeps>await ethers.getContract('MeloBleeps', initialBleepsMinterAdmin);
     await waitFor(BleepsAsMinterAdmin.setMinterAdmin(BleepsDAOAccount.address));
+  }
+
+  if ((await MeloBleeps.callStatic.owner()) !== BleepsDAOAccount.address) {
+    const MeloBleepsAsMinterAdmin = <MeloBleeps>await ethers.getContract('Bleeps', initialMeloBleepsOwner);
+    await waitFor(MeloBleepsAsMinterAdmin.transferOwnership(BleepsDAOAccount.address));
   }
 
   // disable guardian

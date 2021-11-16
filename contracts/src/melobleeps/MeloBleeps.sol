@@ -2,10 +2,10 @@
 pragma solidity 0.8.9;
 
 import "../base/ERC721Base.sol";
-import "../base/Roles.sol";
+import "./MeloBleepsRoles.sol";
 import "./MeloBleepsTokenURI.sol";
 
-contract MeloBleeps is ERC721Base, Roles {
+contract MeloBleeps is ERC721Base, MeloBleepsRoles {
     event TokenURIContractSet(MeloBleepsTokenURI newTokenURIContract);
 
     /// @notice the contract that actually generate the sound (and all metadata via the a data: uri as tokenURI)
@@ -25,13 +25,22 @@ contract MeloBleeps is ERC721Base, Roles {
     }
     mapping(uint256 => BleepUsed) public bleepsUsed;
 
+    /// @dev Create the MeloBleeps contract
+    //TODO: openseaProxyRegistry allow Bleeps to be sold on opensea without prior approval tx as long as the user have already an opensea proxy.
+    /// @param initialOwner address that can execute on behalf of Bleeps (example: can claim ENS name).
+    /// @param initialTokenURIAdmin admin able to update the tokenURI contract.
+    /// @param initialRoyaltyAdmin admin able to update the royalty recipient and rates.
+    /// @param initialMinterAdmin admin able to set the minter contract.
+    /// @param initialGuardian guardian able to immortalize rules
+    /// @param initialTokenURIContract initial tokenURI contract that generate the metadata including the wav file.
     constructor(
+        address initialOwner,
         address initialTokenURIAdmin,
         address initialRoyaltyAdmin,
         address initialMinterAdmin,
         address initialGuardian,
         MeloBleepsTokenURI initialTokenURIContract
-    ) Roles(initialTokenURIAdmin, initialRoyaltyAdmin, initialMinterAdmin, initialGuardian) {
+    ) MeloBleepsRoles(initialOwner, initialTokenURIAdmin, initialRoyaltyAdmin, initialMinterAdmin, initialGuardian) {
         tokenURIContract = initialTokenURIContract;
         emit TokenURIContractSet(initialTokenURIContract);
     }

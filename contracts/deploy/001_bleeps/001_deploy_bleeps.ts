@@ -5,8 +5,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, getNamedAccounts} = hre;
   const {deploy, execute, read} = deployments;
 
-  const {deployer, bleepsTokenURIAdmin, bleepsRoyaltyAdmin, bleepsMinterAdmin, bleepsGuardian, checkpointingDisabler} =
-    await getNamedAccounts();
+  const {
+    deployer,
+    initialBleepsTokenURIAdmin,
+    initialBleepsRoyaltyAdmin,
+    initialBleepsMinterAdmin,
+    bleepsGuardian,
+    initialCheckpointingDisabler,
+  } = await getNamedAccounts();
 
   const tokenURIContract = await deploy('BleepsTokenURI', {
     from: deployer,
@@ -28,18 +34,24 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   }
 
   if (needUpdate) {
-    await execute('Bleeps', {from: bleepsTokenURIAdmin, log: true}, 'setTokenURIContract', tokenURIContract.address);
+    await execute(
+      'Bleeps',
+      {from: initialBleepsTokenURIAdmin, log: true},
+      'setTokenURIContract',
+      tokenURIContract.address
+    );
   } else {
     await deploy('Bleeps', {
       from: deployer,
       args: [
         openseaProxyRegistry,
-        bleepsTokenURIAdmin,
-        bleepsRoyaltyAdmin,
-        bleepsMinterAdmin,
+        deployer,
+        initialBleepsTokenURIAdmin,
+        initialBleepsRoyaltyAdmin,
+        initialBleepsMinterAdmin,
         bleepsGuardian,
         tokenURIContract.address,
-        checkpointingDisabler,
+        initialCheckpointingDisabler,
       ],
       skipIfAlreadyDeployed: true,
       log: true,

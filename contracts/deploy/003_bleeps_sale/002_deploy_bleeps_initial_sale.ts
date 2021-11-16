@@ -11,7 +11,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, getNamedAccounts} = hre;
   const {deploy, execute, read, log} = deployments;
 
-  const {deployer, saleRecipient, bleepsMinterAdmin} = await getNamedAccounts();
+  const {deployer, saleRecipient, initialBleepsMinterAdmin} = await getNamedAccounts();
 
   const MandalaToken = await deployments.get('MandalaToken');
   const Bleeps = await deployments.get('Bleeps');
@@ -101,7 +101,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   if (currentMinter?.toLowerCase() !== BleepsInitialSale.address.toLowerCase()) {
     await execute(
       'Bleeps',
-      {from: bleepsMinterAdmin, log: true, autoMine: true},
+      {from: initialBleepsMinterAdmin, log: true, autoMine: true},
       'setMinter',
       BleepsInitialSale.address
     );
