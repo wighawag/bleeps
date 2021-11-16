@@ -55,25 +55,25 @@ export function colorFromId(id: number): string {
   } else if (instr == 3) {
     color = 'd01141';
   } else if (instr == 4) {
-    color = '450a2c';
+    color = '851153';
   } else if (instr == 5) {
-    color = '6d1b32';
+    color = '912443';
   } else if (instr == 6) {
-    color = 'c4754a';
+    color = 'a1764a';
   } else if (instr == 7) {
-    color = 'e8caa9';
+    color = 'd461b1';
   } else if (instr == 8) {
     color = '6ef043';
   } else if (instr == 9) {
-    color = '07bf75';
+    color = '06d683';
   } else if (instr == 10) {
-    color = '005c99';
+    color = '0084db';
   } else if (instr == 11) {
-    color = '0784aa';
+    color = '1d9bc2';
   } else if (instr == 12) {
-    color = '30d1d1';
+    color = '30d1b9';
   } else if (instr == 13) {
-    color = '4817a3';
+    color = '5118ba';
   } else if (instr == 14) {
     color = '8034be';
   } else if (instr == 15) {
