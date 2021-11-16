@@ -193,13 +193,15 @@ contract BleepsTokenURI is ITokenURI {
             bytes.concat(
                 "data:image/svg+xml,<svg%2520xmlns='http://www.w3.org/2000/svg'%2520viewBox='0%25200%2520512%2520512'%2520style='background-color:%2523000;stroke:%2523dab894;fill:%2523dab894;'><rect%2520x='6'%2520y='6'%2520width='500'%2520height='500'%2520rx='64'%2520style='stroke-width:8;fill:%2523000;'/><text%2520x='35'%2520y='35'%2520dominant-baseline='hanging'%2520text-anchor='start'%2520style='fill:%2523dab894;font-size:32px;'>",
                 bytes(uint2str(hz)),
-                "%2520hz</text><text%2520x='256'%2520y='170'%2520dominant-baseline='middle'%2520text-anchor='middle'%2520style='font-size:36px;'>",
+                "%2520hz</text><text%2520x='256'%2520y='90'%2520dominant-baseline='middle'%2520text-anchor='middle'%2520style='font-size:36px;'>",
                 instrument,
-                "</text><text%2520x='256'%2520y='330'%2520dominant-baseline='middle'%2520text-anchor='middle'%2520style='font-size:72px;'>",
+                "</text><text%2520x='256'%2520y='415'%2520dominant-baseline='middle'%2520text-anchor='middle'%2520style='font-size:72px;'>",
                 noteString(id, true),
-                "</text></svg>"
+                "</text><g%2520transform='translate(160,143)'><style>.Z{animation:pulse%25201s%2520infinite;transform-box:fill-box;transform-origin:center;fill:%2523cca7cf;stroke:none;}%2523A{animation-delay:.15s;}%2523B{animation-delay:.30s;}%2523C{animation-delay:.45s;}%2523D{animation-delay:.60s;}%2523E{animation-delay:.75s;}%2523F{animation-delay:.90s;}@keyframes%2520pulse%2520{0%25{transform:scaleY(1);}50%25{transform:scaleY(.7);}100%25{transform:scaleY(1);transform-origin:center;}}</style><rect%2520class='Z'%2520id='A'%2520x='0'%2520y='70'%2520width='20'%2520height='80'%2520rx='10'></rect><rect%2520class='Z'%2520id='B'%2520x='38'%2520y='24'%2520width='20'%2520height='172'%2520rx='10'></rect><rect%2520class='Z'%2520id='C'%2520x='76'%2520y='60'%2520width='20'%2520height='100'%2520rx='10'></rect><rect%2520class='Z'%2520id='D'%2520x='114'%2520y='60'%2520width='20'%2520height='100'%2520rx='10'></rect><rect%2520class='Z'%2520id='E'%2520x='152'%2520y='0'%2520width='20'%2520height='220'%2520rx='10'></rect><rect%2520class='Z'%2520id='F'%2520x='190'%2520y='35'%2520width='20'%2520height='150'%2520rx='10'></rect></g></svg>"
             );
     }
+
+    //
 
     function _finishBuffer(
         bytes memory buffer,
