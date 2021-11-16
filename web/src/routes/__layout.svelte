@@ -48,6 +48,7 @@
     {href: url('mint/'), title: 'Mint'},
     {href: url('create/'), title: 'Create'},
     {href: url('about/'), title: 'About'},
+    {href: url('test/'), title: 'Test'},
   ]}
 >
   {#if $wallet && $wallet.state === 'Ready' && $wallet.address}

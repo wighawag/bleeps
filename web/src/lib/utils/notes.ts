@@ -26,6 +26,62 @@ export function instrumentName(instr: number): string {
   return 'NONE';
 }
 
+/*
+mandala palette
+#f6fe63
+#fec425
+#f37734
+#d01141
+#450a2c
+#6d1b32
+#c4754a
+#e8caa9
+#6ef043
+#07bf75
+#005c99
+#0784aa
+#30d1d1
+#4817a3
+#8034be
+#b96ad8
+*/
+export function colorFromId(id: number): string {
+  const instr = id >> 6;
+  let color = 'f6fe63';
+  if (instr == 1) {
+    color = 'fec425';
+  } else if (instr == 2) {
+    color = 'f37734';
+  } else if (instr == 3) {
+    color = 'd01141';
+  } else if (instr == 4) {
+    color = '450a2c';
+  } else if (instr == 5) {
+    color = '6d1b32';
+  } else if (instr == 6) {
+    color = 'c4754a';
+  } else if (instr == 7) {
+    color = 'e8caa9';
+  } else if (instr == 8) {
+    color = '6ef043';
+  } else if (instr == 9) {
+    color = '07bf75';
+  } else if (instr == 10) {
+    color = '005c99';
+  } else if (instr == 11) {
+    color = '0784aa';
+  } else if (instr == 12) {
+    color = '30d1d1';
+  } else if (instr == 13) {
+    color = '4817a3';
+  } else if (instr == 14) {
+    color = '8034be';
+  } else if (instr == 15) {
+    color = 'b96ad8';
+  }
+  return color;
+}
+
 export function noteName(id: number): string {
   const note = id % 64;
   const m = note % 12;

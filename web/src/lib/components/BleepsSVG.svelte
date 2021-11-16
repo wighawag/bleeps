@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {hertz, noteName} from '$lib/utils/notes';
+  import {hertz, noteName, instrumentNameFromId, colorFromId} from '$lib/utils/notes';
   import {symbolSVG} from '$lib/utils/symbols';
   import {createEventDispatcher} from 'svelte';
 
@@ -9,14 +9,16 @@
   export let your: boolean;
   export let pending: boolean;
 
-  $: color = minted ? '#dab894' : disabled ? '#666' : '#ddd';
+  // $: color = '#' + colorFromId(id);
+  $: color = minted ? '#' + colorFromId(id) : disabled ? '#666' : '#' + colorFromId(id); //minted ? '#dab894' : disabled ? '#666' : '#ddd';
 
   $: if (minted) console.log({minted, id});
 
   let hz = hertz(id);
   let name = noteName(id);
+  let instrName = instrumentNameFromId(id);
 
-  $: svgpath = symbolSVG(id);
+  // $: svgpath = symbolSVG(id);
 
   const dispatch = createEventDispatcher();
 
@@ -30,9 +32,9 @@
 <svg
   xmlns="http://www.w3.org/2000/svg"
   viewBox="0 0 512 512"
-  style={`background-color:#000;cursor:pointer;${
+  style={`cursor:pointer;stroke:${color};fill:${color};${
     your && !pending
-      ? 'border: none; border-radius: 10pt;box-shadow: 0 0 0 4pt green;outline: none;'
+      ? 'border: none; border-radius: 16pt;box-shadow: 0 0 0 4pt green;outline: none;'
       : your && pending
       ? 'border: dashed 4px green;'
       : ''
@@ -40,12 +42,78 @@
   on:click={forward}
 >
   <!-- ${disabled ? '' : 'cursor:pointer;'}-->
-  <rect x="0" width="512" height="512" rx="64" style={`stroke-width:8;stroke:${color}`} />
-  <text x="30" y="30" dominant-baseline="hanging" text-anchor="start" style={`fill: ${color}; font-size: 32px;`}
+  <rect x="6" y="6" width="500" height="500" rx="64" style={`fill:#000;stroke-width:8;stroke:#fed8b0`} />
+  <text x="35" y="35" dominant-baseline="hanging" text-anchor="start" style={`fill: ${color}; font-size: 32px;`}
     >{hz}</text
   >
-  <g transform="translate(210,130) scale(0.2,0.2)" style={`fill:${color}`}>{@html svgpath}</g>
-  <text x="256" y="330" dominant-baseline="middle" text-anchor="middle" style={`fill: ${color}; font-size: 72px;`}
+  <text x="256" y="115" dominant-baseline="middle" text-anchor="middle" style="font-size:36px;">{instrName}</text>
+  <!-- <g transform="translate(210,130) scale(0.2,0.2)" style={`fill:${color}`}>{@html svgpath}</g> -->
+
+  <text x="256" y="420" dominant-baseline="middle" text-anchor="middle" style={`fill: ${color}; font-size: 72px;`}
     >{name}</text
-  ></svg
->
+  >
+  <g transform="translate(160,160)scale(0.8,0.8)"
+    ><style>
+      .Z {
+        animation: pulse 1s infinite;
+        transform-box: fill-box;
+        transform-origin: center;
+        stroke: none;
+      }
+      #A {
+        animation-delay: 0.15s;
+      }
+      #B {
+        animation-delay: 0.3s;
+      }
+      #C {
+        animation-delay: 0.45s;
+      }
+      #D {
+        animation-delay: 0.6s;
+      }
+      #E {
+        animation-delay: 0.75s;
+      }
+      #F {
+        animation-delay: 0.9s;
+      }
+      @keyframes pulse {
+        0% {
+          transform: scaleY(1);
+        }
+        50% {
+          transform: scaleY(0.7);
+        }
+        100% {
+          transform: scaleY(1);
+          transform-origin: center;
+        }
+      }
+    </style><rect class={minted ? 'Z' : ''} id="A" x="0" y="70" width="20" height="80" rx="10" /><rect
+      class={minted ? 'Z' : ''}
+      id="B"
+      x="38"
+      y="24"
+      width="20"
+      height="172"
+      rx="10"
+    /><rect class={minted ? 'Z' : ''} id="C" x="76" y="60" width="20" height="100" rx="10" /><rect
+      class={minted ? 'Z' : ''}
+      id="D"
+      x="114"
+      y="60"
+      width="20"
+      height="100"
+      rx="10"
+    /><rect class={minted ? 'Z' : ''} id="E" x="152" y="0" width="20" height="220" rx="10" /><rect
+      class={minted ? 'Z' : ''}
+      id="F"
+      x="190"
+      y="35"
+      width="20"
+      height="150"
+      rx="10"
+    /></g
+  >
+</svg>
