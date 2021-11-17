@@ -37,9 +37,9 @@
   viewBox="0 0 512 512"
   style={`${pointer ? 'cursor:pointer;' : 'cursor:none'}stroke:${color};fill:${color};${
     your && !pending
-      ? 'border: none; border-radius: 16pt;box-shadow: 0 0 0 4pt green;outline: none;'
+      ? 'border: none; border-radius: 16pt;box-shadow: 0 0 0 4pt #34D399;outline: none;'
       : your && pending
-      ? 'border: dashed 4px green;'
+      ? 'border: dashed 4px #34D399;'
       : ''
   }`}
   on:click={forward}
