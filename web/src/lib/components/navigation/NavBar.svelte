@@ -5,14 +5,18 @@
   import Loading from '../Loading.svelte';
   import {urlOfPath} from '$lib/utils/url';
   import {page, navigating} from '$app/stores';
+
+  // TODO better handling of pages not part of the list of nav links
+  let noLink = true;
+  $: for (const link of links) {
+    if (urlOfPath(link.href, $page.path)) {
+      noLink = false;
+    }
+  }
 </script>
 
-<!-- {JSON.stringify($page, null, '  ')} -->
-
-<!-- {JSON.stringify($navigating, null, '  ')} -->
-
 <div class="flex m-1 border-b border-bleeps">
-  <ul class="flex">
+  <ul class={`flex ${noLink ? 'border-b border-bleeps' : ''}`}>
     {#each links as link}
       <NavLink href={link.href} active={urlOfPath(link.href, $page.path)}>
         {link.title}
