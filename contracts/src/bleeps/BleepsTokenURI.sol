@@ -175,33 +175,33 @@ contract BleepsTokenURI is ITokenURI {
         uint256 hz;
         string memory color = 'f6fe63';
         if (instr == 1) {
-            color = 'fec425';
+            color = '0084db';
         } else if (instr == 2) {
             color = 'f37734';
         } else if (instr == 3) {
-            color = 'd01141';
+            color = 'd1111e';
         } else if (instr == 4) {
-            color = '851153';
+            color = 'ad176c';
         } else if (instr == 5) {
-            color = '912443';
+            color = '8034be';
         } else if (instr == 6) {
-            color = 'a1764a';
+            color = '30d1b9';
         } else if (instr == 7) {
-            color = 'd461b1';
+            color = 'ff69b4';
         } else if (instr == 8) {
-            color = '6ef043';
+            color = '63db3b';
         } else if (instr == 9) {
             color = '06d683';
         } else if (instr == 10) {
-            color = '0084db';
+            color = 'fec425';
         } else if (instr == 11) {
             color = '1d9bc2';
         } else if (instr == 12) {
-            color = '30d1b9';
+            color = 'ad6013';
         } else if (instr == 13) {
             color = '5118ba';
         } else if (instr == 14) {
-            color = '8034be';
+            color = 'a82349';
         } else if (instr == 15) {
             color = 'b96ad8';
         }
