@@ -1,5 +1,6 @@
 <script lang="ts">
   import {base} from '$app/paths';
+  import BleepsSvg from '$lib/components/BleepsSVG.svelte';
   import contractsInfo from '$lib/contracts.json';
 </script>
 
@@ -13,12 +14,22 @@
       width="256px"
       height="256px"
     />
+
+    <!-- <div style="display: grid;grid-template-columns: auto auto auto auto; gap: 1em; padding: 1em;"> -->
+
     <h2 class="text-3xl mb-2 font-heading text-black dark:text-white">
       What are <span class="text-bleeps">Bleeps</span> ?
     </h2>
     <p class="m-2 text-gray-500 dark:text-gray-200 text-xl">
       The very first sounds of the <span class="text-bleeps">EVM</span>
     </p>
+    <div class="grid grid-cols-5 lg:grid-cols-9 gap-x-16 gap-y-4  px-16 py-4">
+      {#each Array.from(Array(9)).map((v, index) => (index << 6) + 32) as bleepId, i}
+        <div class={i > 4 ? 'hidden lg:block' : ''}>
+          <BleepsSvg id={bleepId} minted={true} disabled={false} pending={false} your={false} pointer={false} />
+        </div>
+      {/each}
+    </div>
     <p class="m-2 text-gray-500 dark:text-gray-200 text-xl">
       Bleeps use the same pioneer concept introduced in
       <a class="underline" href="https://mandalas.eth.limo">Mandalas.eth</a>, where the metadata is fully generated from

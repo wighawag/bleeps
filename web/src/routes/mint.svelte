@@ -448,7 +448,7 @@
                         $ownersState.tokenOwners[bleepId].pending}
                       your={$ownersState.tokenOwners &&
                         $ownersState.tokenOwners[bleepId] &&
-                        $ownersState.tokenOwners[bleepId].address.toLowerCase() === $wallet.address.toLowerCase()}
+                        $ownersState.tokenOwners[bleepId].address.toLowerCase() === $wallet.address?.toLowerCase()}
                       disabled={!isMintable($ownersState, bleepId)}
                       minted={$ownersState?.tokenOwners &&
                         $ownersState.tokenOwners[bleepId] &&

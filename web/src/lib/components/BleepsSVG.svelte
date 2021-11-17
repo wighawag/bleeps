@@ -8,11 +8,14 @@
   export let disabled: boolean;
   export let your: boolean;
   export let pending: boolean;
+  export let pointer: boolean = true;
 
-  // $: color = '#' + colorFromId(id);
-  $: color = minted ? '#' + colorFromId(id) : disabled ? '#666' : '#' + colorFromId(id); //minted ? '#dab894' : disabled ? '#666' : '#ddd';
+  $: color = '#' + colorFromId(id);
+  // $: color = minted ? '#' + colorFromId(id) : disabled ? '#666' : '#' + colorFromId(id); //minted ? '#dab894' : disabled ? '#666' : '#ddd';
 
-  $: if (minted) console.log({minted, id});
+  $: borderColor = minted ? '#dab894' : disabled ? '#666' : '#fff';
+
+  // $: if (minted) console.log({minted, id});
 
   let hz = hertz(id);
   let name = noteName(id);
@@ -32,7 +35,7 @@
 <svg
   xmlns="http://www.w3.org/2000/svg"
   viewBox="0 0 512 512"
-  style={`cursor:pointer;stroke:${color};fill:${color};${
+  style={`${pointer ? 'cursor:pointer;' : 'cursor:none'}stroke:${color};fill:${color};${
     your && !pending
       ? 'border: none; border-radius: 16pt;box-shadow: 0 0 0 4pt green;outline: none;'
       : your && pending
@@ -42,7 +45,14 @@
   on:click={forward}
 >
   <!-- ${disabled ? '' : 'cursor:pointer;'}-->
-  <rect x="6" y="6" width="500" height="500" rx="64" style={`fill:#000;stroke-width:8;stroke:#fed8b0`} />
+  <rect
+    x="6"
+    y="6"
+    width="500"
+    height="500"
+    rx="64"
+    style={`fill:#000;stroke-width:${borderColor === '#fff' ? '16' : minted ? '12' : '8'};stroke:${borderColor}`}
+  />
   <text x="35" y="35" dominant-baseline="hanging" text-anchor="start" style={`fill: ${color}; font-size: 32px;`}
     >{hz}</text
   >
