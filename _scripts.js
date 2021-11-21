@@ -81,7 +81,9 @@ async function performAction(rawArgs) {
   if (firstArg == 'contracts:dev') {
     const {fixedArgs, extra, options} = parseArgs(args, 0, {reset: 'boolean'});
     if (options.reset) {
-      await execute('rimraf contracts/deployments/localhost && rimraf web/src/lib/contracts.json');
+      await execute(
+        'rimraf contracts/deployments/localhost && rimraf web/src/lib/contracts.json && rimraf booking-service/src/contracts.json'
+      );
     }
     await execute(
       `dotenv -e .env -e contracts/.env -- npm --prefix contracts run dev -- --export ../web/src/lib/contracts.json`
@@ -91,7 +93,9 @@ async function performAction(rawArgs) {
   } else if (firstArg == 'contracts:local:dev') {
     const {fixedArgs, extra, options} = parseArgs(args, 0, {reset: 'boolean'});
     if (options.reset) {
-      await execute('rimraf contracts/deployments/localhost && rimraf web/src/lib/contracts.json');
+      await execute(
+        'rimraf contracts/deployments/localhost && rimraf web/src/lib/contracts.json && rimraf booking-service/src/contracts.json'
+      );
     }
     await execute(`wait-on tcp:localhost:8545`);
     await wait(1); // slight delay to ensure ethereum node is actually ready
@@ -147,6 +151,27 @@ async function performAction(rawArgs) {
     await execute(`wait-on web/src/lib/contracts.json`);
     console.log({env});
     await execute(`${env}npm --prefix subgraph run ${deployCommand} ../contracts/deployments/${network}`);
+  } else if (firstArg === 'booking-service:dev') {
+    console.log(`waiting for web/src/lib/contracts.json...`);
+    await execute(`wait-on web/src/lib/contracts.json`);
+    const {fixedArgs} = parseArgs(args, 1);
+    const network = fixedArgs[0] || 'localhost';
+    const env = getEnv(network);
+    await execute(`${env}npm --prefix booking-service run dev ../contracts/deployments/localhost`);
+  } else if (firstArg === 'booking-service:build') {
+    const {fixedArgs, extra} = parseArgs(args, 1, {});
+    const network = fixedArgs[0] || process.env.NETWORK_NAME || 'localhost';
+    const env = getEnv(network);
+    await execute(`${env}npm --prefix booking-service run build ../contracts/deployments/${network}`);
+  } else if (firstArg === 'booking-service:deploy') {
+    const {fixedArgs, extra} = parseArgs(args, 1, {});
+    const network = fixedArgs[0];
+    if (!network) {
+      console.error(`need to specify the network as first argument`);
+      return;
+    }
+    const env = getEnv(network);
+    await execute(`${env}npm --prefix agent-service run deploy ../contracts/deployments/${network}`);
   } else if (firstArg === 'web:dev') {
     const {fixedArgs, options} = parseArgs(args, 1, {skipContracts: 'boolean'});
     const network = fixedArgs[0] || 'localhost';
@@ -194,6 +219,7 @@ async function performAction(rawArgs) {
     await performAction(['contracts:deploy', network]);
     await performAction(['subgraph:deploy', network]);
     await performAction(['web:deploy', network]);
+    await performAction(['booking-service:deploy', network]);
   } else if (firstArg === 'stop') {
     await execute(`docker-compose down -v`);
   } else if (firstArg === 'externals') {
@@ -202,6 +228,7 @@ async function performAction(rawArgs) {
   } else if (firstArg === 'dev') {
     execute(`newsh "npm run common:dev"`);
     execute(`newsh "npm run web:dev -- --skipContracts"`);
+    execute(`newsh "npm run booking-service:dev"`);
     execute(`newsh "npm run contracts:node"`);
     execute(`newsh "npm run contracts:local:dev -- --reset"`);
     execute(`newsh "npm run subgraph:dev"`);
@@ -212,6 +239,7 @@ async function performAction(rawArgs) {
     execute(`newsh "npm run externals"`);
     execute(`newsh "npm run common:dev"`);
     execute(`newsh "npm run web:dev -- --skipContracts"`);
+    execute(`newsh "npm run booking-service:dev"`);
     execute(`newsh "npm run contracts:node"`);
     execute(`newsh "npm run contracts:local:dev -- --reset"`);
     execute(`newsh "npm run subgraph:dev"`);

@@ -13,6 +13,9 @@
       "path": "subgraph"
     },
     {
+      "path": "booking-service"
+    },
+    {
       "path": "."
     }
   ],

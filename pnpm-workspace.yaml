@@ -3,3 +3,4 @@ packages:
   - 'web'
   - 'subgraph'
   - 'common-lib'
+  - 'booking-service'
