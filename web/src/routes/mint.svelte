@@ -101,6 +101,7 @@
       let bookingInterval: NodeJS.Timeout | undefined = undefined;
       let tx: TransactionResponse | undefined;
       let bookingSig = '';
+      const passId = $ownersState.passId;
       if ($ownersState.timeLeftBeforePublic < 0) {
         try {
           bookingInterval = await book({
@@ -131,18 +132,18 @@
           step = 'IDLE';
         }
       } else if (!$ownersState.passKeySigner) {
-        if ($ownersState.passId === undefined) {
+        if (passId === undefined) {
           throw new Error(`no pass wallet or pass key`);
         }
 
-        const proof = $ownersState.merkleTree.getProof(calculateHash('' + $ownersState.passId, wallet.address));
+        const proof = $ownersState.merkleTree.getProof(calculateHash('' + passId, wallet.address));
 
         try {
           bookingInterval = await book({
             address: wallet.address,
             bleep: bleepId,
             pass: {
-              id: $ownersState.passId,
+              id: passId,
               signature: '', // TODO will require(mandala signature proof)
               to: wallet.address,
             },
@@ -154,12 +155,12 @@
         }
 
         try {
-          tx = await contracts.BleepsInitialSale.mintWithPassId(bleepId, wallet.address, $ownersState.passId, proof, {
+          tx = await contracts.BleepsInitialSale.mintWithPassId(bleepId, wallet.address, passId, proof, {
             value: $ownersState.expectedValue,
             metadata: {
               type: 'mint',
               id: bleepId,
-              passId: $ownersState.passId,
+              passId: passId,
             },
           });
           // step = 'TX_SBUMITTED';
@@ -174,18 +175,16 @@
       } else {
         bookingSig = await $ownersState.passKeyWallet.signMessage(`${bleepId}`);
         const signature = $ownersState.passKeySigner.signDigest(
-          solidityKeccak256(['uint256', 'address'], [$ownersState.passId, wallet.address])
+          solidityKeccak256(['uint256', 'address'], [passId, wallet.address])
         );
-        const proof = $ownersState.merkleTree.getProof(
-          calculateHash('' + $ownersState.passId, $ownersState.passKeyWallet.address)
-        );
+        const proof = $ownersState.merkleTree.getProof(calculateHash('' + passId, $ownersState.passKeyWallet.address));
 
         try {
           bookingInterval = await book({
             address: wallet.address,
             bleep: bleepId,
             pass: {
-              id: $ownersState.passId,
+              id: passId,
               signature: bookingSig,
               to: wallet.address,
             },
@@ -200,7 +199,7 @@
           tx = await contracts.BleepsInitialSale.mintWithSalePass(
             bleepId,
             wallet.address,
-            $ownersState.passId,
+            passId,
             joinSignature(signature),
             proof,
             {
@@ -208,7 +207,7 @@
               metadata: {
                 type: 'mint',
                 id: bleepId,
-                passId: $ownersState.passId,
+                passId: passId,
               },
             }
           );
@@ -227,9 +226,9 @@
         await bookingService.book({
           address: wallet.address,
           bleep: bleepId,
-          pass: $ownersState.passId
+          pass: passId
             ? {
-                id: $ownersState.passId,
+                id: passId,
                 signature: bookingSig,
                 to: '',
               }
