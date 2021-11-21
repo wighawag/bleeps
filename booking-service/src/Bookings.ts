@@ -193,8 +193,9 @@ export class Bookings extends DO {
       if (transactionFromPeers) {
         if (transactionFromPeers.confirmations) {
           const receipt = await this.provider.getTransactionReceipt(transaction.hash);
-          console.log({status: receipt.status});
+          this.info({status: receipt.status, hash: transaction.hash, confirmations: receipt.confirmations});
           if (receipt.status == 0) {
+            this.info(`adding to delete list : ${transaction.hash}`);
             transactionsToDelete.push(transaction.hash);
           } else {
             if (receipt.confirmations > 12) {
@@ -205,7 +206,7 @@ export class Bookings extends DO {
           }
         } else {
           if (timestamp > transaction.timestamp + 60) {
-            console.log(`pending for ${timestamp - transaction.timestamp} seconds`);
+            this.info(`pending for ${timestamp - transaction.timestamp} seconds`);
             // transactionsToDelete.push(transaction.hash);
           }
         }
@@ -216,16 +217,23 @@ export class Bookings extends DO {
       }
     }
 
-    let listRefetched = await this.state.storage.get<BookingList>('_bookings');
-    for (const hash of transactionsToDelete) {
-      listRefetched.list = listRefetched.list.filter((v) => !v.transaction || v.transaction.hash == hash);
-    }
-    // listRefetched.list = listRefetched.list.filter(
-    //   (v) => !v.transaction || !transactionsToDelete.find((d) => d === v.transaction.hash)
-    // );
+    if (transactionsToDelete.length > 0) {
+      let listRefetched = await this.state.storage.get<BookingList>('_bookings');
+      this.info(`list length ${listRefetched.list.length}`);
+      for (const hash of transactionsToDelete) {
+        this.info(`deleting : ${hash}...`);
+        listRefetched.list = listRefetched.list.filter((v) => !v.transaction || v.transaction.hash !== hash);
+      }
+      // listRefetched.list = listRefetched.list.filter(
+      //   (v) => !v.transaction || !transactionsToDelete.find((d) => d === v.transaction.hash)
+      // );
 
-    listRefetched.counter++;
-    await this.state.storage.put('_bookings', listRefetched);
+      this.info(`new list length ${listRefetched.list.length}`);
+
+      listRefetched.counter++;
+      await this.state.storage.put('_bookings', listRefetched);
+    }
+
     return createResponse({success: true});
   }
 }
