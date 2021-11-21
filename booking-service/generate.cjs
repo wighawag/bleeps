@@ -89,9 +89,9 @@ fs.writeFileSync(
 const template = Handlebars.compile(fs.readFileSync('./templates/wrangler.toml').toString());
 const environment = networkName === 'localhost' ? 'dev' : 'production';
 const result = template({
-  devMode: environment === 'dev' ? 'true' : 'false',
+  devMode: 'true', // TODOenvironment === 'dev' ? 'true' : 'false',
   networkName,
-  ETHEREUM_NODE: process.env.AGENT_SERVICE_ETHEREUM_NODE,
+  ETHEREUM_NODE: process.env.BOOKING_SERVICE_ETHEREUM_NODE,
   DATA_DOG_API_KEY: process.env.DATA_DOG_API_KEY,
   chainId,
   environment,

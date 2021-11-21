@@ -171,7 +171,7 @@ async function performAction(rawArgs) {
       return;
     }
     const env = getEnv(network);
-    await execute(`${env}npm --prefix agent-service run deploy ../contracts/deployments/${network}`);
+    await execute(`${env}npm --prefix booking-service run deploy ../contracts/deployments/${network}`);
   } else if (firstArg === 'web:dev') {
     const {fixedArgs, options} = parseArgs(args, 1, {skipContracts: 'boolean'});
     const network = fixedArgs[0] || 'localhost';
