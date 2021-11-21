@@ -20,6 +20,7 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^2.2.2",
     "@cloudflare/wrangler": "^1.19.3",
+    "bleeps-common": "workspace:*",
     "cross-env": "^7.0.3",
     "esbuild": "^0.13.2",
     "fs-extra": "^10.0.0",

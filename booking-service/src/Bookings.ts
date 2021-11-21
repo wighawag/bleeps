@@ -5,6 +5,10 @@ import {DO} from './DO';
 import {errorResponse, NotAuthorized} from './errors';
 import {createResponse} from './utils';
 const {verifyMessage} = utils;
+// import {MerkleTree, hashLeaves} from 'bleeps-common';
+
+const numPrivatePasses = contracts.BleepsInitialSale.linkedData.numPrivatePasses;
+const leaves = contracts.BleepsInitialSale.linkedData.leaves;
 
 let defaultFinality = 12;
 if (chainId === '1337') {
@@ -78,11 +82,18 @@ export class Bookings extends DO {
         return errorResponse({code: 4001, message: 'need pass'});
       }
       // TODO
-      // const signer = verifyMessage(`${bookingSubmission.bleep}`, bookingSubmission.pass.signature);
-      // TODO
-      // if (signer.toLowerCase() !== bookingSubmission.pass.id) {
-      //   return errorResponse({code: 4222, message: 'not authorzed pass'});
-      // }
+      if (bookingSubmission.pass.id < numPrivatePasses) {
+        const signer = verifyMessage(`${bookingSubmission.bleep}`, bookingSubmission.pass.signature);
+        const leaf = leaves.find((v) => v.passId === '' + bookingSubmission.pass.id);
+        if (!leaf) {
+          return errorResponse({code: 4222, message: 'invalid pass'});
+        }
+        if (leaf.signer.toLowerCase() !== signer.toLowerCase()) {
+          return errorResponse({code: 4222, message: 'not authorzed pass'});
+        }
+      } else {
+        // TODO mandalas ?
+      }
     }
 
     const ip = this.currentRequest.headers.get('CF-Connecting-IP');
@@ -188,6 +199,11 @@ export class Bookings extends DO {
             } else {
               // transactionsToUpdate.push({hash: transaction.hash, confirmations: receipt.confirmations});
             }
+          }
+        } else {
+          if (timestamp > transaction.timestamp + 60) {
+            console.log(`pending for ${timestamp - transaction.timestamp} seconds`);
+            // transactionsToDelete.push(transaction.hash);
           }
         }
       } else {

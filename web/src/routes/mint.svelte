@@ -100,6 +100,7 @@
 
       let bookingInterval: NodeJS.Timeout | undefined = undefined;
       let tx: TransactionResponse | undefined;
+      let bookingSig = '';
       if ($ownersState.timeLeftBeforePublic < 0) {
         try {
           bookingInterval = await book({
@@ -171,6 +172,7 @@
           step = 'IDLE';
         }
       } else {
+        bookingSig = await $ownersState.passKeyWallet.signMessage(`${bleepId}`);
         const signature = $ownersState.passKeySigner.signDigest(
           solidityKeccak256(['uint256', 'address'], [$ownersState.passId, wallet.address])
         );
@@ -184,7 +186,7 @@
             bleep: bleepId,
             pass: {
               id: $ownersState.passId,
-              signature: '', // TODO will require(mandala signature proof)
+              signature: bookingSig,
               to: wallet.address,
             },
           });
@@ -228,7 +230,7 @@
           pass: $ownersState.passId
             ? {
                 id: $ownersState.passId,
-                signature: '',
+                signature: bookingSig,
                 to: '',
               }
             : undefined,

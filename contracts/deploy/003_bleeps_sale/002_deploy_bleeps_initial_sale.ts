@@ -23,11 +23,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   let BleepsInitialSale = await deployments.getOrNull('BleepsInitialSale');
 
+  const privateKeysFilepath = `.privateKeys.json`;
+  const privateKeysTMPFilepath = privateKeysFilepath + '.tmp';
+
   if (!BleepsInitialSale) {
     let privateKeys: string[] = [];
     try {
-      const keysFromFileStr = fs.readFileSync('.privateKeys.tmp');
-      const keys = JSON.parse(keysFromFileStr.toString());
+      const keysFromFileStr = await deployments.readDotFile(privateKeysTMPFilepath);
+      const keys = JSON.parse(keysFromFileStr);
       if (keys && keys.length > 0) {
         privateKeys = keys;
       }
@@ -59,8 +62,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const tree = new MerkleTree(hashLeaves(leaves));
     const merkleRootHash = tree.getRoot().hash;
 
-    const privateKeysFilepath = `.privateKeys.json`;
-    const privateKeysTMPFilepath = privateKeysFilepath + '.tmp';
     const privateKeysJsonString = JSON.stringify(privateKeys);
 
     await deployments.saveDotFile(privateKeysTMPFilepath, privateKeysJsonString);
@@ -87,12 +88,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       linkedData:
         hre.network.name === 'hardhat'
           ? {
+              numPrivatePasses: privateKeys.length,
               privateKeys,
               leaves,
               publicSaleTimestamp,
               deploymentCost,
             }
-          : {leaves, publicSaleTimestamp, deploymentCost},
+          : {numPrivatePasses: privateKeys.length, leaves, publicSaleTimestamp, deploymentCost},
       skipIfAlreadyDeployed: true,
       log: true,
       autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
