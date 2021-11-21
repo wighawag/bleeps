@@ -57,5 +57,17 @@ if (!nodeUrl) {
 
 const graphNodeURL = import.meta.env.VITE_THE_GRAPH_HTTP as string;
 
+const BOOKING_SERVICE_URL = params['booking-service'] || (import.meta.env.VITE_BOOKING_SERVICE_URL as string); //  'http://invalid.io'; // to emulate connection loss :)
+
 const globalQueryParams = ['debug', 'log', 'subgraph', 'ethnode', '_d_eruda'];
-export {finality, nodeUrl, chainId, blockTime, chainName, graphNodeURL, globalQueryParams, localdev};
+export {
+  finality,
+  nodeUrl,
+  chainId,
+  blockTime,
+  chainName,
+  graphNodeURL,
+  globalQueryParams,
+  localdev,
+  BOOKING_SERVICE_URL,
+};

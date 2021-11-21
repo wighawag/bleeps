@@ -15,7 +15,6 @@ if (chainId === '1337') {
 
 type BookingSubmission = {
   address: string;
-  signature: string;
   transactionHash?: string;
   pass?: {
     id: number;
@@ -71,21 +70,15 @@ export class Bookings extends DO {
       return errorResponse({code: 4111, message: 'invalid bleep'});
     }
 
-    // TODO this is replayable by whoever can get that signature, TODO sign the whole request with nonce and ensure it cannot be reused
-    // for now we are fine
-    const signer = verifyMessage(`${bookingSubmission.address.toLowerCase()}`, bookingSubmission.signature);
-    if (signer.toLowerCase() !== bookingSubmission.address.toLowerCase()) {
-      return errorResponse({code: 4222, message: 'not authorzed'});
-    }
-
     const timestamp = getTimestamp();
-    const publicSale = timestamp > 0; // TODO
+    const publicSale = timestamp > contracts.BleepsInitialSale.linkedData.publicSaleTimestamp; // TODO
 
     if (!publicSale) {
       if (!bookingSubmission.pass) {
         return errorResponse({code: 4001, message: 'need pass'});
       }
-      const signer = verifyMessage(`${bookingSubmission.address.toLowerCase()}`, bookingSubmission.pass.signature);
+      // TODO
+      // const signer = verifyMessage(`${bookingSubmission.bleep}`, bookingSubmission.pass.signature);
       // TODO
       // if (signer.toLowerCase() !== bookingSubmission.pass.id) {
       //   return errorResponse({code: 4222, message: 'not authorzed pass'});
@@ -100,10 +93,10 @@ export class Bookings extends DO {
     }
     const currentBooking = list.list.find((v) => v.bleep == bookingSubmission.bleep);
     if (currentBooking) {
-      if (
-        currentBooking.address === bookingSubmission.address ||
-        (!currentBooking.transaction && timestamp - currentBooking.timestamp > 10)
-      ) {
+      if (!currentBooking.transaction) {
+        if (timestamp < currentBooking.timestamp + 10 && currentBooking.address !== bookingSubmission.address) {
+          return createResponse({success: false, message: 'bleep is already booked'});
+        }
         currentBooking.address = bookingSubmission.address;
         currentBooking.ip = ip;
         currentBooking.passId = bookingSubmission.pass?.id;
@@ -112,7 +105,7 @@ export class Bookings extends DO {
           ? {hash: bookingSubmission.transactionHash, confirmed: 0}
           : undefined;
       } else {
-        return createResponse({success: false});
+        return createResponse({success: false, message: 'bleep is already being purchased...'});
       }
     } else {
       let available = true;
@@ -127,10 +120,12 @@ export class Bookings extends DO {
           return createResponse({success: false, reason: 'too many bookings'});
         }
       } else {
-        const currentBookingWithPassId = list.list.find((v) => v.passId && v.passId == bookingSubmission.pass?.id);
+        const currentBookingWithPassId = list.list.find(
+          (v) => (v.transaction || timestamp - v.timestamp < 10) && v.passId && v.passId == bookingSubmission.pass?.id
+        );
         if (currentBookingWithPassId) {
           available = false;
-          return createResponse({success: false, reason: 'already booked'});
+          return createResponse({success: false, message: 'your other booking is pending, wait 10s'});
         } else {
           available = true;
         }
@@ -138,10 +133,10 @@ export class Bookings extends DO {
 
       if (available) {
         list.list.push({
+          address: bookingSubmission.address,
           bleep: bookingSubmission.bleep,
           timestamp,
           passId: bookingSubmission.pass?.id,
-          address: bookingSubmission.address,
           transaction: bookingSubmission.transactionHash
             ? {hash: bookingSubmission.transactionHash, confirmed: 0}
             : undefined,
@@ -163,25 +158,55 @@ export class Bookings extends DO {
   }
 
   async checkTransactions(path: string[]): Promise<Response> {
+    const timestamp = getTimestamp();
+
     let list = await this.state.storage.get<BookingList>('_bookings');
     if (!list) {
       list = {list: [], counter: 0};
     }
+    const transactions: {hash: string; timestamp: number}[] = [];
     for (const booking of list.list) {
-      // TODO check transaction, remove if
       if (booking.transaction) {
-        const transaction = await this.provider.getTransaction(booking.transaction.hash);
-        if (transaction) {
-          booking.transaction.confirmed = transaction.confirmations;
+        transactions.push({hash: booking.transaction.hash, timestamp: booking.timestamp});
+      }
+    }
+
+    const transactionsToDelete: string[] = [];
+    // const transactionsToUpdate: {hash: string; confirmations: number}[] = [];
+
+    for (const transaction of transactions) {
+      const transactionFromPeers = await this.provider.getTransaction(transaction.hash);
+      if (transactionFromPeers) {
+        if (transactionFromPeers.confirmations) {
+          const receipt = await this.provider.getTransactionReceipt(transaction.hash);
+          console.log({status: receipt.status});
+          if (receipt.status == 0) {
+            transactionsToDelete.push(transaction.hash);
+          } else {
+            if (receipt.confirmations > 12) {
+              transactionsToDelete.push(transaction.hash);
+            } else {
+              // transactionsToUpdate.push({hash: transaction.hash, confirmations: receipt.confirmations});
+            }
+          }
+        }
+      } else {
+        if (timestamp > transaction.timestamp + 60) {
+          transactionsToDelete.push(transaction.hash);
         }
       }
     }
+
     let listRefetched = await this.state.storage.get<BookingList>('_bookings');
-    if (listRefetched && listRefetched.counter !== list.counter) {
-      return createResponse({success: false});
+    for (const hash of transactionsToDelete) {
+      listRefetched.list = listRefetched.list.filter((v) => !v.transaction || v.transaction.hash == hash);
     }
-    list.counter++;
-    this.state.storage.put('_bookings', list);
+    // listRefetched.list = listRefetched.list.filter(
+    //   (v) => !v.transaction || !transactionsToDelete.find((d) => d === v.transaction.hash)
+    // );
+
+    listRefetched.counter++;
+    await this.state.storage.put('_bookings', listRefetched);
     return createResponse({success: true});
   }
 }

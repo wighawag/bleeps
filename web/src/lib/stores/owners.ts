@@ -8,6 +8,8 @@ import {contracts} from '$lib/contracts.json';
 import {hashParams} from '$lib/config';
 import {MerkleTree, hashLeaves} from 'bleeps-common';
 import type {WalletData} from 'web3w';
+import type {BookingServiceState} from '$lib/services/bookingService';
+import {bookingService} from '$lib/services/bookingService';
 
 BigNumber.from(0);
 
@@ -87,7 +89,7 @@ if (passId === -1) {
 export type OwnersState = {
   state: 'Idle' | 'Loading' | 'Ready';
   error?: unknown;
-  tokenOwners?: {[id: string]: {address: string; pending: boolean}};
+  tokenOwners?: {[id: string]: {address: string; pending: boolean; booked: boolean}};
   numLeft?: number;
   numLeftPerInstr?: {[instr: number]: number};
   priceInfo?: {
@@ -119,8 +121,10 @@ class OwnersStateStore extends BaseStore<OwnersState> {
   private counter = 0;
   private stopWalletSubscription: undefined | (() => void);
   private stopTransactionSubscription: undefined | (() => void);
+  private stopBookingSubscription: undefined | (() => void);
 
   private transactions: TransactionRecord[] = [];
+  private bookingState: {[bleep: number]: boolean} = {};
   private lastResult: QueryResult | undefined | null;
 
   constructor() {
@@ -187,6 +191,18 @@ class OwnersStateStore extends BaseStore<OwnersState> {
     }
   }
 
+  private onBookings($bookings: BookingServiceState) {
+    if ($bookings.list) {
+      this.bookingState = {};
+      for (const booking of $bookings.list) {
+        if (booking.transaction?.hash || now() < booking.timestamp + 10) {
+          this.bookingState[booking.bleep] = true;
+        }
+      }
+      this.processQuery(this.lastResult);
+    }
+  }
+
   private onWallet($wallet: WalletData) {
     if (wallet.address && !this.$store.passKeySigner) {
       let passId = contracts.BleepsInitialSale.linkedData.leaves.findIndex(
@@ -246,7 +262,7 @@ class OwnersStateStore extends BaseStore<OwnersState> {
         }
       }
 
-      const tokenOwners: {[id: string]: {address: string; pending: boolean}} = {};
+      const tokenOwners: {[id: string]: {address: string; pending: boolean; booked: boolean}} = {};
       const numLeftPerInstr = {
         0: 64,
         1: 64,
@@ -267,7 +283,7 @@ class OwnersStateStore extends BaseStore<OwnersState> {
       };
       let numLeft = 0;
       for (let i = 0; i < processedResult.addresses.length; i++) {
-        tokenOwners[i] = {address: processedResult.addresses[i], pending: pendings[i]};
+        tokenOwners[i] = {address: processedResult.addresses[i], pending: pendings[i], booked: this.bookingState[i]};
         // if ((i >= 6 * 64 && i < 7 * 64) || (i >= 8 * 64 && i < 9 * 64)) {
         //   tokenOwners[i] = '0x1111111111111111111111111111111111111111';
         // }
@@ -350,6 +366,7 @@ class OwnersStateStore extends BaseStore<OwnersState> {
     this.timerPerSeconds = setInterval(() => this._everySeconds(), 1000); // TODO polling interval config
     this.stopWalletSubscription = wallet.subscribe(this.onWallet.bind(this));
     this.stopTransactionSubscription = transactions.subscribe(this.onTransactions.bind(this));
+    this.stopBookingSubscription = bookingService.subscribe(this.onBookings.bind(this));
     return this;
   }
 
@@ -367,6 +384,10 @@ class OwnersStateStore extends BaseStore<OwnersState> {
     if (this.stopTransactionSubscription) {
       this.stopTransactionSubscription();
       this.stopTransactionSubscription = undefined;
+    }
+    if (this.stopBookingSubscription) {
+      this.stopBookingSubscription();
+      this.stopBookingSubscription = undefined;
     }
   }
 

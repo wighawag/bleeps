@@ -14,6 +14,8 @@
   import {joinSignature} from '@ethersproject/bytes';
   import {keccak256 as solidityKeccak256} from '@ethersproject/solidity';
   import {now} from '$lib/stores/time';
+  import {bookingService} from '$lib/services/bookingService';
+  import type {TransactionRequest, TransactionResponse} from '@ethersproject/abstract-provider';
 
   // import {hashParams} from '$lib/config';
   // import {onMount} from 'svelte';
@@ -29,6 +31,31 @@
   // onMount(() => {
   //   passKey = hashParams['passKey'];
   // });
+
+  async function book(booking: {
+    address: string;
+    bleep: number;
+    pass?: {id: number; to: string; signature: string};
+  }): Promise<NodeJS.Timeout> {
+    try {
+      await bookingService.book({
+        address: booking.address,
+        bleep: booking.bleep,
+        pass: booking.pass,
+      });
+    } catch (e) {
+      error = formatError(e);
+      step = 'IDLE';
+      throw e;
+    }
+    return setInterval(() => {
+      bookingService.book({
+        address: booking.address,
+        bleep: booking.bleep,
+        pass: booking.pass,
+      });
+    }, 2000);
+  }
 
   function fetchURI(id: number): Promise<{image: string; animation_url: string}> {
     const contracts = wallet.contracts || fallback.contracts;
@@ -55,10 +82,13 @@
   }
 
   function formatError(error): string {
+    if (error.message) {
+      return error.message;
+    }
     try {
       return JSON.stringify(error, null, '  ');
     } catch (e) {
-      return e.message || e;
+      return error.message || error;
     }
   }
 
@@ -68,9 +98,22 @@
       await ownersState.waitFirstPriceInfo;
       step = 'TX_CREATION';
 
+      let bookingInterval: NodeJS.Timeout | undefined = undefined;
+      let tx: TransactionResponse | undefined;
       if ($ownersState.timeLeftBeforePublic < 0) {
         try {
-          const tx = await contracts.BleepsInitialSale.mint(bleepId, wallet.address, {
+          bookingInterval = await book({
+            address: wallet.address,
+            bleep: bleepId,
+          });
+        } catch (e) {
+          error = formatError(e);
+          step = 'IDLE';
+          return;
+        }
+
+        try {
+          tx = await contracts.BleepsInitialSale.mint(bleepId, wallet.address, {
             value: $ownersState.expectedValue,
             metadata: {
               type: 'mint',
@@ -90,22 +133,34 @@
         if ($ownersState.passId === undefined) {
           throw new Error(`no pass wallet or pass key`);
         }
+
         const proof = $ownersState.merkleTree.getProof(calculateHash('' + $ownersState.passId, wallet.address));
+
         try {
-          const tx = await contracts.BleepsInitialSale.mintWithPassId(
-            bleepId,
-            wallet.address,
-            $ownersState.passId,
-            proof,
-            {
-              value: $ownersState.expectedValue,
-              metadata: {
-                type: 'mint',
-                id: bleepId,
-                passId: $ownersState.passId,
-              },
-            }
-          );
+          bookingInterval = await book({
+            address: wallet.address,
+            bleep: bleepId,
+            pass: {
+              id: $ownersState.passId,
+              signature: '', // TODO will require(mandala signature proof)
+              to: wallet.address,
+            },
+          });
+        } catch (e) {
+          error = formatError(e);
+          step = 'IDLE';
+          return;
+        }
+
+        try {
+          tx = await contracts.BleepsInitialSale.mintWithPassId(bleepId, wallet.address, $ownersState.passId, proof, {
+            value: $ownersState.expectedValue,
+            metadata: {
+              type: 'mint',
+              id: bleepId,
+              passId: $ownersState.passId,
+            },
+          });
           // step = 'TX_SBUMITTED';
           // await tx.wait();
           step = 'IDLE';
@@ -122,8 +177,25 @@
         const proof = $ownersState.merkleTree.getProof(
           calculateHash('' + $ownersState.passId, $ownersState.passKeyWallet.address)
         );
+
         try {
-          const tx = await contracts.BleepsInitialSale.mintWithSalePass(
+          bookingInterval = await book({
+            address: wallet.address,
+            bleep: bleepId,
+            pass: {
+              id: $ownersState.passId,
+              signature: '', // TODO will require(mandala signature proof)
+              to: wallet.address,
+            },
+          });
+        } catch (e) {
+          error = formatError(e);
+          step = 'IDLE';
+          return;
+        }
+
+        try {
+          tx = await contracts.BleepsInitialSale.mintWithSalePass(
             bleepId,
             wallet.address,
             $ownersState.passId,
@@ -148,6 +220,21 @@
           step = 'IDLE';
         }
       }
+      clearInterval(bookingInterval);
+      if (tx) {
+        await bookingService.book({
+          address: wallet.address,
+          bleep: bleepId,
+          pass: $ownersState.passId
+            ? {
+                id: $ownersState.passId,
+                signature: '',
+                to: '',
+              }
+            : undefined,
+          transactionHash: tx.hash,
+        });
+      }
     });
   }
 
@@ -160,7 +247,8 @@
       !state.invalidPassId &&
       !state.priceInfo?.passUsed &&
       state.tokenOwners &&
-      state.tokenOwners[id].address === '0x0000000000000000000000000000000000000000'
+      state.tokenOwners[id].address === '0x0000000000000000000000000000000000000000' &&
+      !state.tokenOwners[id].booked
     );
   }
 
@@ -533,7 +621,8 @@
             !$ownersState.invalidPassId &&
             !$ownersState.priceInfo?.passUsed &&
             $ownersState.tokenOwners &&
-            $ownersState.tokenOwners[selected].address === '0x0000000000000000000000000000000000000000'
+            $ownersState.tokenOwners[selected].address === '0x0000000000000000000000000000000000000000' &&
+            !$ownersState.tokenOwners[selected].booked
           ) {
             mint(selected);
             selected = undefined;

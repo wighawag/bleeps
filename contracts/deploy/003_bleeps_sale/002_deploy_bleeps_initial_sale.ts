@@ -64,6 +64,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const privateKeysJsonString = JSON.stringify(privateKeys);
 
     await deployments.saveDotFile(privateKeysTMPFilepath, privateKeysJsonString);
+
+    const publicSaleTimestamp = Math.floor(Date.now() / 1000) + 3 * days;
+    const deploymentCost = parseEther('3.5').toString(); // TODO revisit (cost dto deploy the set of contracts)
     BleepsInitialSale = await deploy('BleepsInitialSale', {
       contract: 'BleepsFixedPriceSale',
       from: deployer,
@@ -71,12 +74,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         Bleeps.address,
         parseEther('0.1'), // normal price
         parseEther('0.1'), // whitelistPrice
-        Math.floor(Date.now() / 1000) + 3 * days,
+        publicSaleTimestamp,
         merkleRootHash,
         saleRecipient,
         2000, // 20% (2000 / 10000)
         BleepsDAOAccount.address,
-        parseEther('3.5'), // TODO revisit (cost dto deploy the set of contracts)
+        deploymentCost,
         MandalaToken.address,
         0, // 0% 20, // 20% discount
         2, // 3 first instrument are open
@@ -86,8 +89,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
           ? {
               privateKeys,
               leaves,
+              publicSaleTimestamp,
+              deploymentCost,
             }
-          : {leaves},
+          : {leaves, publicSaleTimestamp, deploymentCost},
       skipIfAlreadyDeployed: true,
       log: true,
       autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
