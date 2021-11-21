@@ -216,6 +216,14 @@ class OwnersStateStore extends BaseStore<OwnersState> {
     }
   }
 
+  reCheckPassIdAfterUse() {
+    passId = undefined;
+    signer = undefined;
+    signerWallet = undefined;
+    this.setPartial({passId: undefined, passKeySigner: undefined, passKeyWallet: undefined});
+    this._fetch();
+  }
+
   private onTransactions($transactions: TransactionRecord[]) {
     this.transactions = $transactions;
     if (this.lastResult) {

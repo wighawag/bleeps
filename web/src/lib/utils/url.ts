@@ -1,6 +1,6 @@
 import {base} from '$app/paths';
-import {getParamsFromURL, queryStringifyNoArray} from './web';
-import {params, globalQueryParams} from '$lib/config';
+import {getParamsFromURL, hashStringFromHashParams, queryStringifyNoArray} from './web';
+import {params, globalQueryParams, hashParams} from '$lib/config';
 
 export function url(path: string): string {
   const paramFromPath = getParamsFromURL(path);
@@ -9,7 +9,15 @@ export function url(path: string): string {
       paramFromPath[queryParam] = params[queryParam];
     }
   }
-  return `${base}/${path}${queryStringifyNoArray(paramFromPath)}`;
+  const hashParamsToKeep = {};
+  for (const key of Object.keys(hashParams)) {
+    if (key === 'passKey') {
+      // TODO global keys array, like globalQueryParams
+      hashParamsToKeep[key] = hashParams[key];
+    }
+  }
+
+  return `${base}/${path}${queryStringifyNoArray(paramFromPath)}${hashStringFromHashParams(hashParamsToKeep)}`;
 }
 
 export function urlOfPath(url: string, path: string): boolean {

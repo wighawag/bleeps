@@ -16,6 +16,7 @@
   import {now} from '$lib/stores/time';
   import {bookingService} from '$lib/services/bookingService';
   import type {TransactionRequest, TransactionResponse} from '@ethersproject/abstract-provider';
+  import {rebuildLocationHash} from '$lib/utils/web';
 
   // import {hashParams} from '$lib/config';
   // import {onMount} from 'svelte';
@@ -130,6 +131,8 @@
             error = formatError(e);
           }
           step = 'IDLE';
+          clearInterval(bookingInterval);
+          return;
         }
       } else if (!$ownersState.passKeySigner) {
         if (passId === undefined) {
@@ -171,6 +174,8 @@
             error = formatError(e);
           }
           step = 'IDLE';
+          clearInterval(bookingInterval);
+          return;
         }
       } else {
         bookingSig = await $ownersState.passKeyWallet.signMessage(`${bleepId}`);
@@ -219,6 +224,8 @@
             error = formatError(e);
           }
           step = 'IDLE';
+          clearInterval(bookingInterval);
+          return;
         }
       }
       clearInterval(bookingInterval);
@@ -226,15 +233,20 @@
         await bookingService.book({
           address: wallet.address,
           bleep: bleepId,
-          pass: passId
-            ? {
-                id: passId,
-                signature: bookingSig,
-                to: '',
-              }
-            : undefined,
+          pass:
+            passId !== undefined
+              ? {
+                  id: passId,
+                  signature: bookingSig,
+                  to: '',
+                }
+              : undefined,
           transactionHash: tx.hash,
         });
+      }
+      if (passId !== undefined) {
+        rebuildLocationHash({});
+        ownersState.reCheckPassIdAfterUse();
       }
     });
   }

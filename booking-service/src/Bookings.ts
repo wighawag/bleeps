@@ -132,7 +132,10 @@ export class Bookings extends DO {
         }
       } else {
         const currentBookingWithPassId = list.list.find(
-          (v) => (v.transaction || timestamp - v.timestamp < 10) && v.passId && v.passId == bookingSubmission.pass?.id
+          (v) =>
+            (v.transaction || timestamp - v.timestamp < 10) &&
+            v.passId !== undefined &&
+            v.passId == bookingSubmission.pass?.id
         );
         if (currentBookingWithPassId) {
           available = false;
