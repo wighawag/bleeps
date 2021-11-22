@@ -280,6 +280,7 @@
   function mintButton(state: OwnersState, id: number): string {
     if (
       state.priceInfo?.uptoInstr?.gte(id >> 6) &&
+      (state.timeLeftBeforePublic <= 0 || state.passId !== undefined) &&
       !state.invalidPassId &&
       !state.priceInfo?.passUsed &&
       state.tokenOwners &&
@@ -292,9 +293,11 @@
         ' ETH'
       );
     } else {
-      if (state.tokenOwners[id].address !== '0x0000000000000000000000000000000000000000') {
+      if (state.timeLeftBeforePublic > 0 && state.passId === undefined) {
+        return 'need pass';
+      } else if (state.tokenOwners && state.tokenOwners[id].address !== '0x0000000000000000000000000000000000000000') {
         return 'already minted';
-      } else if (state.tokenOwners[id].booked) {
+      } else if (state.tokenOwners && state.tokenOwners[id].booked) {
         return 'booked';
       } else if (state.invalidPassId) {
         return 'invalid pass';
