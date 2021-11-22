@@ -1,7 +1,6 @@
 import type {Env} from './types';
 import {errorResponse} from './errors';
 import {DataDogLogger, setupLogger} from './datadog';
-import * as pkg from '../package.json';
 
 // needed because of : https://github.com/cloudflare/durable-objects-typescript-rollup-esm/issues/3
 type State = DurableObjectState & {blockConcurrencyWhile: (func: () => Promise<void>) => void};
@@ -16,7 +15,10 @@ export abstract class DO {
     this.state = state;
     this.env = env;
 
-    this.logger = setupLogger(env.DATA_DOG_API_KEY, pkg.name + env.NETWORK_NAME ? '-' + env.NETWORK_NAME : '');
+    this.logger = setupLogger(
+      env.DATA_DOG_API_KEY,
+      'booking-service' + (env.NETWORK_NAME ? '-' + env.NETWORK_NAME : '')
+    );
   }
 
   info(message) {
