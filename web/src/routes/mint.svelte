@@ -290,6 +290,10 @@
     />
 
     {#if $chain.state === 'Ready' || $fallback.state === 'Ready'}
+      {#if $ownersState?.daoTreasury}
+        <p>DAO Treasury: {$ownersState?.daoTreasury.div('1000000000000000').toNumber() / 1000} ETH</p>
+      {/if}
+
       {#if $ownersState?.expectedValue}
         {#if $ownersState?.priceInfo.hasMandalas && $ownersState?.priceInfo.mandalasDiscountPercentage.gt(0)}
           <p class="text-green-600 mb-2">

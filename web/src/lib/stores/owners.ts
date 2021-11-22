@@ -102,6 +102,7 @@ export type OwnersState = {
     passUsed: boolean;
     uptoInstr: BigNumber;
   };
+  daoTreasury?: BigNumber;
   merkleTree: MerkleTree;
   passKeySigner?: SigningKey;
   passKeyWallet?: Wallet;
@@ -178,6 +179,12 @@ class OwnersStateStore extends BaseStore<OwnersState> {
 
     this.lastResult = await this.query();
     this.processQuery(this.lastResult);
+
+    if (wallet.provider) {
+      const daoBalance = await wallet.provider.getBalance(contracts.BleepsDAOAccount.address);
+      // console.log({daoBalance: daoBalance.toString(), address: contracts.BleepsDAOAccount.address});
+      this.setPartial({daoTreasury: daoBalance});
+    }
   }
 
   private _everySeconds() {
@@ -366,6 +373,9 @@ class OwnersStateStore extends BaseStore<OwnersState> {
   }
 
   start(): OwnersStateStore | void {
+    if (typeof window === 'undefined') {
+      return;
+    }
     if (this.$store.state !== 'Ready') {
       this.setPartial({state: 'Loading'});
     }

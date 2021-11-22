@@ -64,23 +64,33 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     const privateKeysJsonString = JSON.stringify(privateKeys);
 
+    console.log({first: privateKeys[0]});
+
     await deployments.saveDotFile(privateKeysTMPFilepath, privateKeysJsonString);
 
     const publicSaleTimestamp = Math.floor(Date.now() / 1000) + 3 * days;
-    const deploymentCost = parseEther('3.5').toString(); // TODO revisit (cost dto deploy the set of contracts)
+    const deploymentCost = parseEther('2'); // TODO revisit (cost dto deploy the set of contracts)
+    const deploymentCostStr = deploymentCost.toString();
+    const price = parseEther('0.1');
+    const totalSales = price.mul(448);
+    const percentageForCreator = deploymentCost.mul(10000).div(totalSales).add(2000);
+    console.log({
+      percentageForCreator: percentageForCreator.toNumber(),
+      totalSales: totalSales.div('1000000000000000').toNumber() / 1000,
+    });
     BleepsInitialSale = await deploy('BleepsInitialSale', {
       contract: 'BleepsFixedPriceSale',
       from: deployer,
       args: [
         Bleeps.address,
-        parseEther('0.1'), // normal price
-        parseEther('0.1'), // whitelistPrice
+        price, // normal price
+        price, // whitelistPrice
         publicSaleTimestamp,
         merkleRootHash,
         saleRecipient,
-        2000, // 20% (2000 / 10000)
+        percentageForCreator.toNumber(), // 20% (2000 / 10000)
         BleepsDAOAccount.address,
-        deploymentCost,
+        0, //deploymentCost,
         MandalaToken.address,
         0, // 0% 20, // 20% discount
         2, // 3 first instrument are open
@@ -92,9 +102,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
               privateKeys,
               leaves,
               publicSaleTimestamp,
-              deploymentCost,
+              deploymentCost: 0, //deploymentCostStr,
             }
-          : {numPrivatePasses: privateKeys.length, leaves, publicSaleTimestamp, deploymentCost},
+          : {
+              numPrivatePasses: privateKeys.length,
+              leaves,
+              publicSaleTimestamp,
+              deploymentCost: 0, //deploymentCostStr
+            },
       skipIfAlreadyDeployed: true,
       log: true,
       autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
