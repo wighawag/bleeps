@@ -41,10 +41,13 @@
       How to get a <span class="text-bleeps">Bleep</span> ?
     </h2>
     <p class="m-6 text-gray-500 dark:text-gray-200 text-xl">
-      Bleeps are initially mintable through a Dutch auction system. There is a hard-coded max supply of 1024 sounds but
-      only 576 sounds are currently available made of 9 instrument each composed of 64 notes (frequencies). 128 of them
-      are currently reserved and might be distributed differently. The rest of the Bleeps (448) do not yet exist but can
-      potentially be created later at the discretion of the DAO.
+      Bleeps are initially mintable through a prelimary sale at 0.1 ETH each Bleep. 75% of the proceeds go to the Bleeps
+      DAO. There is a hard-coded max supply of 1024 sounds but only 576 sounds are currently available made of 9
+      instrument each composed of 64 notes (frequencies). 128 of them are currently reserved by the Bleeps' creator (<a
+        href="https://github.com/wighawag"
+        class="underline">wighawag</a
+      >) and might be distributed differently. The rest of the Bleeps (448) do not yet exist but can potentially be
+      created later at the discretion of the DAO.
     </p>
 
     <h2 class="text-3xl mt-16 font-heading text-black dark:text-white">
