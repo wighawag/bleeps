@@ -9,10 +9,11 @@
   import {base} from '$app/paths';
   import BleepsSvg from '$lib/components/BleepsSVG.svelte';
   import {instrumentName, instrumentNameFromId, noteName} from '$lib/utils/notes';
-  import {symbolSVG} from '$lib/utils/symbols';
+  import {contracts} from '$lib/contracts.json';
   import {calculateHash} from 'bleeps-common';
   import {joinSignature} from '@ethersproject/bytes';
   import {keccak256 as solidityKeccak256} from '@ethersproject/solidity';
+  import {BigNumber} from '@ethersproject/bignumber';
   import {now} from '$lib/stores/time';
   import {bookingService} from '$lib/services/bookingService';
   import type {TransactionRequest, TransactionResponse} from '@ethersproject/abstract-provider';
@@ -269,11 +270,40 @@
     return (
       !(instr === 7 || instr === 8) &&
       state.priceInfo?.uptoInstr?.gte(instr) &&
-      (state.timeLeftBeforePublic <= 0 || state.passId !== undefined) &&
-      !state.invalidPassId &&
-      !state.priceInfo?.passUsed &&
+      // (state.timeLeftBeforePublic <= 0 || state.passId !== undefined) &&
+      // !state.invalidPassId &&
+      // !state.priceInfo?.passUsed &&
       state.numLeftPerInstr[instr] > 0
     );
+  }
+
+  function mintButton(state: OwnersState, id: number): string {
+    if (
+      state.priceInfo?.uptoInstr?.gte(id >> 6) &&
+      !state.invalidPassId &&
+      !state.priceInfo?.passUsed &&
+      state.tokenOwners &&
+      state.tokenOwners[id].address === '0x0000000000000000000000000000000000000000' &&
+      !state.tokenOwners[id].booked
+    ) {
+      return (
+        'mint for ' +
+        BigNumber.from(contracts.BleepsInitialSale.linkedData.price).div('1000000000000000').toNumber() / 1000 +
+        ' ETH'
+      );
+    } else {
+      if (state.tokenOwners[id].address !== '0x0000000000000000000000000000000000000000') {
+        return 'already minted';
+      } else if (state.tokenOwners[id].booked) {
+        return 'booked';
+      } else if (state.invalidPassId) {
+        return 'invalid pass';
+      } else if (state.priceInfo?.passUsed) {
+        return 'pass used';
+      } else {
+        return 'not available';
+      }
+    }
   }
 </script>
 
@@ -349,73 +379,6 @@
 
       <div class="">
         <div class="inline-block border-white md:w-64 w-32 md:h-24 h-16 border-2 mx-auto rounded-md">
-          <svg
-            on:click={() => document.getElementById('instr_0').scrollIntoView()}
-            class="invisible md:visible z-30 absolute my-5 -mx-2 w-24 h-24"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 512 512"
-          >
-            <g transform="translate(210,0) scale(0.2,0.2)" style={`fill:#fff`}>{@html symbolSVG(0 << 6)}</g>
-          </svg><svg
-            on:click={() => document.getElementById('instr_1').scrollIntoView()}
-            class="invisible md:visible  z-30 absolute my-5 mx-10 w-24 h-24"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 512 512"
-          >
-            <g transform="translate(210,0) scale(0.2,0.2)" style={`fill:#fff`}>{@html symbolSVG(1 << 6)}</g>
-          </svg><svg
-            on:click={() => document.getElementById('instr_2').scrollIntoView()}
-            class="invisible md:visible  z-30 absolute my-5 mx-20 w-24 h-24"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 512 512"
-          >
-            <g transform="translate(210,0) scale(0.2,0.2)" style={`fill:#fff`}>{@html symbolSVG(2 << 6)}</g>
-          </svg><svg
-            on:click={() => document.getElementById('instr_3').scrollIntoView()}
-            class="invisible md:visible  z-30 absolute my-5 mx-32 w-24 h-24"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 512 512"
-          >
-            <g transform="translate(210,0) scale(0.2,0.2)" style={`fill:#fff`}>{@html symbolSVG(3 << 6)}</g>
-          </svg><svg
-            on:click={() => document.getElementById('instr_4').scrollIntoView()}
-            class="invisible md:visible  z-30 absolute my-5 mx-40 w-24 h-24"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 512 512"
-          >
-            <g transform="translate(210,0) scale(0.2,0.2)" style={`fill:#fff`}>{@html symbolSVG(4 << 6)}</g>
-          </svg><svg
-            on:click={() => document.getElementById('instr_5').scrollIntoView()}
-            class="invisible md:visible  z-30 absolute my-14 mx-3 w-24 h-24"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 512 512"
-          >
-            <g transform="translate(210,0) scale(0.2,0.2)" style={`fill:#fff`}>{@html symbolSVG(5 << 6)}</g>
-          </svg>
-          <svg
-            on:click={() => document.getElementById('instr_6').scrollIntoView()}
-            class="invisible md:visible  z-30 absolute my-14 mx-14 w-24 h-24"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 512 512"
-          >
-            <g transform="translate(210,0) scale(0.2,0.2)" style={`fill:#fff`}>{@html symbolSVG(6 << 6)}</g>
-          </svg>
-          <!-- <svg
-            on:click={() => document.getElementById('instr_7').scrollIntoView()}
-            class="invisible md:visible  z-30 absolute my-14 mx-28 w-24 h-24"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 512 512"
-          >
-            <g transform="translate(210,0) scale(0.2,0.2)" style={`fill:#fff`}>{@html symbolSVG(7 << 6)}</g>
-          </svg> -->
-          <!-- <svg
-            on:click={() => document.getElementById('instr_8').scrollIntoView()}
-            class="invisible md:visible  z-30 absolute my-14 mx-36 w-24 h-24"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 512 512"
-          >
-            <g transform="translate(210,0) scale(0.2,0.2)" style={`fill:#fff`}>{@html symbolSVG(8 << 6)}</g>
-          </svg> -->
           {#if $ownersState?.numLeftPerInstr !== undefined}
             <div
               style={`width:${
@@ -491,7 +454,7 @@
               id={`instr_${instr}`}
               class={`${isInstrumentMintable($ownersState, instr) ? 'text-white' : 'text-gray-500'}`}
             >
-              <h2 class="mx-auto">{instrumentName(instr)}</h2>
+              <!-- <h2 class="mx-auto">{instrumentName(instr)}</h2> -->
 
               <div
                 class={`${
@@ -502,15 +465,9 @@
                   {#if $ownersState?.priceInfo?.uptoInstr.lt(instr)}
                     <p class="my-5">sale later</p>
                   {:else}
-                    <svg
-                      class="z-30 absolute my-5 mx-3 w-24 h-24"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 512 512"
-                    >
-                      <g transform="translate(210,0) scale(0.2,0.2)" style={`fill:#fff`}
-                        >{@html symbolSVG(instr << 6)}</g
-                      >
-                    </svg>
+                    <p class="z-30 absolute my-5 mx-3 w-24 h-24">
+                      {instrumentName(instr)}
+                    </p>
                   {/if}
                 {:else}
                   <p class="my-5">reserved</p>
@@ -608,14 +565,15 @@
 
 {#if typeof selected !== 'undefined'}
   <Modal on:close={() => (selected = undefined)}>
-    <div class="text-white">
+    <div class="text-white w-80 h-80 md:w-96 md:h-96">
       {#if sound}
         {#await sound}
           <h2 class="text-2xl">Loading {instrumentNameFromId(selected)} {noteName(selected)}....</h2>
+          <div class="h-64 w-64" />
           <!-- Loading Sound, please wait... -->
         {:then metadata}
           <!-- <h1 class="text-green-400 text-2xl">{metadata.name}</h1> -->
-          <img src={metadata.image} alt={metadata.name} />
+          <img src={metadata.image} alt={metadata.name} class="w-56 h-56 mx-auto" />
           <audio
             src={metadata.animation_url}
             preload="auto"
@@ -628,24 +586,49 @@
           <p style="color: red">{formatError(error)}</p>
         {/await}
       {/if}
-      <GreenNavButton
-        label="mint"
-        active={isMintable($ownersState, selected)}
-        disabled={!isMintable($ownersState, selected)}
-        on:click={() => {
-          if (
-            $ownersState.priceInfo?.uptoInstr?.gte(selected >> 6) &&
-            !$ownersState.invalidPassId &&
-            !$ownersState.priceInfo?.passUsed &&
-            $ownersState.tokenOwners &&
-            $ownersState.tokenOwners[selected].address === '0x0000000000000000000000000000000000000000' &&
-            !$ownersState.tokenOwners[selected].booked
-          ) {
-            mint(selected);
-            selected = undefined;
-          }
-        }}>mint</GreenNavButton
-      >
+      {#if isInstrumentMintable($ownersState, selected >> 6)}
+        <div>
+          <p>
+            <a href="" class="text-bleeps underline">Bleeps DAO</a> will receive {BigNumber.from(
+              contracts.BleepsInitialSale.linkedData.price
+            )
+              .mul(10000 - contracts.BleepsInitialSale.linkedData.percentageForCreator)
+              .div(10000)
+              .div('1000000000000000')
+              .toNumber() / 1000} ETH
+          </p>
+          <p class="mb-2">
+            <a href="https://twitter.com/wighawag" target="_blank" class="text-bleeps underline">wighawag</a> will
+            receive
+            {BigNumber.from(contracts.BleepsInitialSale.linkedData.price)
+              .mul(contracts.BleepsInitialSale.linkedData.percentageForCreator)
+              .div(10000)
+              .div('1000000000000000')
+              .toNumber() / 1000} ETH
+          </p>
+        </div>
+        <!-- active={isMintable($ownersState, selected)} -->
+        <button
+          label="mint"
+          class={`block ${
+            isMintable($ownersState, selected) ? 'bg-bleeps hover:bg-yellow-600' : 'bg-gray-600 cursor-default'
+          }  text-white font-bold py-2 px-4 rounded w-64 mx-auto`}
+          disabled={!isMintable($ownersState, selected)}
+          on:click={() => {
+            if (
+              $ownersState.priceInfo?.uptoInstr?.gte(selected >> 6) &&
+              !$ownersState.invalidPassId &&
+              !$ownersState.priceInfo?.passUsed &&
+              $ownersState.tokenOwners &&
+              $ownersState.tokenOwners[selected].address === '0x0000000000000000000000000000000000000000' &&
+              !$ownersState.tokenOwners[selected].booked
+            ) {
+              mint(selected);
+              selected = undefined;
+            }
+          }}>{mintButton($ownersState, selected)}</button
+        >
+      {/if}
     </div>
   </Modal>
 {/if}

@@ -102,13 +102,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
               privateKeys,
               leaves,
               publicSaleTimestamp,
-              deploymentCost: 0, //deploymentCostStr,
+              deploymentCost: 0, //deploymentCostStr,#
+              percentageForCreator: percentageForCreator.toNumber(),
+              price: price.toString(),
             }
           : {
               numPrivatePasses: privateKeys.length,
               leaves,
               publicSaleTimestamp,
               deploymentCost: 0, //deploymentCostStr
+              percentageForCreator: percentageForCreator.toNumber(),
+              price: price.toString(),
             },
       skipIfAlreadyDeployed: true,
       log: true,
