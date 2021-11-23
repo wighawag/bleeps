@@ -165,7 +165,7 @@ contract MeloBleepsTokenURI {
 
         bytes memory freqTable = FREQUENCIES;
 
-        uint256 numSamplesPlusOne = (3 * (((32 * (61 * 16 * SAMPLE_RATE)) / (7350)) + 1)) / 3; //3 * 3 * ((22050 + 3) / 3); // 8 = speed
+        uint256 numSamplesPlusOne = (3 * (((32 * (61 * 16 * SAMPLE_RATE)) / (7350)) + 1)) / 3; //3 * 3 * ((22050 + 3) / 3); // 16 = speed
 
         uint256[] memory noise_handler = new uint256[](4);
 

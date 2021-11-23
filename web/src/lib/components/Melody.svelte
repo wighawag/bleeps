@@ -168,6 +168,41 @@
     {vol: 1, note: 50, shape: 6},
   ];
 
+  const sfx1 = [
+    {vol: 5, note: 20, shape: 0},
+    {vol: 5, note: 20, shape: 0},
+    {vol: 5, note: 35, shape: 0},
+    {vol: 5, note: 50, shape: 0},
+    {vol: 0, note: 46, shape: 0},
+    {vol: 0, note: 55, shape: 0},
+    {vol: 0, note: 46, shape: 0},
+    {vol: 0, note: 55, shape: 0},
+    {vol: 0, note: 34, shape: 0},
+    {vol: 0, note: 44, shape: 0},
+    {vol: 0, note: 44, shape: 0},
+    {vol: 0, note: 34, shape: 0},
+    {vol: 0, note: 31, shape: 0},
+    {vol: 0, note: 36, shape: 0},
+    {vol: 0, note: 31, shape: 0},
+    {vol: 0, note: 36, shape: 0},
+    {vol: 0, note: 33, shape: 0},
+    {vol: 0, note: 40, shape: 0},
+    {vol: 0, note: 33, shape: 0},
+    {vol: 0, note: 40, shape: 0},
+    {vol: 0, note: 33, shape: 0},
+    {vol: 0, note: 40, shape: 0},
+    {vol: 0, note: 42, shape: 0},
+    {vol: 0, note: 50, shape: 0},
+    {vol: 0, note: 42, shape: 0},
+    {vol: 0, note: 50, shape: 0},
+    {vol: 0, note: 42, shape: 0},
+    {vol: 0, note: 50, shape: 0},
+    {vol: 0, note: 42, shape: 0},
+    {vol: 0, note: 50, shape: 0},
+    {vol: 0, note: 42, shape: 0},
+    {vol: 0, note: 50, shape: 0},
+  ];
+
   function extractVolumes(song: {vol: number; note: number; shape: number}[]) {
     return song.map((v, i) => {
       return {vol: v.vol, index: i};
