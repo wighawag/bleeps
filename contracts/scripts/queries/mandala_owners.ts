@@ -20,7 +20,7 @@ query($first: Int! $lastId: ID! $blockNumber: Int!) {
 async function main() {
   const owners: {
     id: string;
-  }[] = await theGraph.query(queryString, {field: 'owners', variables: {blockNumber: 13601016}});
+  }[] = await theGraph.query(queryString, {field: 'owners', variables: {blockNumber: 13670647}});
   const dataStr = JSON.stringify(owners, null, 2);
   // console.log(dataStr);
   console.log({numOwners: owners.length});

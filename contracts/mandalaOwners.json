@@ -126,11 +126,6 @@
   },
   {
     "__typename": "Owner",
-    "id": "0x19b2ba0892da19d09d59e300d11da9edf96654ae",
-    "numMandalas": "1"
-  },
-  {
-    "__typename": "Owner",
     "id": "0x1c062628943a930b805849b494719c7d23c77bd5",
     "numMandalas": "2"
   },
@@ -317,6 +312,11 @@
   {
     "__typename": "Owner",
     "id": "0x568b491fb2b4b9440f6d05e7723df0060fdaef1c",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0x5a016b206d0314c7ec641c3a6fd89dac7fea010e",
     "numMandalas": "1"
   },
   {
@@ -716,6 +716,11 @@
   },
   {
     "__typename": "Owner",
+    "id": "0xb74e4d1592dad73f3745f57605580108ebaedad5",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
     "id": "0xb7f9f538aa1b41ae2853eb63f1939187ffe70eb4",
     "numMandalas": "1"
   },
@@ -747,6 +752,11 @@
   {
     "__typename": "Owner",
     "id": "0xbf1ed1ea654ad49472daedc21a31c8d28e6bb790",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xbf27384febdc054bbd7e388761919e7d98f7da0c",
     "numMandalas": "1"
   },
   {
@@ -841,11 +851,6 @@
   },
   {
     "__typename": "Owner",
-    "id": "0xd286064cc27514b914bab0f2fad2e1a89a91f314",
-    "numMandalas": "1"
-  },
-  {
-    "__typename": "Owner",
     "id": "0xd3e64b9dea13e4840a0da20965bd0ca37d05a12a",
     "numMandalas": "1"
   },
@@ -882,6 +887,11 @@
   {
     "__typename": "Owner",
     "id": "0xdde3ca351d85a4b4cc6aff8d42c0840959859053",
+    "numMandalas": "1"
+  },
+  {
+    "__typename": "Owner",
+    "id": "0xe00a3ab72b29eb4ac2695221f62cdf872cb5d483",
     "numMandalas": "1"
   },
   {
