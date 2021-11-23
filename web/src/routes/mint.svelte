@@ -592,7 +592,7 @@
       {#if isInstrumentMintable($ownersState, selected >> 6)}
         <div>
           <p>
-            <a href="" class="text-bleeps underline">Bleeps DAO</a> will receive {BigNumber.from(
+            <span class="text-bleeps">Bleeps DAO</span> will receive {BigNumber.from(
               contracts.BleepsInitialSale.linkedData.price
             )
               .mul(10000 - contracts.BleepsInitialSale.linkedData.percentageForCreator)
