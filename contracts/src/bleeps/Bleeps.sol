@@ -6,13 +6,10 @@ import "../base/ERC721Checkpointable.sol";
 
 import "../interfaces/ITokenURI.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
 
 import "../base/WithSupportForOpenSeaProxies.sol";
 
 contract Bleeps is IERC721, WithSupportForOpenSeaProxies, ERC721Checkpointable, BleepsRoles {
-    using Address for address;
-
     event RoyaltySet(address receiver, uint256 royaltyPer10Thousands);
     event TokenURIContractSet(ITokenURI newTokenURIContract);
     event CheckpointingDisablerSet(address newCheckpointingDisabler);
@@ -43,6 +40,7 @@ contract Bleeps is IERC721, WithSupportForOpenSeaProxies, ERC721Checkpointable, 
     /// @param initialTokenURIContract initial tokenURI contract that generate the metadata including the wav file.
     /// @param initialCheckpointingDisabler admin able to cancel checkpointing
     constructor(
+        address ens,
         address openseaProxyRegistry,
         address initialOwner,
         address initialTokenURIAdmin,
@@ -55,7 +53,7 @@ contract Bleeps is IERC721, WithSupportForOpenSeaProxies, ERC721Checkpointable, 
         address initialCheckpointingDisabler
     )
         WithSupportForOpenSeaProxies(openseaProxyRegistry)
-        BleepsRoles(initialOwner, initialTokenURIAdmin, initialRoyaltyAdmin, initialMinterAdmin, initialGuardian)
+        BleepsRoles(ens, initialOwner, initialTokenURIAdmin, initialRoyaltyAdmin, initialMinterAdmin, initialGuardian)
     {
         tokenURIContract = initialTokenURIContract;
         emit TokenURIContractSet(initialTokenURIContract);
@@ -85,15 +83,6 @@ contract Bleeps is IERC721, WithSupportForOpenSeaProxies, ERC721Checkpointable, 
     /// @notice Returns the Uniform Resource Identifier (URI) for token `id`.
     function tokenURI(uint256 id) external view returns (string memory) {
         return tokenURIContract.tokenURI(id);
-    }
-
-    function execute(
-        address target,
-        bytes memory data,
-        uint256 value
-    ) external {
-        require(msg.sender == owner, "NOT_AUTHORIZED");
-        target.functionCallWithValue(data, value);
     }
 
     /// @notice set a new tokenURI contract, that generate the metadata including the wav file, Can only be set by the `tokenURIAdmin`.

@@ -15,6 +15,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     initialCheckpointingDisabler,
   } = await getNamedAccounts();
 
+  const ENS = await deployments.getOrNull('ENS');
+  if (hre.network.name === 'mainnet' || hre.network.name === 'production') {
+    if (!ENS) {
+      throw new Error(`no ENS setup`);
+    }
+  }
+
   const tokenURIContract = await deploy('BleepsTokenURI', {
     from: deployer,
     log: true,
@@ -37,7 +44,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   if (needUpdate) {
     await execute(
       'Bleeps',
-      {from: initialBleepsTokenURIAdmin, log: true},
+      {from: initialBleepsTokenURIAdmin, log: true, autoMine: true},
       'setTokenURIContract',
       tokenURIContract.address
     );
@@ -45,6 +52,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await deploy('Bleeps', {
       from: deployer,
       args: [
+        ENS?.address || '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e',
         openseaProxyRegistry,
         deployer,
         initialBleepsTokenURIAdmin,

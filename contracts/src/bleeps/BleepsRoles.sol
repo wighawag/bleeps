@@ -1,6 +1,16 @@
 // SPDX-License-Identifier: AGPL-1.0
 pragma solidity 0.8.9;
 
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
+interface ReverseRegistrar {
+    function setName(string memory name) external returns (bytes32);
+}
+
+interface ENS {
+    function owner(bytes32 node) external view virtual returns (address);
+}
+
 contract BleepsRoles {
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
@@ -9,6 +19,9 @@ contract BleepsRoles {
     event MinterAdminSet(address newMinterAdmin);
     event GuardianSet(address newGuardian);
     event MinterSet(address newMinter);
+
+    bytes32 internal constant ADDR_REVERSE_NODE = 0x91d1777781884d03a6757a803996e38de2a42967fb37eeaca72729271025a9e2;
+    ENS internal immutable _ens;
 
     ///@notice the address of the current owner, that is able to execute on behalf of this contract.
     address public owner;
@@ -33,12 +46,14 @@ contract BleepsRoles {
     address public guardian;
 
     constructor(
+        address ens,
         address initialOwner,
         address initialTokenURIAdmin,
         address initialMinterAdmin,
         address initialRoyaltyAdmin,
         address initialGuardian
     ) {
+        _ens = ENS(ens);
         owner = initialOwner;
         tokenURIAdmin = initialTokenURIAdmin;
         royaltyAdmin = initialRoyaltyAdmin;
@@ -48,6 +63,17 @@ contract BleepsRoles {
         emit RoyaltyAdminSet(initialRoyaltyAdmin);
         emit MinterAdminSet(initialMinterAdmin);
         emit GuardianSet(initialGuardian);
+    }
+
+    function setENSName(string memory name) external {
+        require(msg.sender == owner, "NOT_AUTHORIZED");
+        ReverseRegistrar reverseRegistrar = ReverseRegistrar(_ens.owner(ADDR_REVERSE_NODE));
+        reverseRegistrar.setName(name);
+    }
+
+    function withdrawERC20(IERC20 token, address to) external {
+        require(msg.sender == owner, "NOT_AUTHORIZED");
+        token.transfer(to, token.balanceOf(address(this)));
     }
 
     /**
