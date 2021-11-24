@@ -24,7 +24,7 @@ abstract contract ERC721Base is IERC165, IERC721 {
         revert("NOT_IMPLEMENTED");
     }
 
-    /// @notice Approve an operator to spend tokens on the senders behalf.
+    /// @notice Approve an operator to transfer a specific token on the senders behalf.
     /// @param operator The address receiving the approval.
     /// @param id The id of the token.
     function approve(address operator, uint256 id) external override {
@@ -50,7 +50,7 @@ abstract contract ERC721Base is IERC165, IERC721 {
         require(to != address(this), "NOT_TO_THIS");
         if (msg.sender != from) {
             require(
-                _operatorsForAll[from][msg.sender] || (operatorEnabled && _operators[id] == msg.sender),
+                (operatorEnabled && _operators[id] == msg.sender) || _operatorsForAll[from][msg.sender],
                 "UNAUTHORIZED_TRANSFER"
             );
         }

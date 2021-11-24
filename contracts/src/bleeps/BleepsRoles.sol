@@ -8,7 +8,7 @@ interface ReverseRegistrar {
 }
 
 interface ENS {
-    function owner(bytes32 node) external view virtual returns (address);
+    function owner(bytes32 node) external view returns (address);
 }
 
 contract BleepsRoles {
@@ -23,10 +23,10 @@ contract BleepsRoles {
     bytes32 internal constant ADDR_REVERSE_NODE = 0x91d1777781884d03a6757a803996e38de2a42967fb37eeaca72729271025a9e2;
     ENS internal immutable _ens;
 
-    ///@notice the address of the current owner, that is able to execute on behalf of this contract.
+    ///@notice the address of the current owner, that is able to set ENS names and withdraw ERC20 owned by the contract.
     address public owner;
 
-    /// @notice maintainer can update the tokenURI contract, this is intended to be relinquished once the tokenURI has been heavily tested in the wild and that no modification are needed.
+    /// @notice tokenURIAdmin can update the tokenURI contract, this is intended to be relinquished once the tokenURI has been heavily tested in the wild and that no modification are needed.
     address public tokenURIAdmin;
 
     /// @notice address allowed to set royalty parameters
@@ -40,9 +40,8 @@ contract BleepsRoles {
     /// Once all 1024 potential bleeps (there could be less, at minimum there are 576 bleeps) are minted, no minter can mint anymore
     address public minter;
 
-    /// @notice guardian has some special vetoing power to guide the direction of the DAO. It can only remove rights from the DAO. It could be used to immortalize rules. For example:
-    /// The DAO governance framework is by default changeable. This means the DAO could change it so Bleeps do not provide votes anymore. To prevent that from happening, the guardian can remove the ability of the DAO to changes its governance contract.
-    /// (the reason the governance is changeable by default is so that better ideas an be tried out later)
+    /// @notice guardian has some special vetoing power to guide the direction of the DAO. It can only remove rights from the DAO. It could be used to immortalize rules.
+    /// For example: the royalty setup could be frozen.
     address public guardian;
 
     constructor(

@@ -29,31 +29,32 @@ contract Bleeps is IERC721, WithSupportForOpenSeaProxies, ERC721Checkpointable, 
     address public checkpointingDisabler;
 
     /// @dev Create the Bleeps contract
-    /// @param openseaProxyRegistry allow Bleeps to be sold on opensea without prior approval tx as long as the user have already an opensea proxy.
+    /// @param ens ENS address for the network the contract is deployed to
     /// @param initialOwner address that can execute on behalf of Bleeps (example: can claim ENS name).
     /// @param initialTokenURIAdmin admin able to update the tokenURI contract.
+    /// @param initialMinterAdmin admin able to set the minter contract.
     /// @param initialRoyaltyAdmin admin able to update the royalty receiver and rates.
+    /// @param initialGuardian guardian able to immortalize rules
+    /// @param openseaProxyRegistry allow Bleeps to be sold on opensea without prior approval tx as long as the user have already an opensea proxy.
     /// @param initialRoyaltyReceiver receiver of royalties
     /// @param imitialRoyaltyPer10Thousands amount of royalty in 10,000 basis point
-    /// @param initialMinterAdmin admin able to set the minter contract.
-    /// @param initialGuardian guardian able to immortalize rules
     /// @param initialTokenURIContract initial tokenURI contract that generate the metadata including the wav file.
     /// @param initialCheckpointingDisabler admin able to cancel checkpointing
     constructor(
         address ens,
-        address openseaProxyRegistry,
         address initialOwner,
         address initialTokenURIAdmin,
+        address initialMinterAdmin,
         address initialRoyaltyAdmin,
+        address initialGuardian,
+        address openseaProxyRegistry,
         address initialRoyaltyReceiver,
         uint96 imitialRoyaltyPer10Thousands,
-        address initialMinterAdmin,
-        address initialGuardian,
         ITokenURI initialTokenURIContract,
         address initialCheckpointingDisabler
     )
         WithSupportForOpenSeaProxies(openseaProxyRegistry)
-        BleepsRoles(ens, initialOwner, initialTokenURIAdmin, initialRoyaltyAdmin, initialMinterAdmin, initialGuardian)
+        BleepsRoles(ens, initialOwner, initialTokenURIAdmin, initialMinterAdmin, initialRoyaltyAdmin, initialGuardian)
     {
         tokenURIContract = initialTokenURIContract;
         emit TokenURIContractSet(initialTokenURIContract);

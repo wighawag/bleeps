@@ -7,6 +7,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const {
     deployer,
+    initialBleepsOwner,
     initialBleepsTokenURIAdmin,
     initialBleepsRoyaltyAdmin,
     initialBleepsRoyaltyRecipient,
@@ -53,14 +54,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       from: deployer,
       args: [
         ENS?.address || '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e',
-        openseaProxyRegistry,
-        deployer,
+        initialBleepsOwner,
         initialBleepsTokenURIAdmin,
+        initialBleepsMinterAdmin,
         initialBleepsRoyaltyAdmin,
+        bleepsGuardian,
+        openseaProxyRegistry,
         initialBleepsRoyaltyRecipient,
         500, // 5%
-        initialBleepsMinterAdmin,
-        bleepsGuardian,
         tokenURIContract.address,
         initialCheckpointingDisabler,
       ],
