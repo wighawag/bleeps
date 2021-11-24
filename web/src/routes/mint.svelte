@@ -417,11 +417,6 @@
           <p class="text-bleeps">
             {#if $ownersState?.expectedValue}
               Current Price: {$ownersState?.expectedValue.div('1000000000000000').toNumber() / 1000} ETH
-              {#if $ownersState?.priceInfo.hasMandalas && $ownersState?.priceInfo.mandalasDiscountPercentage.gt(0)}
-                <span class="text-gray-500"
-                  >(instead of {$ownersState?.normalExpectedValue.div('1000000000000000').toNumber() / 1000} ETH)</span
-                >
-              {/if}
             {/if}
           </p>
         </div>
