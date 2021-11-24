@@ -23,3 +23,6 @@ deployments/localhost
 _lib/
 
 .privateKeys*
+
+#ignore all dotfiles in deployments network folders:
+deployments/*/.*

@@ -53,9 +53,9 @@ function pause(numSeconds: number): Promise<void> {
 
 async function main() {
   if (network.name === 'staging') {
-    BOOKING_SERVICE_URL = ''; // TODO
+    BOOKING_SERVICE_URL = 'https://booking-service-staging.rim.workers.dev';
   } else if (network.name === 'mainnet') {
-    BOOKING_SERVICE_URL = ''; // TODO
+    BOOKING_SERVICE_URL = 'https://booking-service-mainnet.rim.workers.dev';
   }
 
   const BleepsInitialSale = await deployments.get('BleepsInitialSale');
@@ -64,10 +64,13 @@ async function main() {
   const privateKeys = JSON.parse(await deployments.readDotFile('.privateKeys.json'));
 
   let counter = 0;
-  async function startBooking(bleepId?: number) {
+  async function startBooking(bleepId?: number, hold?: number) {
     const passId = counter;
     if (bleepId === undefined) {
       bleepId = counter;
+    }
+    if (!hold) {
+      hold = 30;
     }
     counter++;
 
@@ -88,12 +91,20 @@ async function main() {
         to: wallet.address,
       },
     });
+
+    setTimeout(() => {
+      clearInterval(bookingInterval);
+    }, hold * 1000);
   }
 
-  for (let i = 0; i < 100; i++) {
-    console.log('new booking...');
-    startBooking(Math.floor(Math.random() * 64 * 3));
-    await pause(0.2);
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    for (let i = 0; i < 15; i++) {
+      console.log('new booking...');
+      startBooking(Math.floor(Math.random() * 64 * 1), Math.random() * 30 + 6);
+      await pause(0.2);
+    }
+    await pause(30);
   }
 }
 
