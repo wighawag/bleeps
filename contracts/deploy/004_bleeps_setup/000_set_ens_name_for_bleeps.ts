@@ -14,6 +14,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const ENS = await deployments.getOrNull('ENS');
 
   if (ENS) {
+    // defaultResolver TODO
+    // name
     const expectedNode = namehash.hash(`${Bleeps.address.toLowerCase().slice(2)}.addr.reverse`);
     const node = await read('ReverseRegistrar', 'node', Bleeps.address);
     if (expectedNode !== node) {
