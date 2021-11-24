@@ -20,21 +20,8 @@ contract BleepsDutchAuction is IBleepsSale, SaleBase {
         uint256 startTime,
         address payable projectCreator,
         uint256 creatorFeePer10000,
-        address payable saleRecipient,
-        uint256 deploymentCostToPay,
-        IERC721 mandalas,
-        uint256 mandalasDiscountPercentage
-    )
-        SaleBase(
-            bleeps,
-            projectCreator,
-            creatorFeePer10000,
-            saleRecipient,
-            deploymentCostToPay,
-            mandalas,
-            mandalasDiscountPercentage
-        )
-    {
+        address payable saleRecipient
+    ) SaleBase(bleeps, projectCreator, creatorFeePer10000, saleRecipient) {
         _initPrice = initPrice;
         _delay = delay;
         _lastPrice = lastPrice;
@@ -48,12 +35,10 @@ contract BleepsDutchAuction is IBleepsSale, SaleBase {
             uint256 startTime,
             uint256 initPrice,
             uint256 delay,
-            uint256 lastPrice,
-            uint256 mandalasDiscountPercentage,
-            bool hasMandalas
+            uint256 lastPrice
         )
     {
-        return (_startTime, _initPrice, _delay, _lastPrice, _mandalasDiscountPercentage, _hasMandalas(purchaser));
+        return (_startTime, _initPrice, _delay, _lastPrice);
     }
 
     function ownersAndPriceInfo(address purchaser, uint256[] calldata ids)
@@ -64,9 +49,7 @@ contract BleepsDutchAuction is IBleepsSale, SaleBase {
             uint256 startTime,
             uint256 initPrice,
             uint256 delay,
-            uint256 lastPrice,
-            uint256 mandalasDiscountPercentage,
-            bool hasMandalas
+            uint256 lastPrice
         )
     {
         addresses = _bleeps.owners(ids);
@@ -74,8 +57,6 @@ contract BleepsDutchAuction is IBleepsSale, SaleBase {
         initPrice = _initPrice;
         delay = _delay;
         lastPrice = _lastPrice;
-        mandalasDiscountPercentage = _mandalasDiscountPercentage;
-        hasMandalas = _hasMandalas(purchaser);
     }
 
     function mint(uint16 id, address to) external payable {
@@ -94,9 +75,6 @@ contract BleepsDutchAuction is IBleepsSale, SaleBase {
                 expectedValue = _lastPrice + (priceDiff * (_delay - timePassed)) / _delay;
             }
 
-            if (_hasMandalas(msg.sender)) {
-                expectedValue = expectedValue - (expectedValue * _mandalasDiscountPercentage) / 100;
-            }
             require(msg.value >= expectedValue, "NOT_ENOUGH");
             payable(msg.sender).transfer(msg.value - expectedValue);
             _paymentToRecipient(expectedValue);

@@ -328,12 +328,6 @@
       {/if}
 
       {#if $ownersState?.expectedValue}
-        {#if $ownersState?.priceInfo.hasMandalas && $ownersState?.priceInfo.mandalasDiscountPercentage.gt(0)}
-          <p class="text-green-600 mb-2">
-            As a owner of mandalas, you got a {$ownersState.priceInfo.mandalasDiscountPercentage}% discount!
-          </p>
-        {/if}
-
         {#if $ownersState.priceInfo?.whitelistTimeLimit}
           {#if now() < $ownersState.priceInfo.whitelistTimeLimit.toNumber()}
             {#if $ownersState.invalidPassId}

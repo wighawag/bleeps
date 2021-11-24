@@ -27,27 +27,13 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
         address payable projectCreator,
         uint256 creatorFeePer10000,
         address payable saleRecipient,
-        uint256 deploymentCostToPay,
-        IERC721 mandalas,
-        uint256 mandalasDiscountPercentage,
         uint256 uptoInstr
-    )
-        SaleBase(
-            bleeps,
-            projectCreator,
-            creatorFeePer10000,
-            saleRecipient,
-            deploymentCostToPay,
-            mandalas,
-            mandalasDiscountPercentage
-        )
-    {
+    ) SaleBase(bleeps, projectCreator, creatorFeePer10000, saleRecipient) {
         _price = price;
         _whitelistPrice = whitelistPrice;
         _whitelistTimeLimit = whitelistTimeLimit;
         _whitelistMerkleRoot = whitelistMerkleRoot;
         _uptoInstr = uptoInstr;
-        _deploymentCostToPay = deploymentCostToPay;
     }
 
     function priceInfo(address purchaser)
@@ -57,19 +43,10 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
             uint256 price,
             uint256 whitelistPrice,
             uint256 whitelistTimeLimit,
-            bytes32 whitelistMerkleRoot,
-            uint256 mandalasDiscountPercentage,
-            bool hasMandalas
+            bytes32 whitelistMerkleRoot
         )
     {
-        return (
-            _price,
-            _whitelistPrice,
-            _whitelistTimeLimit,
-            _whitelistMerkleRoot,
-            _mandalasDiscountPercentage,
-            _hasMandalas(purchaser)
-        );
+        return (_price, _whitelistPrice, _whitelistTimeLimit, _whitelistMerkleRoot);
     }
 
     function ownersAndPriceInfo(
@@ -85,8 +62,6 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
             uint256 whitelistPrice,
             uint256 whitelistTimeLimit,
             bytes32 whitelistMerkleRoot,
-            uint256 mandalasDiscountPercentage,
-            bool hasMandalas,
             bool passUsed,
             uint256 uptoInstr
         )
@@ -96,8 +71,6 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
         whitelistPrice = _whitelistPrice;
         whitelistTimeLimit = _whitelistTimeLimit;
         whitelistMerkleRoot = _whitelistMerkleRoot;
-        mandalasDiscountPercentage = _mandalasDiscountPercentage;
-        hasMandalas = _hasMandalas(purchaser);
         passUsed = isPassUsed(passId);
         uptoInstr = _uptoInstr;
     }
@@ -209,9 +182,6 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
 
         uint256 expectedValue = block.timestamp >= _whitelistTimeLimit ? _price : _whitelistPrice;
 
-        if (_mandalasDiscountPercentage > 0 && _hasMandalas(msg.sender)) {
-            expectedValue = expectedValue - (expectedValue * _mandalasDiscountPercentage) / 100;
-        }
         require(msg.value >= expectedValue, "NOT_ENOUGH");
         payable(msg.sender).transfer(msg.value - expectedValue);
         _paymentToRecipient(expectedValue);

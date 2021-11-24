@@ -16,8 +16,6 @@ type OwnersState = {
     initPrice: BigNumber;
     delay: BigNumber;
     lastPrice: BigNumber;
-    mandalasDiscountPercentage: BigNumber;
-    hasMandalas: boolean;
   };
   normalExpectedValue?: BigNumber;
   expectedValue?: BigNumber;

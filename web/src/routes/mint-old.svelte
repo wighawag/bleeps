@@ -87,14 +87,6 @@
     />
 
     {#if $chain.state === 'Ready' || $fallback.state === 'Ready'}
-      {#if $ownersState?.expectedValue}
-        {#if $ownersState?.priceInfo.hasMandalas}
-          <p class="text-green-600 mb-2">
-            As a owner of mandalas, you got a {$ownersState.priceInfo.mandalasDiscountPercentage}% discount!
-          </p>
-        {/if}
-      {/if}
-
       <div class="">
         <div class="inline-block border-white md:w-64 w-32 md:h-24 h-16 border-2 mx-auto rounded-md">
           {#if $ownersState?.numLeftPerInstr !== undefined}
@@ -136,11 +128,11 @@
           <p class="text-bleeps">
             {#if $ownersState?.expectedValue}
               Current Price: {$ownersState?.expectedValue.div('1000000000000000').toNumber() / 1000} ETH
-              {#if $ownersState?.priceInfo.hasMandalas}
+              <!-- {#if $ownersState?.priceInfo.hasMandalas}
                 <span class="text-gray-500"
                   >(instead of {$ownersState?.normalExpectedValue.div('1000000000000000').toNumber() / 1000} ETH)</span
                 >
-              {/if}
+              {/if} -->
             {/if}
           </p>
         </div>

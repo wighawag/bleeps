@@ -90,9 +90,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         saleRecipient,
         percentageForCreator.toNumber(), // 20% (2000 / 10000)
         BleepsDAOAccount.address,
-        0, //deploymentCost,
-        MandalaToken.address,
-        0, // 0% 20, // 20% discount
         2, // 3 first instrument are open
       ],
       linkedData:

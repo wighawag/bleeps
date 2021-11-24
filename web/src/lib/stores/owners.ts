@@ -57,8 +57,6 @@ type QueryResult = {
   whitelistPrice: BigNumber;
   whitelistTimeLimit: BigNumber;
   whitelistMerkleRoot: string;
-  mandalasDiscountPercentage: BigNumber;
-  hasMandalas: boolean;
   passUsed: boolean;
   uptoInstr: BigNumber;
 };
@@ -97,8 +95,6 @@ export type OwnersState = {
     whitelistPrice: BigNumber;
     whitelistTimeLimit: BigNumber;
     whitelistMerkleRoot: string;
-    mandalasDiscountPercentage: BigNumber;
-    hasMandalas: boolean;
     passUsed: boolean;
     uptoInstr: BigNumber;
   };
@@ -246,8 +242,6 @@ class OwnersStateStore extends BaseStore<OwnersState> {
     } else {
       const processedResult: QueryResult = {
         addresses: result.addresses.concat(),
-        hasMandalas: result.hasMandalas,
-        mandalasDiscountPercentage: result.mandalasDiscountPercentage,
         passUsed: result.passUsed,
         price: result.price.add(0),
         uptoInstr: result.uptoInstr.add(0),
@@ -319,8 +313,6 @@ class OwnersStateStore extends BaseStore<OwnersState> {
           whitelistPrice: processedResult.whitelistPrice,
           whitelistTimeLimit: processedResult.whitelistTimeLimit,
           whitelistMerkleRoot: processedResult.whitelistMerkleRoot,
-          mandalasDiscountPercentage: processedResult.mandalasDiscountPercentage,
-          hasMandalas: processedResult.hasMandalas,
           passUsed: this.$store.passId !== undefined && processedResult.passUsed,
           uptoInstr: processedResult.uptoInstr,
         },
@@ -348,9 +340,7 @@ class OwnersStateStore extends BaseStore<OwnersState> {
       if (timeLeftBeforePublic > 0) {
         expectedValue = priceInfo.whitelistPrice;
       }
-      if (priceInfo.hasMandalas) {
-        expectedValue = expectedValue.sub(expectedValue.mul(priceInfo.mandalasDiscountPercentage).div(100));
-      }
+
       return {expectedValue, normalExpectedValue, timeLeftBeforePublic}; //.add(priceInfo.initPrice.div(10));
       // return priceInfo.initPrice;
     }
