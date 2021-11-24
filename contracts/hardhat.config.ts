@@ -73,10 +73,7 @@ const config: HardhatUserConfig = {
     staging: {
       url: node_url('goerli'),
       accounts: accounts('goerli'),
-    },
-    production: {
-      url: node_url('mainnet'),
-      accounts: accounts('mainnet'),
+      deploy: ['deploy/001_bleeps', 'deploy/002_bleepsdao', 'deploy/003_bleeps_sale', 'deploy/004_bleeps_setup'],
     },
     mainnet: {
       url: node_url('mainnet'),
@@ -86,6 +83,7 @@ const config: HardhatUserConfig = {
     rinkeby: {
       url: node_url('rinkeby'),
       accounts: accounts('rinkeby'),
+      deploy: ['deploy/001_bleeps', 'deploy/002_bleepsdao', 'deploy/003_bleeps_sale', 'deploy/004_bleeps_setup'],
     },
     kovan: {
       url: node_url('kovan'),
