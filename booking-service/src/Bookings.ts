@@ -98,11 +98,15 @@ export class Bookings extends DO {
 
     const ip = this.currentRequest.headers.get('CF-Connecting-IP');
 
+    // this.info(`ip: ${ip}`);
+
     let list = await this.state.storage.get<BookingList>('_bookings');
     if (!list) {
       list = {list: [], counter: 0};
     }
-    const currentBooking = list.list.find((v) => v.bleep == bookingSubmission.bleep);
+    const currentBooking = list.list.find(
+      (v) => v.bleep == bookingSubmission.bleep && (v.transaction || timestamp - v.timestamp < 10)
+    );
     if (currentBooking) {
       if (!currentBooking.transaction) {
         if (timestamp < currentBooking.timestamp + 10 && currentBooking.address !== bookingSubmission.address) {
@@ -120,17 +124,19 @@ export class Bookings extends DO {
       }
     } else {
       let available = true;
-      if (publicSale) {
-        const currentBookingsWithIP = list.list.filter(
-          (v) => v.ip == ip && (v.transaction || timestamp - v.timestamp < 10)
-        );
-        if (currentBookingsWithIP.length < 3) {
-          available = true;
-        } else {
-          available = false;
-          return createResponse({success: false, reason: 'too many bookings'});
-        }
+
+      const currentBookingsWithIP = list.list.filter(
+        (v) => v.ip == ip && (v.transaction || timestamp - v.timestamp < 10)
+      );
+      this.info(` ${currentBookingsWithIP.map((v) => v.bleep).join(',')}`);
+      if (currentBookingsWithIP.length < 3) {
+        available = true;
       } else {
+        available = false;
+        return createResponse({success: false, message: 'too many bookings'});
+      }
+
+      if (!publicSale) {
         const currentBookingWithPassId = list.list.find(
           (v) =>
             (v.transaction || timestamp - v.timestamp < 10) &&
