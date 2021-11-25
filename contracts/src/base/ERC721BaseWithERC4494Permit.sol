@@ -6,6 +6,28 @@ import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 
+interface IERC4494Draft {
+    function DOMAIN_SEPARATOR() external view returns (bytes32);
+
+    /// @notice Allows to retrieve current nonce for token
+    /// @param tokenId token id
+    /// @return current token nonce
+    function tokenNonces(uint256 tokenId) external view returns (uint256);
+
+    /// @notice function to be called by anyone to approve `spender` using a Permit signature
+    /// @dev Anyone can call this to approve `spender`, even a third-party
+    /// @param spender the actor to approve
+    /// @param tokenId the token id
+    /// @param deadline the deadline for the permit to be used
+    /// @param signature permit
+    function permit(
+        address spender,
+        uint256 tokenId,
+        uint256 deadline,
+        bytes memory signature
+    ) external;
+}
+
 abstract contract ERC721BaseWithERC4494Permit is ERC721Base {
     using Address for address;
     using ECDSA for bytes32;
@@ -38,7 +60,7 @@ abstract contract ERC721BaseWithERC4494Permit is ERC721Base {
     }
 
     function nonces(uint256 id) external view virtual returns (uint256 nonce) {
-        return tokenNonces(id);
+        return accountNnonces(id);
     }
 
     function tokenNonces(uint256 id) public view returns (uint256 nonce) {
@@ -47,7 +69,7 @@ abstract contract ERC721BaseWithERC4494Permit is ERC721Base {
         return blockNumber;
     }
 
-    function accountNnonces(address owner) external view returns (uint256 nonce) {
+    function accountNnonces(address owner) public view returns (uint256 nonce) {
         return _userNonces[owner];
     }
 
@@ -81,6 +103,13 @@ abstract contract ERC721BaseWithERC4494Permit is ERC721Base {
         _requireValidPermitForAll(signer, spender, deadline, _userNonces[signer]++, sig);
 
         _setApprovalForAll(signer, spender, true);
+    }
+
+    /// @notice Check if the contract supports an interface.
+    /// @param id The id of the interface.
+    /// @return Whether the interface is supported.
+    function supportsInterface(bytes4 id) public pure virtual override returns (bool) {
+        return super.supportsInterface(id) || id == type(IERC4494Draft).interfaceId;
     }
 
     // -------------------------------------------------------- INTERNAL --------------------------------------------------------------------
