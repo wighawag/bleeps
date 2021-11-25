@@ -4,16 +4,11 @@ pragma solidity 0.8.9;
 import "./ERC721Base.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-
-interface IERC1271 {
-    function isValidSignature(bytes32 hash, bytes calldata signature) external view returns (bytes4 magicValue);
-}
+import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 
 abstract contract ERC721BaseWithERC4494Permit is ERC721Base {
     using Address for address;
     using ECDSA for bytes32;
-
-    bytes4 internal constant ERC1271_MAGICVALUE = 0x1626ba7e;
 
     bytes32 public constant PERMIT_TYPEHASH =
         keccak256("Permit(address spender,uint256 tokenId,uint256 nonce,uint256 deadline)");
@@ -47,7 +42,9 @@ abstract contract ERC721BaseWithERC4494Permit is ERC721Base {
     }
 
     function tokenNonces(uint256 id) public view returns (uint256 nonce) {
-        revert("NOT_IMPLEMENTED");
+        (address owner, uint256 blockNumber) = _ownerAndBlockNumberOf(id);
+        require(owner != address(0), "NONEXISTENT_TOKEN");
+        return blockNumber;
     }
 
     function accountNnonces(address owner) external view returns (uint256 nonce) {
@@ -65,7 +62,10 @@ abstract contract ERC721BaseWithERC4494Permit is ERC721Base {
         (address owner, uint256 blockNumber) = _ownerAndBlockNumberOf(tokenId);
         require(owner != address(0), "NONEXISTENT_TOKEN");
 
-        _requireValidPermit(owner, spender, tokenId, deadline, tokenNonces(tokenId), sig);
+        // We use blockNumber as nonce as we already store it per tokens. It can thus act as an increasing transfer counter.
+        // while technically multiple transfer could happen in the block, the signed message would be of a previous one
+        // and the transfer would use a more recent blockNumber, invalidation that message
+        _requireValidPermit(owner, spender, tokenId, deadline, blockNumber, sig);
 
         _approveFor(owner, blockNumber, spender, tokenId);
     }
@@ -100,7 +100,7 @@ abstract contract ERC721BaseWithERC4494Permit is ERC721Base {
                 keccak256(abi.encode(PERMIT_TYPEHASH, spender, id, nonce, deadline))
             )
         );
-        return _requireValidSignature(signer, digest, sig);
+        require(SignatureChecker.isValidSignatureNow(signer, digest, sig), "INVALID_SIGNATURE");
     }
 
     function _requireValidPermitForAll(
@@ -117,24 +117,7 @@ abstract contract ERC721BaseWithERC4494Permit is ERC721Base {
                 keccak256(abi.encode(PERMIT_FOR_ALL_TYPEHASH, spender, nonce, deadline))
             )
         );
-        _requireValidSignature(signer, digest, sig);
-    }
-
-    function _requireValidSignature(
-        address signer,
-        bytes32 digest,
-        bytes memory sig
-    ) internal view {
-        if (signer.isContract()) {
-            require(
-                IERC1271(signer).isValidSignature(digest, sig) == ERC1271_MAGICVALUE,
-                "SIGNATURE_1271_NOT_MATCHING"
-            );
-        } else {
-            address recoveredAddress = digest.recover(sig);
-            require(recoveredAddress != address(0), "SIGNATURE_INVALID");
-            require(recoveredAddress == signer, "SIGNATURE_WRONG_SIGNER");
-        }
+        require(SignatureChecker.isValidSignatureNow(signer, digest, sig), "INVALID_SIGNATURE");
     }
 
     /// @dev Return the DOMAIN_SEPARATOR.
