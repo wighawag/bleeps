@@ -33,7 +33,7 @@ const setup = deployments.createFixture(async () => {
 });
 describe('Bleeps Permit', function () {
   it('permit works', async function () {
-    const {users, BleepsPermitSigner} = await setup();
+    const {users, BleepsPermitSigner, Bleeps} = await setup();
 
     const tokenId = 1;
     await mintViaSalePass(tokenId, users[0].address, users[0].address);
@@ -45,7 +45,7 @@ describe('Bleeps Permit', function () {
 
     const signer = users[0].address;
     const spender = users[1].address;
-    const nonce = 0;
+    const nonce = await Bleeps.callStatic.tokenNonces(tokenId);
     const deadline = 4000000000;
 
     const signature = await BleepsPermitSigner.sign(users[0], {
@@ -73,7 +73,7 @@ describe('Bleeps Permit', function () {
     const signature2 = await BleepsPermitSigner.sign(users[2], {
       spender: users[4].address,
       tokenId,
-      nonce: nonce + 1,
+      nonce: await Bleeps.tokenNonces(tokenId),
       deadline,
     });
 
@@ -97,7 +97,7 @@ describe('Bleeps Permit', function () {
   });
 
   it('permitForAll works', async function () {
-    const {users, BleepsPermitForAllSigner} = await setup();
+    const {users, BleepsPermitForAllSigner, Bleeps} = await setup();
 
     await mintViaSalePass(1, users[0].address, users[0].address);
     await mintViaSalePass(2, users[0].address, users[0].address);
@@ -108,7 +108,7 @@ describe('Bleeps Permit', function () {
 
     const signer = users[0].address;
     const spender = users[1].address;
-    const nonce = 0;
+    const nonce = await Bleeps.accountNnonces(signer);
     const deadline = 4000000000;
 
     const signature = await BleepsPermitForAllSigner.sign(users[0], {
@@ -128,7 +128,7 @@ describe('Bleeps Permit', function () {
 
     const signature2 = await BleepsPermitForAllSigner.sign(users[0], {
       spender: users[4].address,
-      nonce: nonce + 1,
+      nonce: nonce.add(1),
       deadline,
     });
 
