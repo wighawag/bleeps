@@ -108,7 +108,7 @@ describe('Bleeps Permit', function () {
 
     const signer = users[0].address;
     const spender = users[1].address;
-    const nonce = await Bleeps.accountNnonces(signer);
+    const nonce = await Bleeps.accountNonces(signer);
     const deadline = 4000000000;
 
     const signature = await BleepsPermitForAllSigner.sign(users[0], {

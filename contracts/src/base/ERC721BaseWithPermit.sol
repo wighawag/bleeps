@@ -37,10 +37,16 @@ abstract contract ERC721BaseWithPermit is ERC721Base {
     }
 
     function tokenNonces(uint256 id) external view returns (uint256 nonce) {
+        (address owner, uint256 blockNumber) = _ownerAndBlockNumberOf(id);
+        require(owner != address(0), "NONEXISTENT_TOKEN");
         return _tokenNonces[id];
     }
 
     function nonces(address owner) external view returns (uint256 nonce) {
+        return _userNonces[owner];
+    }
+
+    function accountNonces(address owner) external view returns (uint256 nonce) {
         return _userNonces[owner];
     }
 

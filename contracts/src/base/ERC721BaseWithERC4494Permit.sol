@@ -39,7 +39,7 @@ abstract contract ERC721BaseWithERC4494Permit is ERC721Base {
     }
 
     function nonces(address account) external view virtual returns (uint256 nonce) {
-        return accountNnonces(account);
+        return accountNonces(account);
     }
 
     function nonces(uint256 id) external view virtual returns (uint256 nonce) {
@@ -52,7 +52,7 @@ abstract contract ERC721BaseWithERC4494Permit is ERC721Base {
         return blockNumber;
     }
 
-    function accountNnonces(address owner) public view returns (uint256 nonce) {
+    function accountNonces(address owner) public view returns (uint256 nonce) {
         return _userNonces[owner];
     }
 
