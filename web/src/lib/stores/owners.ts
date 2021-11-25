@@ -148,7 +148,6 @@ class OwnersStateStore extends BaseStore<OwnersState> {
     const contracts = chain.contracts || fallback.contracts;
     if (contracts) {
       const data = await contracts.BleepsInitialSale.ownersAndPriceInfo(
-        wallet.address || '0x0000000000000000000000000000000000000000',
         this.$store.passId || 0, //  '0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF',
         allIds
       );

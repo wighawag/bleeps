@@ -51,10 +51,7 @@ class OwnersStateStore extends BaseStore<OwnersState> {
   }> {
     const contracts = chain.contracts || fallback.contracts;
     if (contracts) {
-      const data = await contracts.BleepsInitialSale.ownersAndPriceInfo(
-        wallet.address || '0x0000000000000000000000000000000000000000',
-        allIds
-      );
+      const data = await contracts.BleepsInitialSale.ownersAndPriceInfo(allIds);
 
       return data;
     } else if (fallback.state === 'Ready') {

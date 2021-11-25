@@ -39,7 +39,7 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
         _uptoInstr = uptoInstr;
     }
 
-    function priceInfo(address purchaser)
+    function priceInfo()
         external
         view
         returns (
@@ -53,11 +53,7 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
         return (_price, _startTime, _whitelistPrice, _whitelistEndTime, _whitelistMerkleRoot);
     }
 
-    function ownersAndPriceInfo(
-        address purchaser,
-        uint256 passId,
-        uint256[] calldata ids
-    )
+    function ownersAndPriceInfo(uint256 passId, uint256[] calldata ids)
         external
         view
         returns (
