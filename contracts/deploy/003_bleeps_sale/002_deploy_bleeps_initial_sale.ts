@@ -3,7 +3,7 @@ import {DeployFunction} from 'hardhat-deploy/types';
 import {parseEther} from 'ethers/lib/utils';
 import {MerkleTree} from 'bleeps-common';
 import {createLeavesFromMandalaOwners, createLeavesFromPrivateKeys, hashLeaves} from 'bleeps-common';
-import {Wallet} from 'ethers';
+import {BigNumber, Wallet} from 'ethers';
 import fs from 'fs';
 import {getUnnamedAccounts} from 'hardhat';
 
@@ -95,11 +95,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (networkName == 'staging') {
       publicSaleTimestamp = startTime + 20 * 60; // 20 min
     }
-    const deploymentCost = parseEther('2'); // TODO revisit (cost dto deploy the set of contracts)
-    const deploymentCostStr = deploymentCost.toString();
+    // const deploymentCost = parseEther('2'); // TODO revisit (cost dto deploy the set of contracts)
     const price = parseEther('0.1');
     const totalSales = price.mul(448);
-    const percentageForCreator = deploymentCost.mul(10000).div(totalSales).add(2000);
+    const percentageForCreator = BigNumber.from(2500); // deploymentCost.mul(10000).div(totalSales).add(2000);
     console.log({
       percentageForCreator: percentageForCreator.toNumber(),
       totalSales: totalSales.div('1000000000000000').toNumber() / 1000,
@@ -117,7 +116,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         saleRecipient,
         percentageForCreator.toNumber(), // 20% (2000 / 10000)
         BleepsDAOAccount.address,
-        2, // 3 first instrument are open
+        8, // TODO? 2, // 3 first instrument are open
       ],
       linkedData:
         networkName === 'hardhat'
@@ -127,7 +126,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
               leaves,
               startTime,
               publicSaleTimestamp,
-              deploymentCost: 0, //deploymentCostStr,#
               percentageForCreator: percentageForCreator.toNumber(),
               price: price.toString(),
             }
@@ -136,7 +134,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
               leaves,
               startTime,
               publicSaleTimestamp,
-              deploymentCost: 0, //deploymentCostStr
               percentageForCreator: percentageForCreator.toNumber(),
               price: price.toString(),
             },

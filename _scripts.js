@@ -220,6 +220,17 @@ async function performAction(rawArgs) {
     // await performAction(['subgraph:deploy', network]);
     await performAction(['web:deploy', network]);
     await performAction(['booking-service:deploy', network]);
+  } else if (firstArg === 'deploy:noweb') {
+    //run-s staging:contracts web:prepare common:build staging:web:rebuild staging:web:deploy
+    const {fixedArgs, extra} = parseArgs(args, 1, {});
+    const network = fixedArgs[0] || process.env.NETWORK_NAME;
+    if (!network) {
+      console.error(`need to specify the network as first argument (or via env: NETWORK_NAME)`);
+      return;
+    }
+    await performAction(['contracts:deploy', network]);
+    // await performAction(['subgraph:deploy', network]);
+    await performAction(['booking-service:deploy', network]);
   } else if (firstArg === 'stop') {
     await execute(`docker-compose down -v`);
   } else if (firstArg === 'externals') {

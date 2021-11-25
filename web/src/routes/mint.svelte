@@ -443,7 +443,7 @@
         <div class="inline-block md:w-64 w-32 mx-auto">
           <p class="text-bleeps">
             {#if $ownersState?.expectedValue}
-              Current Price: {$ownersState?.expectedValue.div('1000000000000000').toNumber() / 1000} ETH
+              Price: {$ownersState?.expectedValue.div('1000000000000000').toNumber() / 1000} ETH
             {/if}
           </p>
         </div>

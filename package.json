@@ -44,6 +44,7 @@
     "web:build:serve": "node ./_scripts.js web:build:serve",
     "---------------------- DEPLOYMENT ----------------------": "deployments",
     "deploy": "node ./_scripts.js deploy",
+    "deploy:noweb": "node ./_scripts.js deploy:noweb",
     "web:deploy": "node ./_scripts.js web:deploy",
     "---------------------- DEVELOPMENT ----------------------": "run external services, setup subgraph and deploy it on the local graph-node + deploy the contracts and seed it",
     "stop": "node ./_scripts.js stop",
