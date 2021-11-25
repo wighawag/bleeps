@@ -17,7 +17,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const Bleeps = await deployments.get('Bleeps');
   const BleepsDAOAccount = await deployments.get('BleepsDAOAccount');
 
+  let reuseOldPrivateKeys = true;
   if (networkName === 'localhost') {
+    reuseOldPrivateKeys = false;
     await deployments.delete('BleepsInitialSale');
   }
 
@@ -34,7 +36,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       if (keys && keys.length > 0) {
         privateKeys = keys;
       }
-    } catch (e) {}
+    } catch (e) {
+      if (reuseOldPrivateKeys) {
+        try {
+          const keysFromFileStr = await deployments.readDotFile(privateKeysFilepath);
+          const keys = JSON.parse(keysFromFileStr);
+          if (keys && keys.length > 0) {
+            privateKeys = keys;
+          }
+        } catch (e) {}
+      }
+    }
 
     const mandalaOwners = JSON.parse(fs.readFileSync('mandalaOwners.json').toString());
 
