@@ -5,28 +5,7 @@ import "./ERC721Base.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
-
-interface IERC4494Draft {
-    function DOMAIN_SEPARATOR() external view returns (bytes32);
-
-    /// @notice Allows to retrieve current nonce for token
-    /// @param tokenId token id
-    /// @return current token nonce
-    function tokenNonces(uint256 tokenId) external view returns (uint256);
-
-    /// @notice function to be called by anyone to approve `spender` using a Permit signature
-    /// @dev Anyone can call this to approve `spender`, even a third-party
-    /// @param spender the actor to approve
-    /// @param tokenId the token id
-    /// @param deadline the deadline for the permit to be used
-    /// @param signature permit
-    function permit(
-        address spender,
-        uint256 tokenId,
-        uint256 deadline,
-        bytes memory signature
-    ) external;
-}
+import "./IERC4494.sol";
 
 abstract contract ERC721BaseWithERC4494Permit is ERC721Base {
     using Address for address;
@@ -59,8 +38,12 @@ abstract contract ERC721BaseWithERC4494Permit is ERC721Base {
         return _DOMAIN_SEPARATOR();
     }
 
+    function nonces(address account) external view virtual returns (uint256 nonce) {
+        return accountNnonces(account);
+    }
+
     function nonces(uint256 id) external view virtual returns (uint256 nonce) {
-        return accountNnonces(id);
+        return tokenNonces(id);
     }
 
     function tokenNonces(uint256 id) public view returns (uint256 nonce) {
@@ -109,7 +92,10 @@ abstract contract ERC721BaseWithERC4494Permit is ERC721Base {
     /// @param id The id of the interface.
     /// @return Whether the interface is supported.
     function supportsInterface(bytes4 id) public pure virtual override returns (bool) {
-        return super.supportsInterface(id) || id == type(IERC4494Draft).interfaceId;
+        return
+            super.supportsInterface(id) ||
+            id == type(IERC4494).interfaceId ||
+            id == type(IERC4494Alternative).interfaceId;
     }
 
     // -------------------------------------------------------- INTERNAL --------------------------------------------------------------------
