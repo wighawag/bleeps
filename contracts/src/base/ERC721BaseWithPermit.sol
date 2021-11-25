@@ -3,15 +3,10 @@ pragma solidity 0.8.9;
 
 import "./ERC721Base.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-
-interface IERC1271 {
-    function isValidSignature(bytes32 hash, bytes calldata signature) external view returns (bytes4 magicValue);
-}
+import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 
 abstract contract ERC721BaseWithPermit is ERC721Base {
     using Address for address;
-
-    bytes4 internal constant ERC1271_MAGICVALUE = 0x1626ba7e;
 
     bytes32 public constant PERMIT_TYPEHASH =
         keccak256("Permit(address spender,uint256 tokenId,uint256 nonce,uint256 deadline)");
@@ -53,16 +48,14 @@ abstract contract ERC721BaseWithPermit is ERC721Base {
         address spender,
         uint256 id,
         uint256 deadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
+        bytes memory sig
     ) external {
         require(deadline >= block.timestamp, "PERMIT_DEADLINE_EXPIRED");
 
         (address owner, uint256 blockNumber) = _ownerAndBlockNumberOf(id);
         require(owner != address(0), "NONEXISTENT_TOKEN");
 
-        _requireValidPermit(owner, spender, id, deadline, _tokenNonces[id]++, v, r, s);
+        _requireValidPermit(owner, spender, id, deadline, _tokenNonces[id]++, sig);
 
         _approveFor(owner, blockNumber, spender, id);
     }
@@ -71,13 +64,11 @@ abstract contract ERC721BaseWithPermit is ERC721Base {
         address signer,
         address spender,
         uint256 deadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
+        bytes memory sig
     ) external {
         require(deadline >= block.timestamp, "PERMIT_DEADLINE_EXPIRED");
 
-        _requireValidPermitForAll(signer, spender, deadline, _userNonces[signer]++, v, r, s);
+        _requireValidPermitForAll(signer, spender, deadline, _userNonces[signer]++, sig);
 
         _setApprovalForAll(signer, spender, true);
     }
@@ -90,9 +81,7 @@ abstract contract ERC721BaseWithPermit is ERC721Base {
         uint256 id,
         uint256 deadline,
         uint256 nonce,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
+        bytes memory sig
     ) internal view {
         bytes32 digest = keccak256(
             abi.encodePacked(
@@ -101,7 +90,7 @@ abstract contract ERC721BaseWithPermit is ERC721Base {
                 keccak256(abi.encode(PERMIT_TYPEHASH, spender, id, nonce, deadline))
             )
         );
-        return _requireValidSignature(signer, digest, v, r, s);
+        require(SignatureChecker.isValidSignatureNow(signer, digest, sig), "INVALID_SIGNATURE");
     }
 
     function _requireValidPermitForAll(
@@ -109,9 +98,7 @@ abstract contract ERC721BaseWithPermit is ERC721Base {
         address spender,
         uint256 deadline,
         uint256 nonce,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
+        bytes memory sig
     ) internal view {
         bytes32 digest = keccak256(
             abi.encodePacked(
@@ -120,26 +107,7 @@ abstract contract ERC721BaseWithPermit is ERC721Base {
                 keccak256(abi.encode(PERMIT_FOR_ALL_TYPEHASH, spender, nonce, deadline))
             )
         );
-        _requireValidSignature(signer, digest, v, r, s);
-    }
-
-    function _requireValidSignature(
-        address signer,
-        bytes32 digest,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) internal view {
-        if (signer.isContract()) {
-            require(
-                IERC1271(signer).isValidSignature(digest, abi.encodePacked(r, s, v)) == ERC1271_MAGICVALUE,
-                "SIGNATURE_1271_NOT_MATCHING"
-            );
-        } else {
-            address recoveredAddress = ecrecover(digest, v, r, s);
-            require(recoveredAddress != address(0), "SIGNATURE_INVALID");
-            require(recoveredAddress == signer, "SIGNATURE_WRONG_SIGNER");
-        }
+        require(SignatureChecker.isValidSignatureNow(signer, digest, sig), "INVALID_SIGNATURE");
     }
 
     /// @dev Return the DOMAIN_SEPARATOR.

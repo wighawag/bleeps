@@ -55,13 +55,11 @@ describe('Bleeps Permit', function () {
       deadline,
     });
 
-    const {v, r, s} = splitSignature(signature);
-
     await expect(users[1].Bleeps.transferFrom(users[0].address, users[2].address, tokenId)).to.be.revertedWith(
       'UNAUTHORIZED_TRANSFER'
     );
 
-    await users[1].Bleeps.permit(spender, tokenId, deadline, v, r, s);
+    await users[1].Bleeps.permit(spender, tokenId, deadline, signature);
 
     await expect(users[1].Bleeps.transferFrom(users[0].address, users[2].address, 2)).to.be.revertedWith(
       'UNAUTHORIZED_TRANSFER'
@@ -79,16 +77,14 @@ describe('Bleeps Permit', function () {
       deadline,
     });
 
-    const {v: v2, r: r2, s: s2} = splitSignature(signature2);
-
     await expect(users[4].Bleeps.transferFrom(users[2].address, users[5].address, tokenId)).to.be.revertedWith(
       'UNAUTHORIZED_TRANSFER'
     );
 
-    await expect(users[4].Bleeps.permit(users[4].address, tokenId, deadline, v, r, s)).to.be.revertedWith(
-      'SIGNATURE_WRONG_SIGNER'
+    await expect(users[4].Bleeps.permit(users[4].address, tokenId, deadline, signature)).to.be.revertedWith(
+      'INVALID_SIGNATURE'
     );
-    await users[4].Bleeps.permit(users[4].address, tokenId, deadline, v2, r2, s2);
+    await users[4].Bleeps.permit(users[4].address, tokenId, deadline, signature2);
 
     await expect(users[4].Bleeps.transferFrom(users[2].address, users[5].address, 6)).to.be.revertedWith(
       'UNAUTHORIZED_TRANSFER'
@@ -121,13 +117,11 @@ describe('Bleeps Permit', function () {
       deadline,
     });
 
-    const {v, r, s} = splitSignature(signature);
-
     await expect(users[1].Bleeps.transferFrom(users[0].address, users[2].address, 1)).to.be.revertedWith(
       'UNAUTHORIZED_TRANSFER'
     );
 
-    await users[1].Bleeps.permitForAll(signer, spender, deadline, v, r, s);
+    await users[1].Bleeps.permitForAll(signer, spender, deadline, signature);
 
     await users[1].Bleeps.transferFrom(users[0].address, users[2].address, 1);
     await users[1].Bleeps.transferFrom(users[0].address, users[2].address, 2);
@@ -138,16 +132,14 @@ describe('Bleeps Permit', function () {
       deadline,
     });
 
-    const {v: v2, r: r2, s: s2} = splitSignature(signature2);
-
     await expect(users[4].Bleeps.transferFrom(users[0].address, users[5].address, 5)).to.be.revertedWith(
       'UNAUTHORIZED_TRANSFER'
     );
 
-    await expect(users[4].Bleeps.permitForAll(signer, users[4].address, deadline, v, r, s)).to.be.revertedWith(
-      'SIGNATURE_WRONG_SIGNER'
+    await expect(users[4].Bleeps.permitForAll(signer, users[4].address, deadline, signature)).to.be.revertedWith(
+      'INVALID_SIGNATURE'
     );
-    await users[4].Bleeps.permitForAll(signer, users[4].address, deadline, v2, r2, s2);
+    await users[4].Bleeps.permitForAll(signer, users[4].address, deadline, signature2);
 
     await users[4].Bleeps.transferFrom(users[0].address, users[5].address, 5);
     await users[4].Bleeps.transferFrom(users[0].address, users[5].address, 6);
