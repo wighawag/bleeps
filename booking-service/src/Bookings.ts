@@ -133,7 +133,7 @@ export class Bookings extends DO {
         available = true;
       } else {
         available = false;
-        return createResponse({success: false, message: 'too many bookings'});
+        return createResponse({success: false, message: 'too many bookings, wait for your tx to settle.'});
       }
 
       if (!publicSale) {
@@ -197,14 +197,17 @@ export class Bookings extends DO {
     for (const transaction of transactions) {
       const transactionFromPeers = await this.provider.getTransaction(transaction.hash);
       if (transactionFromPeers) {
-        if (transactionFromPeers.confirmations) {
+        if (transactionFromPeers.to?.toLocaleLowerCase() !== contracts.BleepsInitialSale.address.toLowerCase()) {
+          // delete tx not targeting the Sale contract
+          transactionsToDelete.push(transaction.hash);
+        } else if (transactionFromPeers.confirmations) {
           const receipt = await this.provider.getTransactionReceipt(transaction.hash);
           this.info({status: receipt.status, hash: transaction.hash, confirmations: receipt.confirmations});
           if (receipt.status == 0) {
             this.info(`adding to delete list : ${transaction.hash}`);
             transactionsToDelete.push(transaction.hash);
           } else {
-            if (receipt.confirmations > 12) {
+            if (receipt.confirmations > 6) {
               transactionsToDelete.push(transaction.hash);
             } else {
               // transactionsToUpdate.push({hash: transaction.hash, confirmations: receipt.confirmations});
