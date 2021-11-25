@@ -217,7 +217,7 @@ async function performAction(rawArgs) {
       return;
     }
     await performAction(['contracts:deploy', network]);
-    await performAction(['subgraph:deploy', network]);
+    // await performAction(['subgraph:deploy', network]);
     await performAction(['web:deploy', network]);
     await performAction(['booking-service:deploy', network]);
   } else if (firstArg === 'stop') {

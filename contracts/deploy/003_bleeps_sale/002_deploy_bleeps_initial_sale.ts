@@ -14,7 +14,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const {deployer, saleRecipient, initialBleepsMinterAdmin} = await getNamedAccounts();
 
-  const MandalaToken = await deployments.get('MandalaToken');
   const Bleeps = await deployments.get('Bleeps');
   const BleepsDAOAccount = await deployments.get('BleepsDAOAccount');
 
@@ -78,11 +77,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         }`
       );
     } else if (networkName == 'staging') {
-      startTime = 1638266400;
+      startTime += 20 * 60; // add 20 min
     }
     let publicSaleTimestamp = startTime + 3 * days;
     if (networkName == 'staging') {
-      publicSaleTimestamp = 3600;
+      publicSaleTimestamp = startTime + 20 * 60; // 20 min
     }
     const deploymentCost = parseEther('2'); // TODO revisit (cost dto deploy the set of contracts)
     const deploymentCostStr = deploymentCost.toString();
