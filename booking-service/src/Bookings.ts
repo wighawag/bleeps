@@ -198,16 +198,17 @@ export class Bookings extends DO {
       const transactionFromPeers = await this.provider.getTransaction(transaction.hash);
       if (transactionFromPeers) {
         if (transactionFromPeers.to?.toLocaleLowerCase() !== contracts.BleepsInitialSale.address.toLowerCase()) {
-          // delete tx not targeting the Sale contract
+          this.info(`invalid tx : ${transaction.hash}`);
           transactionsToDelete.push(transaction.hash);
         } else if (transactionFromPeers.confirmations) {
           const receipt = await this.provider.getTransactionReceipt(transaction.hash);
           this.info({status: receipt.status, hash: transaction.hash, confirmations: receipt.confirmations});
           if (receipt.status == 0) {
-            this.info(`adding to delete list : ${transaction.hash}`);
+            this.info(`tx failed : ${transaction.hash}`);
             transactionsToDelete.push(transaction.hash);
           } else {
             if (receipt.confirmations > 6) {
+              this.info(`tx finalized : ${transaction.hash}`);
               transactionsToDelete.push(transaction.hash);
             } else {
               // transactionsToUpdate.push({hash: transaction.hash, confirmations: receipt.confirmations});
@@ -215,12 +216,13 @@ export class Bookings extends DO {
           }
         } else {
           if (timestamp > transaction.timestamp + 60) {
-            this.info(`pending for ${timestamp - transaction.timestamp} seconds`);
+            this.info(`pending for ${timestamp - transaction.timestamp} seconds : ${transaction.hash}`);
             // transactionsToDelete.push(transaction.hash);
           }
         }
       } else {
         if (timestamp > transaction.timestamp + 60) {
+          this.info(`cannot find after ${timestamp - transaction.timestamp} seconds : ${transaction.hash}`);
           transactionsToDelete.push(transaction.hash);
         }
       }
