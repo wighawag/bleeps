@@ -81,7 +81,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await deployments.saveDotFile(privateKeysTMPFilepath, privateKeysJsonString);
 
     let startTime = Math.floor(Date.now() / 1000) + 3 * 60;
-    if (networkName === 'mainnet') {
+    if (networkName === 'hardhat') {
+      startTime = Math.floor(Date.now() / 1000);
+    } else if (networkName === 'mainnet') {
       startTime = 1638266400;
       log(
         `mainnet startTime:  ${
