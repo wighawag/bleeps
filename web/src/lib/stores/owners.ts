@@ -54,8 +54,9 @@ type TransactionRecord = {
 type QueryResult = {
   addresses: string[];
   price: BigNumber;
+  startTime: BigNumber;
   whitelistPrice: BigNumber;
-  whitelistTimeLimit: BigNumber;
+  whitelistEndTime: BigNumber;
   whitelistMerkleRoot: string;
   passUsed: boolean;
   uptoInstr: BigNumber;
@@ -92,8 +93,9 @@ export type OwnersState = {
   numLeftPerInstr?: {[instr: number]: number};
   priceInfo?: {
     price: BigNumber;
+    startTime: BigNumber;
     whitelistPrice: BigNumber;
-    whitelistTimeLimit: BigNumber;
+    whitelistEndTime: BigNumber;
     whitelistMerkleRoot: string;
     passUsed: boolean;
     uptoInstr: BigNumber;
@@ -105,6 +107,7 @@ export type OwnersState = {
   passId?: number;
   invalidPassId: boolean;
   timeLeftBeforePublic?: number;
+  timeLeftBeforeSale?: number;
   normalExpectedValue?: BigNumber;
   expectedValue?: BigNumber;
 };
@@ -185,9 +188,11 @@ class OwnersStateStore extends BaseStore<OwnersState> {
 
   private _everySeconds() {
     if (this.$store.priceInfo) {
-      const {normalExpectedValue, expectedValue, timeLeftBeforePublic} = this.computeExpectedValue();
+      const {normalExpectedValue, expectedValue, timeLeftBeforePublic, timeLeftBeforeSale} =
+        this.computeExpectedValue();
       this.setPartial({
         timeLeftBeforePublic,
+        timeLeftBeforeSale,
         normalExpectedValue,
         expectedValue,
       });
@@ -244,10 +249,11 @@ class OwnersStateStore extends BaseStore<OwnersState> {
         addresses: result.addresses.concat(),
         passUsed: result.passUsed,
         price: result.price.add(0),
+        startTime: result.startTime.add(0),
         uptoInstr: result.uptoInstr.add(0),
         whitelistMerkleRoot: result.whitelistMerkleRoot,
         whitelistPrice: result.whitelistPrice.add(0),
-        whitelistTimeLimit: result.whitelistTimeLimit.add(0),
+        whitelistEndTime: result.whitelistEndTime.add(0),
       };
       // const map: {[id: number]: string} = {};
       // for (let i = 0; i < 576; i++) {
@@ -302,7 +308,8 @@ class OwnersStateStore extends BaseStore<OwnersState> {
           numLeftPerInstr[i >> 6]--;
         }
       }
-      const {normalExpectedValue, expectedValue, timeLeftBeforePublic} = this.computeExpectedValue();
+      const {normalExpectedValue, expectedValue, timeLeftBeforePublic, timeLeftBeforeSale} =
+        this.computeExpectedValue();
 
       this.setPartial({
         tokenOwners,
@@ -310,13 +317,15 @@ class OwnersStateStore extends BaseStore<OwnersState> {
         state: 'Ready',
         priceInfo: {
           price: processedResult.price,
+          startTime: processedResult.startTime,
           whitelistPrice: processedResult.whitelistPrice,
-          whitelistTimeLimit: processedResult.whitelistTimeLimit,
+          whitelistEndTime: processedResult.whitelistEndTime,
           whitelistMerkleRoot: processedResult.whitelistMerkleRoot,
           passUsed: this.$store.passId !== undefined && processedResult.passUsed,
           uptoInstr: processedResult.uptoInstr,
         },
         timeLeftBeforePublic,
+        timeLeftBeforeSale,
         numLeftPerInstr,
         normalExpectedValue,
         expectedValue,
@@ -328,12 +337,19 @@ class OwnersStateStore extends BaseStore<OwnersState> {
     }
   }
 
-  computeExpectedValue(): {normalExpectedValue?: BigNumber; expectedValue?: BigNumber; timeLeftBeforePublic?: number} {
+  computeExpectedValue(): {
+    normalExpectedValue?: BigNumber;
+    expectedValue?: BigNumber;
+    timeLeftBeforePublic?: number;
+    timeLeftBeforeSale?: number;
+  } {
     if (this.$store.priceInfo) {
       const priceInfo = this.$store.priceInfo;
       let normalExpectedValue = priceInfo.price;
 
-      const timeLeftBeforePublic = priceInfo.whitelistTimeLimit.sub(now()).toNumber();
+      const timeLeftBeforeSale = priceInfo.startTime.sub(now()).toNumber();
+
+      const timeLeftBeforePublic = priceInfo.whitelistEndTime.sub(now()).toNumber();
 
       normalExpectedValue = priceInfo.price;
       let expectedValue = normalExpectedValue;
@@ -341,7 +357,7 @@ class OwnersStateStore extends BaseStore<OwnersState> {
         expectedValue = priceInfo.whitelistPrice;
       }
 
-      return {expectedValue, normalExpectedValue, timeLeftBeforePublic}; //.add(priceInfo.initPrice.div(10));
+      return {expectedValue, normalExpectedValue, timeLeftBeforePublic, timeLeftBeforeSale}; //.add(priceInfo.initPrice.div(10));
       // return priceInfo.initPrice;
     }
     return {};

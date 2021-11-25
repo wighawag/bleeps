@@ -2,7 +2,8 @@ import 'isomorphic-unfetch';
 import {calculateHash, hashLeaves, MerkleTree} from 'bleeps-common';
 import {Wallet} from 'ethers';
 import {SigningKey, solidityKeccak256} from 'ethers/lib/utils';
-import {deployments, network} from 'hardhat';
+import {deployments} from 'hardhat';
+const networkName = deployments.getNetworkName();
 
 let BOOKING_SERVICE_URL = 'http://localhost:8787';
 
@@ -52,9 +53,9 @@ function pause(numSeconds: number): Promise<void> {
 }
 
 async function main() {
-  if (network.name === 'staging') {
+  if (networkName === 'staging') {
     BOOKING_SERVICE_URL = 'https://booking-service-staging.rim.workers.dev';
-  } else if (network.name === 'mainnet') {
+  } else if (networkName === 'mainnet') {
     BOOKING_SERVICE_URL = 'https://booking-service-mainnet.rim.workers.dev';
   }
 
@@ -65,14 +66,14 @@ async function main() {
 
   let counter = 0;
   async function startBooking(bleepId?: number, hold?: number) {
-    const passId = counter;
+    const passId = counter + 24;
     if (bleepId === undefined) {
       bleepId = counter;
     }
     if (!hold) {
       hold = 30;
     }
-    counter++;
+    counter = (counter + 1) % 400;
 
     // const signer = new SigningKey(privateKeys[passId]);
     const signerWallet = new Wallet(privateKeys[passId]);

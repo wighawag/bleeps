@@ -257,6 +257,7 @@
     return (
       !(instr === 7 || instr === 8) &&
       state.priceInfo?.uptoInstr?.gte(instr) &&
+      state.timeLeftBeforeSale <= 0 &&
       (state.timeLeftBeforePublic <= 0 || state.passId !== undefined) &&
       !state.invalidPassId &&
       !state.priceInfo?.passUsed &&
@@ -280,6 +281,7 @@
   function mintButton(state: OwnersState, id: number): string {
     if (
       state.priceInfo?.uptoInstr?.gte(id >> 6) &&
+      state.timeLeftBeforeSale <= 0 &&
       (state.timeLeftBeforePublic <= 0 || state.passId !== undefined) &&
       !state.invalidPassId &&
       !state.priceInfo?.passUsed &&
@@ -293,7 +295,9 @@
         ' ETH'
       );
     } else {
-      if (state.timeLeftBeforePublic > 0 && state.passId === undefined) {
+      if (state.timeLeftBeforeSale > 0) {
+        return 'sale not started';
+      } else if (state.timeLeftBeforePublic > 0 && state.passId === undefined) {
         return 'need pass';
       } else if (state.tokenOwners && state.tokenOwners[id].address !== '0x0000000000000000000000000000000000000000') {
         return 'already minted';
@@ -306,6 +310,16 @@
       } else {
         return 'not available';
       }
+    }
+  }
+
+  function time2text(numSeconds): string {
+    if (numSeconds < 120) {
+      return `${numSeconds} seconds`;
+    } else if (numSeconds < 7200) {
+      return `${Math.floor(numSeconds / 60)} minutes and ${numSeconds % 60} seconds`;
+    } else {
+      return `${Math.floor(numSeconds / 60 / 60)} hours`;
     }
   }
 </script>
@@ -328,8 +342,21 @@
       {/if}
 
       {#if $ownersState?.expectedValue}
-        {#if $ownersState.priceInfo?.whitelistTimeLimit}
-          {#if now() < $ownersState.priceInfo.whitelistTimeLimit.toNumber()}
+        {#if $ownersState.priceInfo?.startTime && $ownersState.timeLeftBeforeSale > 0}
+          <p class="text-yellow-600 mb-2">
+            {#if $ownersState.timeLeftBeforeSale > 48 * 3600}
+              The Sale is not open yet, Please wait until {new Date(
+                $ownersState?.priceInfo.startTime.mul(1000).toNumber()
+              ).toLocaleString() +
+                ' (' +
+                Intl.DateTimeFormat().resolvedOptions().timeZone +
+                ')'}
+            {:else}
+              The Sale is not open yet, Please wait {time2text($ownersState.timeLeftBeforeSale)}
+            {/if}
+          </p>
+        {:else if $ownersState.priceInfo?.whitelistEndTime}
+          {#if now() < $ownersState.priceInfo.whitelistEndTime.toNumber()}
             {#if $ownersState.invalidPassId}
               <p class="text-yellow-600 mb-2">Your pass is invalid.</p>
             {:else if $ownersState?.passId !== undefined}
@@ -348,7 +375,7 @@
                     allowed to purchase one Bleep before others
                   {/if}
                   (public sale open on {new Date(
-                    $ownersState?.priceInfo.whitelistTimeLimit.mul(1000).toNumber()
+                    $ownersState?.priceInfo.whitelistEndTime.mul(1000).toNumber()
                   ).toLocaleString() +
                     ' (' +
                     Intl.DateTimeFormat().resolvedOptions().timeZone +
@@ -364,7 +391,7 @@
             {:else}
               <p class="text-yellow-600 mb-2">
                 The Sale is not open yet, unless you get a pass key or have been a mandalas owner. Public Sale open on : {new Date(
-                  $ownersState?.priceInfo.whitelistTimeLimit.mul(1000).toNumber()
+                  $ownersState?.priceInfo.whitelistEndTime.mul(1000).toNumber()
                 ).toLocaleString()}
               </p>
             {/if}

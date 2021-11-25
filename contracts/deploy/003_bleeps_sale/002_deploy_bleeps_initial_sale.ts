@@ -10,6 +10,7 @@ import {getUnnamedAccounts} from 'hardhat';
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, getNamedAccounts} = hre;
   const {deploy, execute, read, log} = deployments;
+  const networkName = deployments.getNetworkName();
 
   const {deployer, saleRecipient, initialBleepsMinterAdmin} = await getNamedAccounts();
 
@@ -17,7 +18,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const Bleeps = await deployments.get('Bleeps');
   const BleepsDAOAccount = await deployments.get('BleepsDAOAccount');
 
-  if (hre.network.name === 'localhost') {
+  if (networkName === 'localhost') {
     await deployments.delete('BleepsInitialSale');
   }
 
@@ -38,7 +39,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     const mandalaOwners = JSON.parse(fs.readFileSync('mandalaOwners.json').toString());
 
-    if (hre.network.name === 'localhost' || hre.network.name === 'hardhat') {
+    if (networkName === 'localhost' || networkName === 'hardhat') {
       const unnamedAcounts = await getUnnamedAccounts();
       for (let i = 0; i < 2; i++) {
         mandalaOwners.push({id: unnamedAcounts[i], numMandalas: 0}); // fake mandala owners
@@ -68,7 +69,21 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     await deployments.saveDotFile(privateKeysTMPFilepath, privateKeysJsonString);
 
-    const publicSaleTimestamp = Math.floor(Date.now() / 1000) + 3 * days;
+    let startTime = Math.floor(Date.now() / 1000) + 3 * 60;
+    if (networkName === 'mainnet') {
+      startTime = 1638266400;
+      log(
+        `mainnet startTime:  ${
+          new Date(startTime * 1000).toLocaleString() + ' (' + Intl.DateTimeFormat().resolvedOptions().timeZone + ')'
+        }`
+      );
+    } else if (networkName == 'staging') {
+      startTime = 1638266400;
+    }
+    let publicSaleTimestamp = startTime + 3 * days;
+    if (networkName == 'staging') {
+      publicSaleTimestamp = 3600;
+    }
     const deploymentCost = parseEther('2'); // TODO revisit (cost dto deploy the set of contracts)
     const deploymentCostStr = deploymentCost.toString();
     const price = parseEther('0.1');
@@ -84,6 +99,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       args: [
         Bleeps.address,
         price, // normal price
+        startTime,
         price, // whitelistPrice
         publicSaleTimestamp,
         merkleRootHash,
@@ -93,11 +109,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         2, // 3 first instrument are open
       ],
       linkedData:
-        hre.network.name === 'hardhat'
+        networkName === 'hardhat'
           ? {
               numPrivatePasses: privateKeys.length,
               privateKeys,
               leaves,
+              startTime,
               publicSaleTimestamp,
               deploymentCost: 0, //deploymentCostStr,#
               percentageForCreator: percentageForCreator.toNumber(),
@@ -106,6 +123,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
           : {
               numPrivatePasses: privateKeys.length,
               leaves,
+              startTime,
               publicSaleTimestamp,
               deploymentCost: 0, //deploymentCostStr
               percentageForCreator: percentageForCreator.toNumber(),

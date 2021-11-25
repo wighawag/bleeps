@@ -11,8 +11,9 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
     using ECDSA for bytes32;
 
     uint256 internal immutable _price;
+    uint256 internal immutable _startTime;
     uint256 internal immutable _whitelistPrice;
-    uint256 internal immutable _whitelistTimeLimit;
+    uint256 internal immutable _whitelistEndTime;
     bytes32 internal immutable _whitelistMerkleRoot;
 
     uint256 internal _uptoInstr;
@@ -21,8 +22,9 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
     constructor(
         Bleeps bleeps,
         uint256 price,
+        uint256 startTime,
         uint256 whitelistPrice,
-        uint256 whitelistTimeLimit,
+        uint256 whitelistEndTime,
         bytes32 whitelistMerkleRoot,
         address payable projectCreator,
         uint256 creatorFeePer10000,
@@ -30,8 +32,9 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
         uint256 uptoInstr
     ) SaleBase(bleeps, projectCreator, creatorFeePer10000, saleRecipient) {
         _price = price;
+        _startTime = startTime;
         _whitelistPrice = whitelistPrice;
-        _whitelistTimeLimit = whitelistTimeLimit;
+        _whitelistEndTime = whitelistEndTime;
         _whitelistMerkleRoot = whitelistMerkleRoot;
         _uptoInstr = uptoInstr;
     }
@@ -41,12 +44,13 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
         view
         returns (
             uint256 price,
+            uint256 startTime,
             uint256 whitelistPrice,
-            uint256 whitelistTimeLimit,
+            uint256 whitelistEndTime,
             bytes32 whitelistMerkleRoot
         )
     {
-        return (_price, _whitelistPrice, _whitelistTimeLimit, _whitelistMerkleRoot);
+        return (_price, _startTime, _whitelistPrice, _whitelistEndTime, _whitelistMerkleRoot);
     }
 
     function ownersAndPriceInfo(
@@ -59,8 +63,9 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
         returns (
             address[] memory addresses,
             uint256 price,
+            uint256 startTime,
             uint256 whitelistPrice,
-            uint256 whitelistTimeLimit,
+            uint256 whitelistEndTime,
             bytes32 whitelistMerkleRoot,
             bool passUsed,
             uint256 uptoInstr
@@ -68,8 +73,9 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
     {
         addresses = _bleeps.owners(ids);
         price = _price;
+        startTime = _startTime;
         whitelistPrice = _whitelistPrice;
-        whitelistTimeLimit = _whitelistTimeLimit;
+        whitelistEndTime = _whitelistEndTime;
         whitelistMerkleRoot = _whitelistMerkleRoot;
         passUsed = isPassUsed(passId);
         uptoInstr = _uptoInstr;
@@ -100,7 +106,7 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
     }
 
     function mint(uint16 id, address to) public payable {
-        require(block.timestamp >= _whitelistTimeLimit, "REQUIRE_PASS_OR_WAIT");
+        require(block.timestamp >= _whitelistEndTime, "REQUIRE_PASS_OR_WAIT");
         _payAndMint(id, to);
     }
 
@@ -130,7 +136,7 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
         uint256 passId,
         bytes32[] memory proof
     ) external payable {
-        if (block.timestamp < _whitelistTimeLimit) {
+        if (block.timestamp < _whitelistEndTime) {
             usePassIfAvailable(passId);
 
             address signer = msg.sender;
@@ -147,7 +153,7 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
         bytes memory signature,
         bytes32[] memory proof
     ) external payable {
-        if (block.timestamp < _whitelistTimeLimit) {
+        if (block.timestamp < _whitelistEndTime) {
             usePassIfAvailable(passId);
 
             address signer = keccak256(abi.encodePacked(passId, to)).recover(signature);
@@ -176,11 +182,12 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
     }
 
     function _payAndMint(uint16 id, address to) internal {
+        require(block.timestamp >= _startTime, "SALE_NOT_STARTED");
         require(id < 576, "INVALID_SOUND");
         require(isOpenForSale(id), "INSTURMENT_NOT_YET_FOR_SALE");
         require(!isReserved(id), "RESERVED");
 
-        uint256 expectedValue = block.timestamp >= _whitelistTimeLimit ? _price : _whitelistPrice;
+        uint256 expectedValue = block.timestamp >= _whitelistEndTime ? _price : _whitelistPrice;
 
         require(msg.value >= expectedValue, "NOT_ENOUGH");
         payable(msg.sender).transfer(msg.value - expectedValue);

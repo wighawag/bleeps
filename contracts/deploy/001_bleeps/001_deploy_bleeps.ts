@@ -4,6 +4,7 @@ import {DeployFunction} from 'hardhat-deploy/types';
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, getNamedAccounts} = hre;
   const {deploy, execute, read} = deployments;
+  const networkName = deployments.getNetworkName();
 
   const {
     deployer,
@@ -17,7 +18,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   } = await getNamedAccounts();
 
   const ENS = await deployments.getOrNull('ENS');
-  if (hre.network.name === 'mainnet' || hre.network.name === 'production') {
+  if (networkName === 'mainnet' || networkName === 'production') {
     if (!ENS) {
       throw new Error(`no ENS setup`);
     }

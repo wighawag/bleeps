@@ -1,11 +1,12 @@
 import {deployments, network} from 'hardhat';
+const networkName = deployments.getNetworkName();
 
 let url = 'http://localhost:3000';
 
 async function main() {
-  if (network.name === 'staging') {
+  if (networkName === 'staging') {
     url = 'https://goerli.bleeps.art';
-  } else if (network.name === 'mainnet') {
+  } else if (networkName === 'mainnet') {
     url = 'https://bleeps.art';
   }
 

@@ -2,10 +2,8 @@ import {joinSignature} from '@ethersproject/bytes';
 import {calculateHash, hashLeaves, MerkleTree} from 'bleeps-common';
 import {Wallet} from 'ethers';
 import {parseEther, SigningKey, solidityKeccak256} from 'ethers/lib/utils';
-import {getUnnamedAccounts, deployments, ethers, network} from 'hardhat';
+import {getUnnamedAccounts, deployments, ethers} from 'hardhat';
 import {BleepsFixedPriceSale} from '../typechain';
-import fs from 'fs';
-const {execute} = deployments;
 
 const args = process.argv.slice(2);
 const passId = args[0];
@@ -22,7 +20,7 @@ async function main() {
 
   let privateKeys; // = //await deployments.loadDotFile()
   try {
-    const dataStr = fs.readFileSync(`deployments/${network.name}/.privateKeys.json`).toString();
+    const dataStr = await deployments.readDotFile(`.privateKeys.json`);
     privateKeys = JSON.parse(dataStr);
   } catch (e) {}
   const signingKey = new SigningKey(privateKeys[passId]);
