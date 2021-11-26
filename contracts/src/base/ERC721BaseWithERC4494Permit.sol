@@ -3,13 +3,11 @@ pragma solidity 0.8.9;
 
 import "./ERC721Base.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 import "./IERC4494.sol";
 
 abstract contract ERC721BaseWithERC4494Permit is ERC721Base {
     using Address for address;
-    using ECDSA for bytes32;
 
     bytes32 public constant PERMIT_TYPEHASH =
         keccak256("Permit(address spender,uint256 tokenId,uint256 nonce,uint256 deadline)");
@@ -68,8 +66,8 @@ abstract contract ERC721BaseWithERC4494Permit is ERC721Base {
         require(owner != address(0), "NONEXISTENT_TOKEN");
 
         // We use blockNumber as nonce as we already store it per tokens. It can thus act as an increasing transfer counter.
-        // while technically multiple transfer could happen in the block, the signed message would be of a previous one
-        // and the transfer would use a more recent blockNumber, invalidation that message
+        // while technically multiple transfer could happen in the same block, the signed message would be using a previous block.
+        // And the transfer would use then a more recent blockNumber, invalidation that message when transfer is executed.
         _requireValidPermit(owner, spender, tokenId, deadline, blockNumber, sig);
 
         _approveFor(owner, blockNumber, spender, tokenId);

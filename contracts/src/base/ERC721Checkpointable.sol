@@ -34,9 +34,9 @@
 
 pragma solidity 0.8.9;
 
-import "./ERC721BaseWithPermit.sol";
+import "./ERC721BaseWithERC4494Permit.sol";
 
-abstract contract ERC721Checkpointable is ERC721BaseWithPermit {
+abstract contract ERC721Checkpointable is ERC721BaseWithERC4494Permit {
     bool internal _useCheckpoints = true; // can only be disabled and never re-enabled
 
     /// @notice Defines decimals as per ERC-20 convention to make integrations with 3rd party governance platforms easier
