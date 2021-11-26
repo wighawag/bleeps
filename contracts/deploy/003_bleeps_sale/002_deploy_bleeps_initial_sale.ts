@@ -91,11 +91,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         }`
       );
     } else if (networkName == 'staging') {
-      startTime += 20 * 60; // add 20 min
+      startTime += Math.floor(0.5 * days);
     }
     let publicSaleTimestamp = startTime + 3 * days;
     if (networkName == 'staging') {
-      publicSaleTimestamp = startTime + 20 * 60; // 20 min
+      publicSaleTimestamp = Math.floor(startTime + 1.1 * days);
     }
     // const deploymentCost = parseEther('2'); // TODO revisit (cost dto deploy the set of contracts)
     const price = parseEther('0.1');
