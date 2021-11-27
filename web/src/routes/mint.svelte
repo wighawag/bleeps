@@ -354,6 +354,10 @@
         <p class="text-bleeps text-xs">mandala</p>
       </div>
     {/if}
+  {:else}
+    <div class="absolute right-0 text-white-600 mb-2 text-center border border-red-400 p-2 mr-2 rounded-md">
+      <p>Pass being used...</p>
+    </div>
   {/if}
 {/if}
 
