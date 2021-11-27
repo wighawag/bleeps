@@ -325,24 +325,31 @@
 </script>
 
 {#if $ownersState.invalidPassId}
-  <div class="float-right text-white-600 mb-2 text-center border border-red-400 p-2 mr-2 rounded-md">
+  <div class="absolute right-0 text-white-600 mb-2 text-center border border-red-400 p-2 mr-2 rounded-md">
     <p>Invalid Pass Key</p>
   </div>
 {:else if $ownersState?.passId !== undefined}
   {#if !$ownersState?.priceInfo?.passUsed}
     {#if $ownersState?.passKeySigner}
-      <div class="float-right text-white-600 mb-2 text-center border border-bleeps p-2 mr-2 rounded-md">
-        <p>1 Available Mint</p>
-        <p class="text-bleeps text-xs">passkey</p>
-      </div>
       {#if $wallet.address && $wallet.state === 'Ready' && $ownersState?.mandalaPassId && !$ownersState?.mandalaPassIdUsed}
-        <div class="float-right text-white-600 mb-2 text-center border border-bleeps p-2 mr-2 rounded-md">
+        <div class="absolute right-0 ">
+          <div class="text-white-600 mb-2 text-center border border-bleeps p-2 mr-2 rounded-md">
+            <p>1 Available Mint</p>
+            <p class="text-bleeps text-xs">passkey</p>
+          </div>
+          <div class="text-white-600 mb-2 text-center border border-bleeps p-2 mr-2 rounded-md">
+            <p>1 Available Mint</p>
+            <p class="text-bleeps text-xs">mandala</p>
+          </div>
+        </div>
+      {:else}
+        <div class="absolute right-0 text-white-600 mb-2 text-center border border-bleeps p-2 mr-2 rounded-md">
           <p>1 Available Mint</p>
-          <p class="text-bleeps text-xs">mandala</p>
+          <p class="text-bleeps text-xs">passkey</p>
         </div>
       {/if}
     {:else if $wallet.address && $wallet.state === 'Ready'}
-      <div class="float-right text-white-600 mb-2 text-center border border-bleeps p-2 mr-2 rounded-md">
+      <div class="absolute right-0 text-white-600 mb-2 text-center border border-bleeps p-2 mr-2 rounded-md">
         <p>1 Available Mint</p>
         <p class="text-bleeps text-xs">mandala</p>
       </div>
