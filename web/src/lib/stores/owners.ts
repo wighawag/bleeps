@@ -62,6 +62,7 @@ type QueryResult = {
   uptoInstr: BigNumber;
 };
 
+let invalidPassId = false;
 let signer: SigningKey | undefined;
 let signerWallet: Wallet | undefined;
 if (hashParams['passKey']) {
@@ -70,10 +71,11 @@ if (hashParams['passKey']) {
     signerWallet = new Wallet(hashParams['passKey']);
   } catch (e) {
     // TODO invalid passKey
+    invalidPassId = true;
   }
 }
 const merkleTree = new MerkleTree(hashLeaves(contracts.BleepsInitialSale.linkedData.leaves));
-let invalidPassId = false;
+
 let passId = signer
   ? contracts.BleepsInitialSale.linkedData.leaves.findIndex(
       (v) => v.signer.toLowerCase() == signerWallet.address.toLowerCase()
@@ -110,6 +112,8 @@ export type OwnersState = {
   timeLeftBeforeSale?: number;
   normalExpectedValue?: BigNumber;
   expectedValue?: BigNumber;
+  mandalaPassId?: number;
+  mandalaPassIdUsed?: boolean;
 };
 
 const allIds = Array.from(Array(576)).map((v, i) => i);
@@ -161,25 +165,40 @@ class OwnersStateStore extends BaseStore<OwnersState> {
   }
 
   private async _fetch() {
-    if (passId === undefined && wallet.address) {
-      passId = contracts.BleepsInitialSale.linkedData.leaves.findIndex(
+    let mandalaPassId: number | undefined;
+    if (contracts && wallet.address) {
+      mandalaPassId = contracts.BleepsInitialSale.linkedData.leaves.findIndex(
         (v) => v.signer.toLowerCase() == wallet.address.toLowerCase()
       );
-      if (passId === -1) {
-        // console.error('invalid passKey. not found in list');
-        passId = undefined;
-      } else {
-        console.log('you are whitelisted (mandala owner)');
+      if (mandalaPassId === -1) {
+        mandalaPassId = undefined;
       }
+      this.setPartial({mandalaPassId});
+    }
 
-      this.setPartial({passId});
+    if (passId === undefined) {
+      if (mandalaPassId !== undefined) {
+        passId = mandalaPassId;
+        console.log('you are whitelisted (mandala owner)');
+        this.setPartial({passId});
+      }
+    } else if (mandalaPassId !== undefined) {
+      const liveContracts = chain.contracts || fallback.contracts;
+      if (liveContracts) {
+        const data = await liveContracts.BleepsInitialSale.ownersAndPriceInfo(
+          mandalaPassId, //  '0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF',
+          []
+        );
+        this.setPartial({mandalaPassIdUsed: data.passUsed});
+      }
     }
 
     this.lastResult = await this.query();
     this.processQuery(this.lastResult);
 
-    if (wallet.provider) {
-      const daoBalance = await wallet.provider.getBalance(contracts.BleepsDAOAccount.address);
+    const provider = wallet.provider || wallet.fallbackProvider;
+    if (provider) {
+      const daoBalance = await provider.getBalance(contracts.BleepsDAOAccount.address);
       // console.log({daoBalance: daoBalance.toString(), address: contracts.BleepsDAOAccount.address});
       this.setPartial({daoTreasury: daoBalance});
     }

@@ -324,8 +324,34 @@
   }
 </script>
 
+{#if $ownersState.invalidPassId}
+  <div class="float-right text-white-600 mb-2 text-center border border-red-400 p-2 mr-2 rounded-md">
+    <p>Invalid Pass Key</p>
+  </div>
+{:else if $ownersState?.passId !== undefined}
+  {#if !$ownersState?.priceInfo?.passUsed}
+    {#if $ownersState?.passKeySigner}
+      <div class="float-right text-white-600 mb-2 text-center border border-bleeps p-2 mr-2 rounded-md">
+        <p>1 Available Mint</p>
+        <p class="text-bleeps text-xs">passkey</p>
+      </div>
+      {#if $wallet.address && $wallet.state === 'Ready' && $ownersState?.mandalaPassId && !$ownersState?.mandalaPassIdUsed}
+        <div class="float-right text-white-600 mb-2 text-center border border-bleeps p-2 mr-2 rounded-md">
+          <p>1 Available Mint</p>
+          <p class="text-bleeps text-xs">mandala</p>
+        </div>
+      {/if}
+    {:else if $wallet.address && $wallet.state === 'Ready'}
+      <div class="float-right text-white-600 mb-2 text-center border border-bleeps p-2 mr-2 rounded-md">
+        <p>1 Available Mint</p>
+        <p class="text-bleeps text-xs">mandala</p>
+      </div>
+    {/if}
+  {/if}
+{/if}
+
 <!-- {$ownersState.state} TODO show loading  -->
-<section class="px-4 text-center">
+<section class="px-4 text-center font-black">
   <div class="mx-auto">
     <img
       class="mb-4 mx-auto"
@@ -337,13 +363,9 @@
     />
 
     {#if $chain.state === 'Ready' || $fallback.state === 'Ready'}
-      {#if $ownersState?.daoTreasury}
-        <p>DAO Treasury: {$ownersState?.daoTreasury.div('1000000000000000').toNumber() / 1000} ETH</p>
-      {/if}
-
       {#if $ownersState?.expectedValue}
         {#if $ownersState.priceInfo?.startTime && $ownersState.timeLeftBeforeSale > 0}
-          <p class="text-yellow-600 mb-2">
+          <!-- <p class="text-yellow-600 mb-2">
             {#if $ownersState.timeLeftBeforeSale > 48 * 3600}
               The Sale is not open yet, Please wait until {new Date(
                 $ownersState?.priceInfo.startTime.mul(1000).toNumber()
@@ -354,10 +376,35 @@
             {:else}
               The Sale is not open yet, Please wait {time2text($ownersState.timeLeftBeforeSale)}
             {/if}
-          </p>
+          </p> -->
+
+          <div class="border-4 border-white w-96 h-24 pt-1 mx-auto">
+            <span class="text-bleeps">Private Sale for X and Y</span>
+            <div class="mx-auto mt-1">Opens in:</div>
+            <span>{time2text($ownersState.timeLeftBeforeSale)}</span>
+          </div>
         {:else if $ownersState.priceInfo?.whitelistEndTime}
           {#if now() < $ownersState.priceInfo.whitelistEndTime.toNumber()}
+            <div class="border-4 border-white w-96 h-24 pt-1 mx-auto">
+              <span>Ongoing </span> <span class="text-bleeps">Private Sale for X and Y</span>
+              <div class="mt-1 mx-auto">Time Left:</div>
+              <span>{time2text($ownersState.timeLeftBeforePublic)}</span>
+            </div>
+            <!--
             {#if $ownersState.invalidPassId}
+              <p class="float-right text-yellow-600 mb-2">Your pass is invalid.</p>
+            {:else if $ownersState?.passId !== undefined}
+              {#if $ownersState?.priceInfo?.passUsed}
+
+              {:else if $ownersState?.passKeySigner}
+                <p class="float-right text-green-600 mb-2">Pass</p>
+              {:else}
+                <p class="float-right text-green-600 mb-2">Mandala</p>
+              {/if}
+            {:else}
+
+            {/if} -->
+            <!-- {#if $ownersState.invalidPassId}
               <p class="text-yellow-600 mb-2">Your pass is invalid.</p>
             {:else if $ownersState?.passId !== undefined}
               {#if $ownersState?.priceInfo?.passUsed}
@@ -394,15 +441,25 @@
                   $ownersState?.priceInfo.whitelistEndTime.mul(1000).toNumber()
                 ).toLocaleString()}
               </p>
-            {/if}
+            {/if} -->
+          {:else}
+            <div class="border-4 border-white w-96 h-12 pt-2 mx-auto">
+              <span>Ongoing </span> <span class="text-bleeps">Public Sale</span>
+            </div>
           {/if}
         {/if}
       {:else}
         <p class="text-blue-600 text-xl mb-2">Loading...</p>
       {/if}
 
-      <div class="">
-        <div class="inline-block border-white md:w-64 w-32 md:h-24 h-16 border-2 mx-auto rounded-md">
+      {#if $ownersState?.daoTreasury !== undefined}
+        <p class="text-bleeps mt-8 font-black">
+          Bleeps DAO Treasury: {$ownersState?.daoTreasury.div('1000000000000000').toNumber() / 1000} ETH
+        </p>
+      {/if}
+
+      <div class="mt-2">
+        <div class="inline-block border-bleeps md:w-64 w-32 md:h-24 h-16 border-2 mx-auto rounded-md">
           {#if $ownersState?.numLeftPerInstr !== undefined}
             <div
               style={`width:${
@@ -415,7 +472,7 @@
             <div style="width:0%; background-color:#dab894;height:100%;position:relative;line-height:inherit;" />
           {/if}
         </div>
-        <div class="inline-block border-white border md:w-24 w-12 md:h-24 h-16 border-2 mx-auto rounded-md">
+        <div class="inline-block border-bleeps border md:w-24 w-12 md:h-24 h-16 border-2 mx-auto rounded-md">
           <p class="absolute my-8 mx-3 invisible md:visible">reserved</p>
           <div style="width:0%; background-color:#dab894;height:100%;position:relative;line-height:inherit;" />
         </div>
@@ -477,7 +534,7 @@
 
               <div
                 class={`${
-                  isInstrumentMintable($ownersState, instr) ? 'border-white' : 'border-gray-500'
+                  isInstrumentMintable($ownersState, instr) ? 'border-bleeps' : 'border-gray-500'
                 } w-32 h-16 border-2 mx-auto rounded-md`}
               >
                 {#if !(instr === 7 || instr === 8)}
