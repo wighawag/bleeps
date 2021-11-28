@@ -6,7 +6,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, ethers} = hre;
   const {execute, log} = deployments;
 
-  if (hre.network.name === 'mainnet') {
+  if (hre.network.name !== 'skip') {
     log('TODO : remove veto');
     return;
   }

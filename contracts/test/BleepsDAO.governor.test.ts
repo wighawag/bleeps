@@ -2,7 +2,7 @@ import {expect} from './chai-setup';
 import {ethers, deployments, getUnnamedAccounts, getNamedAccounts, network} from 'hardhat';
 import {Bleeps, BleepsDAOAccount, BleepsDAOGovernor, IBleepsSale} from '../typechain';
 import {setupNamedUsers, setupUsers, waitFor} from './utils';
-import {parseEther, solidityKeccak256} from 'ethers/lib/utils';
+import {parseEther} from 'ethers/lib/utils';
 import {DelegationSignerFactory} from './utils/eip712';
 import {mintViaSalePass} from './utils/bleepsfixedsale';
 
@@ -141,7 +141,7 @@ describe('BleepsDAOGovernor', function () {
   it('cannot change proposer once immortalised', async function () {
     const {users, accounts, BleepsDAOAccount} = await setup();
     const proposerRole = await BleepsDAOAccount.callStatic.PROPOSER_ROLE();
-    const adminRole = await BleepsDAOAccount.callStatic.TIMELOCK_ADMIN_ROLE();
+    // const adminRole = await BleepsDAOAccount.callStatic.TIMELOCK_ADMIN_ROLE();
     const voidRole = await BleepsDAOAccount.callStatic.VOID_ROLE();
     await network.provider.request({
       method: 'hardhat_impersonateAccount',
@@ -157,7 +157,7 @@ describe('BleepsDAOGovernor', function () {
   });
 
   it('vote', async function () {
-    const {users, accounts, BleepsDAOAccount, BleepsDAOGovernor} = await setup();
+    const {users, accounts, BleepsDAOAccount} = await setup();
 
     // await mintViaSalePass(0, users[0].address, users[0].address);
     await waitFor(

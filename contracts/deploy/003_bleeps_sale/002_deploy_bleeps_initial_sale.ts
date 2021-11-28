@@ -12,7 +12,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deploy, execute, read, log} = deployments;
   const networkName = deployments.getNetworkName();
 
-  const {deployer, projectCreator, initialBleepsMinterAdmin} = await getNamedAccounts();
+  const {deployer, projectCreator} = await getNamedAccounts();
 
   const Bleeps = await deployments.get('Bleeps');
   const BleepsDAOAccount = await deployments.get('BleepsDAOAccount');
