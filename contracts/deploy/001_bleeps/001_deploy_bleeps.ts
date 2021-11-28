@@ -12,7 +12,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     initialBleepsTokenURIAdmin,
     initialBleepsRoyaltyAdmin,
     initialBleepsRoyaltyRecipient,
-    initialBleepsMinterAdmin,
     bleepsGuardian,
     initialCheckpointingDisabler,
   } = await getNamedAccounts();
@@ -57,7 +56,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         ENS?.address || '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e',
         initialBleepsOwner,
         initialBleepsTokenURIAdmin,
-        initialBleepsMinterAdmin,
+        deployer, // is changed after the first sale is deployed
         initialBleepsRoyaltyAdmin,
         bleepsGuardian,
         openseaProxyRegistry,

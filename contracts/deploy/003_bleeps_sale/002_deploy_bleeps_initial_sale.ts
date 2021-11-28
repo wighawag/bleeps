@@ -147,11 +147,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await deployments.deleteDotFile(privateKeysTMPFilepath);
   }
 
+  const currentMinterAdmin = await read('Bleeps', 'minterAdmin');
   const currentMinter = await read('Bleeps', 'minter');
   if (currentMinter?.toLowerCase() !== BleepsInitialSale.address.toLowerCase()) {
     await execute(
       'Bleeps',
-      {from: initialBleepsMinterAdmin, log: true, autoMine: true},
+      {from: currentMinterAdmin, log: true, autoMine: true},
       'setMinter',
       BleepsInitialSale.address
     );
