@@ -344,21 +344,21 @@
           </div>
         </div>
       {:else}
-        <PassKeyIcon class="w-6 h-6 text-bleeps inline align-baseline mr-2" />
-        <div
-          class="absolute right-0 text-white-600 mb-2 text-center border border-bleeps p-2 mr-2 rounded-md  inline-block"
-        >
-          <p>1 Available Mint</p>
-          <p class="text-bleeps text-xs">passkey</p>
+        <div class="absolute right-0 ">
+          <PassKeyIcon class="w-6 h-6 text-bleeps inline align-baseline mr-2" />
+          <div class="text-white-600 mb-2 text-center border border-bleeps p-2 mr-2 rounded-md  inline-block">
+            <p>1 Available Mint</p>
+            <p class="text-bleeps text-xs">passkey</p>
+          </div>
         </div>
       {/if}
     {:else if $wallet.address && $wallet.state === 'Ready'}
-      <MandalaIcon class="w-6 h-6 text-bleeps inline align-baseline mr-2" />
-      <div
-        class="absolute right-0 text-white-600 mb-2 text-center border border-bleeps p-2 mr-2 rounded-md  inline-block"
-      >
-        <p>1 Available Mint</p>
-        <p class="text-bleeps text-xs">mandala</p>
+      <div class="absolute right-0 ">
+        <MandalaIcon class="w-6 h-6 text-bleeps inline align-baseline mr-2" />
+        <div class="text-white-600 mb-2 text-center border border-bleeps p-2 mr-2 rounded-md  inline-block">
+          <p>1 Available Mint</p>
+          <p class="text-bleeps text-xs">mandala</p>
+        </div>
       </div>
     {/if}
   {:else}
