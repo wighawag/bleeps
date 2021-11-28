@@ -47,7 +47,7 @@
     "ethers": "^5.4.7",
     "fs-extra": "^10.0.0",
     "hardhat": "^2.6.4",
-    "hardhat-deploy": "^0.9.13",
+    "hardhat-deploy": "^0.9.14",
     "hardhat-gas-reporter": "^1.0.4",
     "isomorphic-unfetch": "^3.1.0",
     "mocha": "^9.1.2",

@@ -27,6 +27,7 @@
     "contracts:node": "node ./_scripts.js contracts:node",
     "contracts:local:dev": "node ./_scripts.js contracts:local:dev",
     "contracts:dev": "node ./_scripts.js contracts:dev",
+    "contracts:fork:deploy": "node ./_scripts.js contracts:fork:deploy",
     "contracts:deploy": "node ./_scripts.js contracts:deploy",
     "seed": "node ./_scripts.js contracts:seed",
     "contracts:execute": "node ./_scripts.js contracts:execute",

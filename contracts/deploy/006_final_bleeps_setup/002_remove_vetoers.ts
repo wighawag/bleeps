@@ -1,18 +1,13 @@
 import {HardhatRuntimeEnvironment} from 'hardhat/types';
 import {DeployFunction} from 'hardhat-deploy/types';
 import {BleepsDAOGovernor} from '../../typechain';
-import {waitFor} from '../../utils';
 import {AddressZero} from '@ethersproject/constants';
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-  const {deployments, getNamedAccounts, ethers} = hre;
-  const {log} = deployments;
-  const {daoVetoer} = await getNamedAccounts();
+  const {deployments, ethers} = hre;
+  const {execute, log} = deployments;
 
-  function skip() {
-    return true;
-  }
-  if (skip()) {
+  if (hre.network.name === 'mainnet') {
     log('TODO : remove veto');
     return;
   }
@@ -20,9 +15,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const BleepsDAOGovernor = <BleepsDAOGovernor>await ethers.getContract('BleepsDAOGovernor');
 
   // disable veto
-  if ((await BleepsDAOGovernor.callStatic.vetoer()) !== AddressZero) {
-    const BleepsDAOGovernorAsVetoer = <BleepsDAOGovernor>await ethers.getContract('BleepsDAOGovernor', daoVetoer);
-    await waitFor(BleepsDAOGovernorAsVetoer.setVetoer(AddressZero));
+  const currentVetoer = await BleepsDAOGovernor.callStatic.vetoer();
+  if (currentVetoer !== AddressZero) {
+    await execute('BleepsDAOGovernor', {from: currentVetoer, log: true, autoMine: true}, 'setVetoer', AddressZero);
   }
 };
 export default func;
