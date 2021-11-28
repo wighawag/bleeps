@@ -113,7 +113,7 @@ importers:
       ethers: ^5.4.7
       fs-extra: ^10.0.0
       hardhat: ^2.6.4
-      hardhat-deploy: ^0.9.12
+      hardhat-deploy: ^0.9.13
       hardhat-gas-reporter: ^1.0.4
       isomorphic-unfetch: ^3.1.0
       mocha: ^9.1.2
@@ -156,7 +156,7 @@ importers:
       ethers: 5.4.7
       fs-extra: 10.0.0
       hardhat: 2.6.5
-      hardhat-deploy: 0.9.12_hardhat@2.6.5
+      hardhat-deploy: 0.9.13_hardhat@2.6.5
       hardhat-gas-reporter: 1.0.4_hardhat@2.6.5
       isomorphic-unfetch: 3.1.0
       mocha: 9.1.2
@@ -3083,6 +3083,14 @@ packages:
       - debug
     dev: true
 
+  /axios/0.21.4_debug@4.3.3:
+    resolution: {integrity: sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg==}
+    dependencies:
+      follow-redirects: 1.14.5_debug@4.3.3
+    transitivePeerDependencies:
+      - debug
+    dev: true
+
   /babel-code-frame/6.26.0:
     resolution: {integrity: sha1-Y/1D99weO7fONZR9uP42mj9Yx0s=}
     dependencies:
@@ -5196,6 +5204,18 @@ packages:
       supports-color: 8.1.1
     dev: true
 
+  /debug/4.3.3:
+    resolution: {integrity: sha512-/zxw5+vh1Tfv+4Qn7a5nsbcJKPaSvCDhojn6FEl9vupwK2VCSDtEiEtqr8DFtzYFOdz63LBkxec7DYuc2jon6Q==}
+    engines: {node: '>=6.0'}
+    peerDependencies:
+      supports-color: '*'
+    peerDependenciesMeta:
+      supports-color:
+        optional: true
+    dependencies:
+      ms: 2.1.2
+    dev: true
+
   /decamelize-keys/1.1.0:
     resolution: {integrity: sha1-0XGoeTMlKAfrPLYdwcFEXQeN8tk=}
     engines: {node: '>=0.10.0'}
@@ -6937,6 +6957,18 @@ packages:
       debug: 4.3.2
     dev: true
 
+  /follow-redirects/1.14.5_debug@4.3.3:
+    resolution: {integrity: sha512-wtphSXy7d4/OR+MvIFbCVBDzZ5520qV8XfPklSN5QtxuMUJZ+b0Wnst1e1lCDocfzuCkHqj8k0FpZqO+UIaKNA==}
+    engines: {node: '>=4.0'}
+    peerDependencies:
+      debug: '*'
+    peerDependenciesMeta:
+      debug:
+        optional: true
+    dependencies:
+      debug: 4.3.3
+    dev: true
+
   /for-each/0.3.3:
     resolution: {integrity: sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==}
     dependencies:
@@ -7521,8 +7553,8 @@ packages:
       hardhat: 2.6.5
     dev: true
 
-  /hardhat-deploy/0.9.12_hardhat@2.6.5:
-    resolution: {integrity: sha512-qfOXYB2laNPkL2JHkpMUIXHa3xdmIY6Pf04SvHO0M/pEU8/i1Bji1BHdlaf5PMu9r9ab5ooaeNbu+qeRU6yGBA==}
+  /hardhat-deploy/0.9.13_hardhat@2.6.5:
+    resolution: {integrity: sha512-PykQToEUwAi2dq5Lzz/Qayqka1EfbZUjD0guNsYyWhQetW5j3tpP8sM4HWjkWvqvpX6T+P843iTGYiHBdgsd5Q==}
     peerDependencies:
       '@ethersproject/hardware-wallets': ^5.0.14
       hardhat: ^2.0.0
@@ -7539,10 +7571,10 @@ packages:
       '@ethersproject/transactions': 5.5.0
       '@ethersproject/wallet': 5.4.0
       '@types/qs': 6.9.7
-      axios: 0.21.4_debug@4.3.2
+      axios: 0.21.4_debug@4.3.3
       chalk: 4.1.2
       chokidar: 3.5.2
-      debug: 4.3.2
+      debug: 4.3.3
       enquirer: 2.3.6
       form-data: 4.0.0
       fs-extra: 10.0.0
