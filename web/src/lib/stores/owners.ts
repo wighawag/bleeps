@@ -404,7 +404,7 @@ class OwnersStateStore extends BaseStore<OwnersState> {
       this.setPartial({state: 'Loading'});
     }
     this._fetch();
-    this.timer = setInterval(() => this._fetch(), 5000); // TODO polling interval config
+    this.timer = setInterval(() => this._fetch(), 10000); // TODO polling interval config
     this.timerPerSeconds = setInterval(() => this._everySeconds(), 1000); // TODO polling interval config
     this.stopWalletSubscription = wallet.subscribe(this.onWallet.bind(this));
     this.stopTransactionSubscription = transactions.subscribe(this.onTransactions.bind(this));
