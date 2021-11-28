@@ -7,7 +7,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const {deployer} = await getNamedAccounts();
 
-  const BleepsDAOAccount = await deployments.get('BleepsDAOAccount');
   const BleepsDAOGovernor = await deployments.get('BleepsDAOGovernor');
 
   const PROPOSER_ROLE = await read('BleepsDAOAccount', 'PROPOSER_ROLE');

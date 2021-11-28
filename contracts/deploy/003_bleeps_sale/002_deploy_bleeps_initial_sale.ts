@@ -80,11 +80,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     await deployments.saveDotFile(privateKeysTMPFilepath, privateKeysJsonString);
 
-    let startTime = Math.floor(Date.now() / 1000) + 3 * 60;
+    let startTime = Math.floor(Date.now() / 1000) + 5 * 60; // 5 min from now
     if (networkName === 'hardhat') {
       startTime = Math.floor(Date.now() / 1000);
     } else if (networkName === 'mainnet') {
-      startTime = 1638266400;
+      startTime = 1638266400; // Tuesday November 30th 2021, 10AM UTC
       log(
         `mainnet startTime:  ${
           new Date(startTime * 1000).toLocaleString() + ' (' + Intl.DateTimeFormat().resolvedOptions().timeZone + ')'
@@ -97,10 +97,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (networkName == 'staging') {
       publicSaleTimestamp = Math.floor(startTime + 0.5 * days);
     }
-    // const deploymentCost = parseEther('2'); // TODO revisit (cost dto deploy the set of contracts)
     const price = parseEther('0.1');
     const totalSales = price.mul(448);
-    const percentageForCreator = BigNumber.from(2500); // deploymentCost.mul(10000).div(totalSales).add(2000);
+    const percentageForCreator = BigNumber.from(2500); // 25%
     console.log({
       percentageForCreator: percentageForCreator.toNumber(),
       totalSales: totalSales.div('1000000000000000').toNumber() / 1000,
@@ -116,9 +115,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         publicSaleTimestamp,
         merkleRootHash,
         projectCreator,
-        percentageForCreator.toNumber(), // 20% (2000 / 10000)
+        percentageForCreator.toNumber(),
         BleepsDAOAccount.address,
-        8, // TODO? 2, // 3 first instrument are open
+        8, // all instrument technically available (minus reserved)
       ],
       linkedData:
         networkName === 'hardhat'

@@ -8,7 +8,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, getNamedAccounts, ethers} = hre;
   const {log} = deployments;
   const {
-    initialBleepsOwner,
     initialBleepsTokenURIAdmin,
     initialBleepsRoyaltyAdmin,
     initialBleepsMinterAdmin,
@@ -40,11 +39,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   if ((await Bleeps.callStatic.minterAdmin()) !== BleepsDAOAccount.address) {
     const BleepsAsMinterAdmin = <Bleeps>await ethers.getContract('Bleeps', initialBleepsMinterAdmin);
     await waitFor(BleepsAsMinterAdmin.setMinterAdmin(BleepsDAOAccount.address));
-  }
-
-  if ((await Bleeps.callStatic.owner()) !== BleepsDAOAccount.address) {
-    const BleepsAsMinterAdmin = <Bleeps>await ethers.getContract('Bleeps', initialBleepsOwner);
-    await waitFor(BleepsAsMinterAdmin.transferOwnership(BleepsDAOAccount.address));
   }
 
   // disable guardian

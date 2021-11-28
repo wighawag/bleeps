@@ -67,7 +67,7 @@ abstract contract ERC721BaseWithERC4494Permit is ERC721Base {
 
         // We use blockNumber as nonce as we already store it per tokens. It can thus act as an increasing transfer counter.
         // while technically multiple transfer could happen in the same block, the signed message would be using a previous block.
-        // And the transfer would use then a more recent blockNumber, invalidation that message when transfer is executed.
+        // And the transfer would use then a more recent blockNumber, invalidating that message when transfer is executed.
         _requireValidPermit(owner, spender, tokenId, deadline, blockNumber, sig);
 
         _approveFor(owner, blockNumber, spender, tokenId);

@@ -12,7 +12,8 @@ if (process.env.HARDHAT_FORK) {
   process.env['HARDHAT_DEPLOY_FORK'] = process.env.HARDHAT_FORK;
 }
 
-const initialAdmin = '';
+const initialAdmin = '0xdcA9d1FA839bB9Fe65DDC4de5161BCA43751D4B4';
+const creator = '0x8350c9989ef11325b36ce6f7549004d418dbcee7';
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -34,7 +35,7 @@ const config: HardhatUserConfig = {
     // can set ENS name and withdraw ERC20 accidently sent to Bleeps contract => DAO
     initialBleepsOwner: {
       default: 1,
-      mainnet: initialAdmin,
+      mainnet: 'deployer', // right is given to the dao as part of the deployment process
     },
 
     // can set the tokenURI => keep on initialAdmin for a while, in case any issue arise, then DAO
@@ -64,7 +65,7 @@ const config: HardhatUserConfig = {
     // this will be changeable by royaltyAdmin later
     initialBleepsRoyaltyRecipient: {
       default: 1,
-      mainnet: initialAdmin,
+      mainnet: creator,
     },
 
     // can disable the gas expensive checkpointing, would require a new governance mechanism  => keep on initialAdmin for now and then revoke.
@@ -76,7 +77,7 @@ const config: HardhatUserConfig = {
     // this will receive the creator fee (25%)
     projectCreator: {
       default: 1,
-      mainnet: '',
+      mainnet: creator,
     },
 
     // can block proposals (meant to protect the DAO in early days), will be revoked

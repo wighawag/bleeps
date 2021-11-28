@@ -186,7 +186,9 @@ contract BleepsFixedPriceSale is IBleepsSale, SaleBase {
         uint256 expectedValue = block.timestamp >= _whitelistEndTime ? _price : _whitelistPrice;
 
         require(msg.value >= expectedValue, "NOT_ENOUGH");
-        payable(msg.sender).transfer(msg.value - expectedValue);
+        if (msg.value > expectedValue) {
+            payable(msg.sender).transfer(msg.value - expectedValue);
+        }
         _paymentToRecipient(expectedValue);
         _bleeps.mint(id, to);
     }

@@ -16,7 +16,6 @@ contract BleepsTokenURI is ITokenURI {
         hex"00198d001b12001cae001e6200203100221b00242200264800288f002af8002d8600303b00331900362300395b003cc4004061004435004844004c9000511d0055f0005b0c006076006633006c460072b60079890080c300886b00908700992000a23a00abe000b61800c0ec00cc6500d88d00e56d00f3110101850110d601210f01323f0144750157c0016c310181d90198ca01b11901cada01e62302030b0221ab02421e02647e0288ea02af8002d8620303b10331940362320395b403cc4604061604435704843c04c8fc0511d4055f0005b0c306076306632906c464072b6707988b080c2c0886ad0908770991f90a23a80abe000b61860c0ec5";
 
     string internal constant noteNames = "C C#D D#E F F#G G#A A#B ";
-    // string internal constant instrumentNames = "TRIANGLE TILTED SAW  SAW SQUARE PULSE ORGAN PHASER NOISE FUNKY SAW";
 
     // settings for sound quality
     uint256 internal constant SAMPLE_RATE = 11000;
@@ -226,8 +225,6 @@ contract BleepsTokenURI is ITokenURI {
             );
     }
 
-    //
-
     function _finishBuffer(
         bytes memory buffer,
         uint256 resultPtr,
@@ -329,9 +326,6 @@ contract BleepsTokenURI is ITokenURI {
         }
 
         bytes memory freqTable = FREQUENCIES;
-
-        // uint256 numSamplesPlusOne = 1461; //(3 * ((((61 * 16 * SAMPLE_RATE)) / (7350)) + 1)) / 3; //3 * 3 * ((22050 + 3) / 3); // 8 = speed
-        // console.log("numSamplesPlusOne %i", numSamplesPlusOne);
 
         int256 pos = 0;
 

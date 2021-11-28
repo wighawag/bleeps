@@ -30,7 +30,7 @@ contract Bleeps is IERC721, WithSupportForOpenSeaProxies, ERC721Checkpointable, 
 
     /// @dev Create the Bleeps contract
     /// @param ens ENS address for the network the contract is deployed to
-    /// @param initialOwner address that can execute on behalf of Bleeps (example: can claim ENS name).
+    /// @param initialOwner address that can set the ENS name of the contract and that can witthdraw ERC20 tokens sent by mistake here.
     /// @param initialTokenURIAdmin admin able to update the tokenURI contract.
     /// @param initialMinterAdmin admin able to set the minter contract.
     /// @param initialRoyaltyAdmin admin able to update the royalty receiver and rates.
