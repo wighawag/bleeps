@@ -3,18 +3,26 @@ import {readable} from 'svelte/store';
 
 const performanceAvailable = typeof performance !== 'undefined'; // server
 
-export let startTime = performanceAvailable ? (Date.now() - performance.now()) / 1000 : Date.now() / 1000;
+export let startTime = Math.floor(performanceAvailable ? (Date.now() - performance.now()) / 1000 : Date.now() / 1000);
 
 export function now(): number {
+  if (!startTime) {
+    startTime = Math.floor(performanceAvailable ? (Date.now() - performance.now()) / 1000 : Date.now() / 1000);
+  }
   if (performanceAvailable) {
-    return Math.floor(performance.now() / 1000 + startTime);
+    const v = Math.floor(performance.now() / 1000 + startTime);
+    console.log({v});
+    return v;
   } else {
-    return Math.floor(Date.now() / 1000 + startTime);
+    const v = Math.floor(Date.now() / 1000 + startTime);
+    console.log({v});
+    return v;
   }
 }
 
 let _corrected = false;
 export function correctTime(actualTime: number): void {
+  console.log({actualTime});
   const currentTime = now();
   const diff = actualTime - currentTime;
   if (Math.abs(diff) > blockTime) {

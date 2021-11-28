@@ -14,10 +14,15 @@
   import {joinSignature} from '@ethersproject/bytes';
   import {keccak256 as solidityKeccak256} from '@ethersproject/solidity';
   import {BigNumber} from '@ethersproject/bignumber';
-  import {now} from '$lib/stores/time';
+  import {now, time} from '$lib/stores/time';
   import {bookingService} from '$lib/services/bookingService';
   import type {TransactionRequest, TransactionResponse} from '@ethersproject/abstract-provider';
   import {rebuildLocationHash} from '$lib/utils/web';
+  import MandalaIcon from '$lib/components/icons/MandalaIcon.svelte';
+  import DiscordIcon from '$lib/components/icons/DiscordIcon.svelte';
+  import PassKeyIcon from '$lib/components/icons/PassKeyIcon.svelte';
+  import {onMount} from 'svelte';
+  import {time2text} from '$lib/utils';
 
   // import {hashParams} from '$lib/config';
   // import {onMount} from 'svelte';
@@ -29,10 +34,13 @@
 
   let selected: number | undefined = undefined;
 
-  // let passKey: string | undefined;
-  // onMount(() => {
-  //   passKey = hashParams['passKey'];
-  // });
+  let currentTime;
+  onMount(() => {
+    currentTime = now();
+    return time.subscribe((t) => {
+      currentTime = t;
+    });
+  });
 
   async function book(booking: {
     address: string;
@@ -312,20 +320,10 @@
       }
     }
   }
-
-  function time2text(numSeconds): string {
-    if (numSeconds < 120) {
-      return `${numSeconds} seconds`;
-    } else if (numSeconds < 7200) {
-      return `${Math.floor(numSeconds / 60)} minutes and ${numSeconds % 60} seconds`;
-    } else {
-      return `${Math.floor(numSeconds / 60 / 60)} hours`;
-    }
-  }
 </script>
 
 {#if $ownersState.invalidPassId}
-  <div class="absolute right-0 text-white-600 mb-2 text-center border border-red-400 p-2 mr-2 rounded-md">
+  <div class="absolute right-0 text-white-600 mb-2 text-center border border-red-400 p-2 mr-2 rounded-md  inline-block">
     <p>Invalid Pass Key</p>
   </div>
 {:else if $ownersState?.passId !== undefined}
@@ -333,29 +331,40 @@
     {#if $ownersState?.passKeySigner}
       {#if $wallet.address && $wallet.state === 'Ready' && $ownersState?.mandalaPassId && !$ownersState?.mandalaPassIdUsed}
         <div class="absolute right-0 ">
-          <div class="text-white-600 mb-2 text-center border border-bleeps p-2 mr-2 rounded-md">
+          <PassKeyIcon class="w-6 h-6 text-bleeps inline align-baseline mr-2" />
+          <div class="text-white-600 mb-2 text-center border border-bleeps p-2 mr-2 rounded-md inline-block">
             <p>1 Available Mint</p>
             <p class="text-bleeps text-xs">passkey</p>
           </div>
-          <div class="text-white-600 mb-2 text-center border border-bleeps p-2 mr-2 rounded-md">
+          <br />
+          <MandalaIcon class="w-6 h-6 text-bleeps inline align-baseline mr-2" />
+          <div class="text-white-600 mb-2 text-center border border-bleeps p-2 mr-2 rounded-md  inline-block">
             <p>1 Available Mint</p>
             <p class="text-bleeps text-xs">mandala</p>
           </div>
         </div>
       {:else}
-        <div class="absolute right-0 text-white-600 mb-2 text-center border border-bleeps p-2 mr-2 rounded-md">
+        <PassKeyIcon class="w-6 h-6 text-bleeps inline align-baseline mr-2" />
+        <div
+          class="absolute right-0 text-white-600 mb-2 text-center border border-bleeps p-2 mr-2 rounded-md  inline-block"
+        >
           <p>1 Available Mint</p>
           <p class="text-bleeps text-xs">passkey</p>
         </div>
       {/if}
     {:else if $wallet.address && $wallet.state === 'Ready'}
-      <div class="absolute right-0 text-white-600 mb-2 text-center border border-bleeps p-2 mr-2 rounded-md">
+      <MandalaIcon class="w-6 h-6 text-bleeps inline align-baseline mr-2" />
+      <div
+        class="absolute right-0 text-white-600 mb-2 text-center border border-bleeps p-2 mr-2 rounded-md  inline-block"
+      >
         <p>1 Available Mint</p>
         <p class="text-bleeps text-xs">mandala</p>
       </div>
     {/if}
   {:else}
-    <div class="absolute right-0 text-white-600 mb-2 text-center border border-red-400 p-2 mr-2 rounded-md">
+    <div
+      class="absolute right-0 text-white-600 mb-2 text-center border border-red-400 p-2 mr-2 rounded-md  inline-block"
+    >
       <p>Pass being used...</p>
     </div>
   {/if}
@@ -373,96 +382,40 @@
       height="128px"
     />
 
-    {#if $chain.state === 'Ready' || $fallback.state === 'Ready'}
-      {#if $ownersState?.expectedValue}
-        {#if $ownersState.priceInfo?.startTime && $ownersState.timeLeftBeforeSale > 0}
-          <!-- <p class="text-yellow-600 mb-2">
-            {#if $ownersState.timeLeftBeforeSale > 48 * 3600}
-              The Sale is not open yet, Please wait until {new Date(
-                $ownersState?.priceInfo.startTime.mul(1000).toNumber()
-              ).toLocaleString() +
-                ' (' +
-                Intl.DateTimeFormat().resolvedOptions().timeZone +
-                ')'}
-            {:else}
-              The Sale is not open yet, Please wait {time2text($ownersState.timeLeftBeforeSale)}
-            {/if}
-          </p> -->
-
-          <div class="border-4 border-white w-96 h-24 pt-1 mx-auto">
-            <span class="text-bleeps">Private Sale for X and Y</span>
-            <div class="mx-auto mt-1">Opens in:</div>
-            <span>{time2text($ownersState.timeLeftBeforeSale)}</span>
-          </div>
-        {:else if $ownersState.priceInfo?.whitelistEndTime}
-          {#if now() < $ownersState.priceInfo.whitelistEndTime.toNumber()}
-            <div class="border-4 border-white w-96 h-24 pt-1 mx-auto">
-              <span>Ongoing </span> <span class="text-bleeps">Private Sale for X and Y</span>
-              <div class="mt-1 mx-auto">Time Left:</div>
-              <span>{time2text($ownersState.timeLeftBeforePublic)}</span>
-            </div>
-            <!--
-            {#if $ownersState.invalidPassId}
-              <p class="float-right text-yellow-600 mb-2">Your pass is invalid.</p>
-            {:else if $ownersState?.passId !== undefined}
-              {#if $ownersState?.priceInfo?.passUsed}
-
-              {:else if $ownersState?.passKeySigner}
-                <p class="float-right text-green-600 mb-2">Pass</p>
-              {:else}
-                <p class="float-right text-green-600 mb-2">Mandala</p>
-              {/if}
-            {:else}
-
-            {/if} -->
-            <!-- {#if $ownersState.invalidPassId}
-              <p class="text-yellow-600 mb-2">Your pass is invalid.</p>
-            {:else if $ownersState?.passId !== undefined}
-              {#if $ownersState?.priceInfo?.passUsed}
-                {#if $ownersState?.passKeySigner}
-                  <p class="text-yellow-600 mb-2">your sale pass has already been used.</p>
-                {:else}
-                  <p class="text-yellow-600 mb-2">You already used your mandala owner right to purchase one Bleep.</p>
-                {/if}
-              {:else}
-                <p class="text-green-600 mb-2">
-                  {#if $ownersState?.passKeySigner}
-                    You got a pass key, allowing you to purchase one Bleep before others
-                  {:else}
-                    As a <a href="https://mandalas.eth.limo" target="_blank" class="underline">mandala</a> owner, you are
-                    allowed to purchase one Bleep before others
-                  {/if}
-                  (public sale open on {new Date(
-                    $ownersState?.priceInfo.whitelistEndTime.mul(1000).toNumber()
-                  ).toLocaleString() +
-                    ' (' +
-                    Intl.DateTimeFormat().resolvedOptions().timeZone +
-                    ')'})
-                  {#if !$ownersState?.expectedValue.eq($ownersState?.normalExpectedValue)}
-                    It also gives you a discount of {$ownersState.normalExpectedValue
-                      .sub($ownersState.expectedValue)
-                      .mul(100)
-                      .div($ownersState.normalExpectedValue)}% while it lasts
-                  {/if}
-                </p>
-              {/if}
-            {:else}
-              <p class="text-yellow-600 mb-2">
-                The Sale is not open yet, unless you get a pass key or have been a mandalas owner. Public Sale open on : {new Date(
-                  $ownersState?.priceInfo.whitelistEndTime.mul(1000).toNumber()
-                ).toLocaleString()}
-              </p>
-            {/if} -->
-          {:else}
-            <div class="border-4 border-white w-96 h-12 pt-2 mx-auto">
-              <span>Ongoing </span> <span class="text-bleeps">Public Sale</span>
-            </div>
-          {/if}
-        {/if}
+    {#if currentTime}
+      {#if currentTime < contracts.BleepsInitialSale.linkedData.startTime}
+        <div class="border-4 border-white w-96 h-24 pt-1 mx-auto">
+          <span class="text-bleeps"
+            >Private Sale for <MandalaIcon class="h-4 w-4 text-bleeps inline" /> and <DiscordIcon
+              class="h-4 w-4 text-bleeps inline"
+            /></span
+          >
+          <div class="mx-auto mt-1">Opens in:</div>
+          <span>{time2text(contracts.BleepsInitialSale.linkedData.startTime - currentTime)}</span>
+        </div>
+      {:else if currentTime < contracts.BleepsInitialSale.linkedData.publicSaleTimestamp}
+        <div class="border-4 border-white w-96 h-24 pt-1 mx-auto">
+          <span>Ongoing </span>
+          <span class="text-bleeps"
+            >Private Sale for <MandalaIcon class="h-4 w-4 text-bleeps inline" /> and <DiscordIcon
+              class="h-4 w-4 text-bleeps inline"
+            /></span
+          >
+          <div class="mt-1 mx-auto">Time Left:</div>
+          <span>{time2text(contracts.BleepsInitialSale.linkedData.publicSaleTimestamp - currentTime)}</span>
+        </div>
       {:else}
-        <p class="text-blue-600 text-xl mb-2">Loading...</p>
+        <div class="border-4 border-white w-96 h-12 pt-2 mx-auto">
+          <span>Ongoing </span> <span class="text-bleeps">Public Sale</span>
+        </div>
       {/if}
+    {/if}
 
+    {#if ($chain.state !== 'Ready' && $fallback.state !== 'Ready') || !$ownersState?.expectedValue}
+      <p class="text-blue-600 text-xl m-4">Loading...</p>
+    {/if}
+
+    {#if $ownersState?.expectedValue}
       {#if $ownersState?.daoTreasury !== undefined}
         <p class="text-bleeps mt-8 font-black">
           Bleeps DAO Treasury: {$ownersState?.daoTreasury.div('1000000000000000').toNumber() / 1000} ETH
