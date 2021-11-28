@@ -9,6 +9,7 @@
   export let your: boolean;
   export let pending: boolean;
   export let pointer: boolean = true;
+  export let owner: string | undefined = undefined;
 
   $: color = '#' + colorFromId(id);
   // $: color = minted ? '#' + colorFromId(id) : disabled ? '#666' : '#' + colorFromId(id); //minted ? '#dab894' : disabled ? '#666' : '#ddd';
@@ -35,6 +36,7 @@
 <svg
   xmlns="http://www.w3.org/2000/svg"
   viewBox="0 0 512 512"
+  class={`${minted ? '' : 'opacity-50'}`}
   style={`${pointer ? 'cursor:pointer;' : 'cursor:none'}stroke:${color};fill:${color};${
     your && !pending
       ? 'border: none; border-radius: 16pt;box-shadow: 0 0 0 4pt #34D399;outline: none;'
@@ -59,10 +61,17 @@
   <text x="256" y="115" dominant-baseline="middle" text-anchor="middle" style="font-size:36px;">{instrName}</text>
   <!-- <g transform="translate(210,130) scale(0.2,0.2)" style={`fill:${color}`}>{@html svgpath}</g> -->
 
-  <text x="256" y="420" dominant-baseline="middle" text-anchor="middle" style={`fill: ${color}; font-size: 72px;`}
+  <text x="256" y="390" dominant-baseline="middle" text-anchor="middle" style={`fill: ${color}; font-size: 64px;`}
     >{name}</text
   >
-  <g transform="translate(160,160)scale(0.8,0.8)"
+
+  {#if owner && owner != '0x0000000000000000000000000000000000000000'}
+    <text x="25" y="460" dominant-baseline="middle" text-anchor="start" style={`fill: ${color}; font-size: 32px;`}
+      >{owner.slice(0, 8)}...</text
+    >
+  {/if}
+
+  <g transform="translate(185,160)scale(0.7,0.7)"
     ><style>
       .Z {
         animation: pulse 1s infinite;
