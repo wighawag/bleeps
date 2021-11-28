@@ -1,7 +1,7 @@
 import {HardhatRuntimeEnvironment} from 'hardhat/types';
 import {DeployFunction} from 'hardhat-deploy/types';
 // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-explicit-any
-const namehash = require('eth-ens-namehash') as any;
+// const namehash = require('eth-ens-namehash') as any;
 
 const ReverseDefaultResolverABI = [
   {
