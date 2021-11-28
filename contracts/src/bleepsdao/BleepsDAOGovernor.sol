@@ -3,10 +3,10 @@ pragma solidity 0.8.9;
 
 import "@openzeppelin/contracts/governance/Governor.sol";
 import "../base/GovernorCompatibilityBravoWithVeto.sol";
-import "@openzeppelin/contracts/governance/extensions/GovernorVotesComp.sol";
+import "@openzeppelin/contracts/governance/extensions/GovernorVotes.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorTimelockControl.sol";
 
-contract BleepsDAOGovernor is Governor, GovernorCompatibilityBravoWithVeto, GovernorVotesComp, GovernorTimelockControl {
+contract BleepsDAOGovernor is Governor, GovernorCompatibilityBravoWithVeto, GovernorVotes, GovernorTimelockControl {
     uint64 constant MIN_VOTING_DELAY = 1;
     uint64 constant MAX_VOTING_DELAY = 45818; // 1 week;
 
@@ -28,13 +28,13 @@ contract BleepsDAOGovernor is Governor, GovernorCompatibilityBravoWithVeto, Gove
     Config internal _config;
 
     constructor(
-        ERC20VotesComp _token,
+        ERC20Votes _token,
         TimelockController _timelock,
         address initialVetoer
     )
         Governor("BleepsDAOGovernor")
         GovernorCompatibilityBravoWithVeto(initialVetoer)
-        GovernorVotesComp(_token)
+        GovernorVotes(_token)
         GovernorTimelockControl(_timelock)
     {
         uint64 initialVotingDelay = 1;
@@ -96,7 +96,7 @@ contract BleepsDAOGovernor is Governor, GovernorCompatibilityBravoWithVeto, Gove
     function getVotes(address account, uint256 blockNumber)
         public
         view
-        override(IGovernor, GovernorVotesComp)
+        override(IGovernor, GovernorVotes)
         returns (uint256)
     {
         return super.getVotes(account, blockNumber);
