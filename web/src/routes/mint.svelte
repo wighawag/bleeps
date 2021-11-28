@@ -411,7 +411,7 @@
       {/if}
     {/if}
 
-    {#if ($chain.state !== 'Ready' && $fallback.state !== 'Ready') || !$ownersState?.expectedValue}
+    {#if ($chain.state === 'Ready' || $fallback.state === 'Ready') && !$ownersState?.expectedValue}
       <p class="text-blue-600 text-xl m-4">Loading...</p>
     {/if}
 
