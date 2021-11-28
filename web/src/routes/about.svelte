@@ -82,7 +82,7 @@
       new instruments (up to 16), evolution of Melodies and economic models.
     </p>
 
-    <img src={`${base}/images/bleeps/Core.svg`} alt="Ecosystem" class="mx-auto" />
+    <img src={`${base}/images/bleeps/Core_2.svg`} alt="Ecosystem" class="mx-auto" />
 
     <p class="mx-8 mt-8">Stay tuned for more and come have a chat on our Discord server!</p>
     <a href="https://discord.com/invite/DRtq7xBdtn" target="_blank" class="mx-auto block w-min discord">
