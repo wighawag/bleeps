@@ -12,7 +12,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deploy, execute, read, log} = deployments;
   const networkName = deployments.getNetworkName();
 
-  const {deployer, saleRecipient, initialBleepsMinterAdmin} = await getNamedAccounts();
+  const {deployer, projectCreator, initialBleepsMinterAdmin} = await getNamedAccounts();
 
   const Bleeps = await deployments.get('Bleeps');
   const BleepsDAOAccount = await deployments.get('BleepsDAOAccount');
@@ -115,7 +115,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         price, // whitelistPrice
         publicSaleTimestamp,
         merkleRootHash,
-        saleRecipient,
+        projectCreator,
         percentageForCreator.toNumber(), // 20% (2000 / 10000)
         BleepsDAOAccount.address,
         8, // TODO? 2, // 3 first instrument are open

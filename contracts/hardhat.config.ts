@@ -12,6 +12,8 @@ if (process.env.HARDHAT_FORK) {
   process.env['HARDHAT_DEPLOY_FORK'] = process.env.HARDHAT_FORK;
 }
 
+const initialAdmin = '';
+
 const config: HardhatUserConfig = {
   solidity: {
     compilers: [
@@ -28,21 +30,86 @@ const config: HardhatUserConfig = {
   },
   namedAccounts: {
     deployer: 0,
-    initialBleepsOwner: 1,
-    initialBleepsTokenURIAdmin: 1,
-    initialBleepsMinterAdmin: 1,
-    initialBleepsRoyaltyAdmin: 1,
-    bleepsGuardian: 1,
-    initialBleepsRoyaltyRecipient: 1,
-    initialCheckpointingDisabler: 1,
-    saleRecipient: 1,
-    daoVetoer: 1,
-    daoGuardian: 1,
-    initialMeloBleepsOwner: 1,
-    initialMeloBleepsTokenURIAdmin: 1,
+
+    // can set ENS name and withdraw ERC20 accidently sent to Bleeps contract => DAO
+    initialBleepsOwner: {
+      default: 1,
+      mainnet: initialAdmin,
+    },
+
+    // can set the tokenURI => keep on initialAdmin for a while, in case any issue arise, then DAO
+    initialBleepsTokenURIAdmin: {
+      default: 1,
+      mainnet: initialAdmin,
+    },
+
+    // can set new minter contract => keep on initialAdmin until initial sale is over in case any issue arise, then DAO
+    initialBleepsMinterAdmin: {
+      default: 1,
+      mainnet: initialAdmin,
+    },
+
+    // can set royalties => keep on initialAdmin for now.
+    initialBleepsRoyaltyAdmin: {
+      default: 1,
+      mainnet: initialAdmin,
+    },
+
+    // can remove DAO rights => keep on initialAdmin for now. Revoke fully later.
+    bleepsGuardian: {
+      default: 1,
+      mainnet: initialAdmin,
+    },
+
+    // this will be changeable by royaltyAdmin later
+    initialBleepsRoyaltyRecipient: {
+      default: 1,
+      mainnet: initialAdmin,
+    },
+
+    // can disable the gas expensive checkpointing, would require a new governance mechanism  => keep on initialAdmin for now and then revoke.
+    initialCheckpointingDisabler: {
+      default: 1,
+      mainnet: initialAdmin,
+    },
+
+    // this will receive the creator fee (25%)
+    projectCreator: {
+      default: 1,
+      mainnet: '',
+    },
+
+    // can block proposals (meant to protect the DAO in early days), will be revoked
+    daoVetoer: {
+      default: 1,
+      mainnet: initialAdmin,
+    },
+
+    // can prevent the governance mechanism to switch to a new mechanism. To ensure Bleeps will always be the voting rights
+    // revoked when used
+    daoGuardian: {
+      default: 1,
+      mainnet: initialAdmin,
+    },
+
+    // TODO comments:
+    initialMeloBleepsOwner: {
+      default: 1,
+      mainnet: initialAdmin,
+    },
+    initialMeloBleepsTokenURIAdmin: {
+      default: 1,
+      mainnet: initialAdmin,
+    },
     initialMeloBleepsRoyaltyAdmin: 1,
-    initialMeloBleepsMinterAdmin: 1,
-    melobleepsGuardian: 1,
+    initialMeloBleepsMinterAdmin: {
+      default: 1,
+      mainnet: initialAdmin,
+    },
+    melobleepsGuardian: {
+      default: 1,
+      mainnet: initialAdmin,
+    },
   },
   networks: {
     hardhat: {

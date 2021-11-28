@@ -8,17 +8,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployer} = await getNamedAccounts();
 
   const BleepsDAOAccount = await deployments.get('BleepsDAOAccount');
+  const BleepsDAOGovernor = await deployments.get('BleepsDAOGovernor');
 
   const PROPOSER_ROLE = await read('BleepsDAOAccount', 'PROPOSER_ROLE');
   const TIMELOCK_ADMIN_ROLE = await read('BleepsDAOAccount', 'TIMELOCK_ADMIN_ROLE');
 
-  if (!(await read('BleepsDAOAccount', 'hasRole', PROPOSER_ROLE, BleepsDAOAccount.address))) {
+  if (!(await read('BleepsDAOAccount', 'hasRole', PROPOSER_ROLE, BleepsDAOGovernor.address))) {
     await execute(
       'BleepsDAOAccount',
       {from: deployer, log: true, autoMine: true},
       'grantRole',
       PROPOSER_ROLE,
-      BleepsDAOAccount.address
+      BleepsDAOGovernor.address
     );
   }
 

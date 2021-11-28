@@ -4,14 +4,9 @@ pragma solidity 0.8.9;
 import "@openzeppelin/contracts/governance/Governor.sol";
 import "../base/GovernorCompatibilityBravoWithVeto.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorVotesComp.sol";
-import "@openzeppelin/contracts/governance/extensions/GovernorTimelockCompound.sol";
+import "@openzeppelin/contracts/governance/extensions/GovernorTimelockControl.sol";
 
-contract BleepsDAOGovernor is
-    Governor,
-    GovernorCompatibilityBravoWithVeto,
-    GovernorVotesComp,
-    GovernorTimelockCompound
-{
+contract BleepsDAOGovernor is Governor, GovernorCompatibilityBravoWithVeto, GovernorVotesComp, GovernorTimelockControl {
     uint64 constant MIN_VOTING_DELAY = 1;
     uint64 constant MAX_VOTING_DELAY = 45818; // 1 week;
 
@@ -34,13 +29,13 @@ contract BleepsDAOGovernor is
 
     constructor(
         ERC20VotesComp _token,
-        ICompoundTimelock _timelock,
+        TimelockController _timelock,
         address initialVetoer
     )
         Governor("BleepsDAOGovernor")
         GovernorCompatibilityBravoWithVeto(initialVetoer)
         GovernorVotesComp(_token)
-        GovernorTimelockCompound(_timelock)
+        GovernorTimelockControl(_timelock)
     {
         uint64 initialVotingDelay = 1;
         uint64 initialVotingPeriod = 45818; // 1 week
@@ -110,7 +105,7 @@ contract BleepsDAOGovernor is
     function state(uint256 proposalId)
         public
         view
-        override(Governor, IGovernor, GovernorTimelockCompound)
+        override(Governor, IGovernor, GovernorTimelockControl)
         returns (ProposalState)
     {
         return super.state(proposalId);
@@ -131,7 +126,7 @@ contract BleepsDAOGovernor is
         uint256[] memory values,
         bytes[] memory calldatas,
         bytes32 descriptionHash
-    ) internal override(Governor, GovernorTimelockCompound) {
+    ) internal override(Governor, GovernorTimelockControl) {
         super._execute(proposalId, targets, values, calldatas, descriptionHash);
     }
 
@@ -140,18 +135,18 @@ contract BleepsDAOGovernor is
         uint256[] memory values,
         bytes[] memory calldatas,
         bytes32 descriptionHash
-    ) internal override(Governor, GovernorTimelockCompound) returns (uint256) {
+    ) internal override(Governor, GovernorTimelockControl) returns (uint256) {
         return super._cancel(targets, values, calldatas, descriptionHash);
     }
 
-    function _executor() internal view override(Governor, GovernorTimelockCompound) returns (address) {
+    function _executor() internal view override(Governor, GovernorTimelockControl) returns (address) {
         return super._executor();
     }
 
     function supportsInterface(bytes4 interfaceId)
         public
         view
-        override(Governor, IERC165, GovernorTimelockCompound)
+        override(Governor, IERC165, GovernorTimelockControl)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);

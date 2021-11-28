@@ -81,4 +81,22 @@ contract BleepsDutchAuction is IBleepsSale, SaleBase {
         }
         _bleeps.mint(id, to);
     }
+
+    function isReserved(uint256 id) public pure returns (bool) {
+        uint256 instr = (uint256(id) >> 6) % 16;
+        return (instr == 7 || instr == 8);
+    }
+
+    function creatorMultiMint(uint16[] calldata ids, address to) external {
+        require(msg.sender == _projectCreator, "NOT_AUTHORIZED");
+
+        // check if reserved
+        for (uint256 i = 0; i < ids.length; i++) {
+            require(ids[i] < 576, "INVALID_SOUND");
+            require(isReserved(ids[i]), "NOT_RESERVED");
+        }
+
+        // mint all ids
+        _bleeps.multiMint(ids, to);
+    }
 }
