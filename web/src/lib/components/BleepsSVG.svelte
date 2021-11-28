@@ -66,7 +66,7 @@
   >
 
   {#if owner && owner != '0x0000000000000000000000000000000000000000'}
-    <text x="25" y="460" dominant-baseline="middle" text-anchor="start" style={`fill: ${color}; font-size: 32px;`}
+    <text x="30" y="465" dominant-baseline="middle" text-anchor="start" style={`fill: ${color}; font-size: 32px;`}
       >{owner.slice(0, 8)}...</text
     >
   {/if}
