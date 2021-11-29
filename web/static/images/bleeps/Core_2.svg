@@ -84,7 +84,7 @@
             </g>
         </g>
         <path id="Line" d="M660,348 L660,400 L824,400 L824,476 L834,476 L822,500 L810,476 L820,476 L820,404 L656,404 L656,348 L660,348 Z" fill="#DAB894" fill-rule="nonzero"></path>
-        <path id="Line" d="M496,348 L496,400 L660,400 L660,476 L670,476 L658,500 L646,476 L656,476 L656,404 L492,404 L492,348 L496,348 Z" fill="#DAB894" fill-rule="nonzero"></path>
+        <path id="Line" d="M660,348 L660,404 L496,404 L496,476 L506,476 L494,500 L482,476 L492,476 L492,400 L656,400 L656,348 L660,348 Z" fill="#DAB894" fill-rule="nonzero"></path>
         <text id="Uses" font-family="HelveticaNeue-Bold, Helvetica Neue" font-size="32" font-weight="bold" fill="#DAB894">
             <tspan x="622" y="947">Uses</tspan>
         </text>
