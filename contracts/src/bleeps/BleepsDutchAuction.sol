@@ -6,6 +6,7 @@ import "../interfaces/IBleepsSale.sol";
 import "./SaleBase.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
+// Work In Progress, abandoned for BleepsFixedPriceSale
 contract BleepsDutchAuction is IBleepsSale, SaleBase {
     uint256 internal immutable _startTime;
     uint256 internal immutable _initPrice;

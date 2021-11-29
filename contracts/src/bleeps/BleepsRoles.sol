@@ -58,6 +58,7 @@ contract BleepsRoles {
         royaltyAdmin = initialRoyaltyAdmin;
         minterAdmin = initialMinterAdmin;
         guardian = initialGuardian;
+        emit OwnershipTransferred(address(0), initialOwner);
         emit TokenURIAdminSet(initialTokenURIAdmin);
         emit RoyaltyAdminSet(initialRoyaltyAdmin);
         emit MinterAdminSet(initialMinterAdmin);
