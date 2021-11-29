@@ -89,11 +89,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         }`
       );
     } else if (networkName == 'staging') {
-      // startTime += Math.floor(0.5 * days);
+      startTime += 13 * 60;
     }
     let publicSaleTimestamp = startTime + 3 * days;
     if (networkName == 'staging') {
-      publicSaleTimestamp = Math.floor(startTime + 0.5 * days);
+      publicSaleTimestamp = startTime + 30 * 60;
     }
     const price = parseEther('0.1');
     const totalSales = price.mul(448);
