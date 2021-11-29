@@ -73,30 +73,6 @@ abstract contract ERC721BaseWithERC4494Permit is ERC721Base {
         _approveFor(owner, blockNumber, spender, tokenId);
     }
 
-    function permit(
-        address operator,
-        address spender,
-        uint256 tokenId,
-        uint256 deadline,
-        bytes memory sig
-    ) external {
-        require(deadline >= block.timestamp, "PERMIT_DEADLINE_EXPIRED");
-
-        (address owner, uint256 blockNumber) = _ownerAndBlockNumberOf(tokenId);
-        require(owner != address(0), "NONEXISTENT_TOKEN");
-
-        if (owner != operator) {
-            require(_operatorsForAll[owner][operator], "SIGNER_IS_NOT_OPERATOR");
-        }
-
-        // We use blockNumber as nonce as we already store it per tokens. It can thus act as an increasing transfer counter.
-        // while technically multiple transfer could happen in the same block, the signed message would be using a previous block.
-        // And the transfer would use then a more recent blockNumber, invalidating that message when transfer is executed.
-        _requireValidPermit(operator, spender, tokenId, deadline, blockNumber, sig);
-
-        _approveFor(owner, blockNumber, spender, tokenId);
-    }
-
     function permitForAll(
         address signer,
         address spender,
