@@ -31,6 +31,7 @@
     "contracts:deploy": "node ./_scripts.js contracts:deploy",
     "seed": "node ./_scripts.js contracts:seed",
     "contracts:execute": "node ./_scripts.js contracts:execute",
+    "contracts:fork:execute": "node ./_scripts.js contracts:fork:execute",
     "---------------------- agent-service ----------------------": "deploy agent-service",
     "booking-service:dev": "node ./_scripts.js booking-service:dev",
     "booking-service:build": "node ./_scripts.js booking-service:build",
