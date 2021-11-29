@@ -37,7 +37,7 @@ if (stat.isDirectory()) {
   }
   networkName = normalizedPath.substring(normalizedPath.lastIndexOf('/') + 1);
 
-  chainId = fs.readFileSync(path.join(pathArg, '.chainId')).toString();
+  chainId = fs.readFileSync(path.join(pathArg, '.chainId')).toString().trim();
   const chainName = chainNames[chainId];
   if (!chainName) {
     throw new Error(`chainId ${chainId} not know`);
