@@ -26,3 +26,5 @@ _lib/
 
 #ignore all dotfiles in deployments network folders:
 deployments/*/.*
+
+metadata/

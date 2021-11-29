@@ -95,6 +95,7 @@ importers:
       '@typechain/ethers-v5': ^7.1.2
       '@typechain/hardhat': ^2.3.0
       '@types/chai': ^4.2.22
+      '@types/fs-extra': ^9.0.13
       '@types/mocha': ^9.0.0
       '@types/node': ^16.10.2
       '@typescript-eslint/eslint-plugin': ^4.32.0
@@ -138,6 +139,7 @@ importers:
       '@typechain/ethers-v5': 7.2.0_136b9a3c5a2b15e5a2d071c37c820622
       '@typechain/hardhat': 2.3.1_hardhat@2.6.5+typechain@5.2.0
       '@types/chai': 4.2.22
+      '@types/fs-extra': 9.0.13
       '@types/mocha': 9.0.0
       '@types/node': 16.10.6
       '@typescript-eslint/eslint-plugin': 4.33.0_cc617358c89d3f38c52462f6d809db4c
@@ -2266,6 +2268,12 @@ packages:
       '@types/node': 14.14.37
     dev: true
 
+  /@types/fs-extra/9.0.13:
+    resolution: {integrity: sha512-nEnwB++1u5lVDM2UI4c1+5R+FYaKfaAzS4OococimjVm3nQw3TuzH5UNsocrcTBbhnerblyHj4A49qXbIiZdpA==}
+    dependencies:
+      '@types/node': 16.11.10
+    dev: true
+
   /@types/glob/7.1.4:
     resolution: {integrity: sha512-w+LsMxKyYQm347Otw+IfBXOv9UWVjpHpCDdbBMt8Kz/xbvCYNjP+0qPh91Km3iKfSRLBB0P7fAMf0KHrPu+MyA==}
     dependencies:
@@ -2357,6 +2365,10 @@ packages:
 
   /@types/node/16.11.1:
     resolution: {integrity: sha512-PYGcJHL9mwl1Ek3PLiYgyEKtwTMmkMw4vbiyz/ps3pfdRYLVv+SN7qHVAImrjdAXxgluDEw6Ph4lyv+m9UpRmA==}
+
+  /@types/node/16.11.10:
+    resolution: {integrity: sha512-3aRnHa1KlOEEhJ6+CvyHKK5vE9BcLGjtUpwvqYLRvYNQKMfabu3BwfJaA/SLW8dxe28LsNDjtHwePTuzn3gmOA==}
+    dev: true
 
   /@types/node/16.7.10:
     resolution: {integrity: sha512-S63Dlv4zIPb8x6MMTgDq5WWRJQe56iBEY0O3SOFA9JrRienkOVDXSXBjjJw6HTNQYSE2JI6GMCR6LVbIMHJVvA==}

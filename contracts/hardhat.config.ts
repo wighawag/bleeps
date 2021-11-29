@@ -6,6 +6,7 @@ import 'hardhat-gas-reporter';
 import '@typechain/hardhat';
 import 'solidity-coverage';
 import {node_url, accounts} from './utils/network';
+import './utils/metadata';
 
 // While waiting for hardhat PR: https://github.com/nomiclabs/hardhat/pull/1542
 if (process.env.HARDHAT_FORK) {
