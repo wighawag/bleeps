@@ -1,5 +1,5 @@
 import {formatEther, parseEther} from 'ethers/lib/utils';
-import {getUnnamedAccounts, deployments, ethers, network} from 'hardhat';
+import {getUnnamedAccounts, ethers, network} from 'hardhat';
 import {setupUsers} from '../test/utils';
 import {Bleeps, BleepsDAOAccount, BleepsDAOGovernor, IBleepsSale} from '../typechain';
 import {waitFor} from '../utils';

@@ -1,9 +1,7 @@
 import {expect} from './chai-setup';
 import {ethers, deployments, getUnnamedAccounts} from 'hardhat';
 import {Bleeps, IBleepsSale} from '../typechain';
-import {setupUsers, waitFor} from './utils';
-import {constants} from 'ethers';
-import {parseEther} from 'ethers/lib/utils';
+import {setupUsers} from './utils';
 import {DelegationSignerFactory} from './utils/eip712';
 import {splitSignature} from '@ethersproject/bytes';
 import {mintViaSalePass} from './utils/bleepsfixedsale';
