@@ -1,38 +1,36 @@
-<!--- -------------------------------------------- -->
+# Bleeps and Bleeps DAO
 
-# Bleeps
+## What are Bleeps ?
 
-This is a template to build a decentralised applicaiton using ethereum, hardhat, svelte and thegraph
+The very first sounds of the EVM
 
-to make an app out of it, execute the following
+Bleeps use the same pioneer concept introduced in Mandalas.eth, where the metadata is fully generated from the contract, zero externalities, no backend, no ipfs, nor any client code required. While mandalas generated bitmaps, Bleeps generate sounds!
 
-```
-npx degit wighawag/bleeps <your-app-folder>
-```
+## How to get a Bleep ?
 
-There also more templates available in branches:
+Bleeps are initially mintable through a prelimary sale at 0.1 ETH each Bleep. 75% of the proceeds go to the Bleeps DAO. There is a hard-coded max supply of 1024 sounds but only 576 sounds are currently available made of 9 instrument each composed of 64 notes (frequencies). 128 of them are currently reserved by the Bleeps' creator (wighawag) and might be distributed differently. The rest of the Bleeps (448) do not yet exist but can potentially be created later at the discretion of the DAO.
 
-<!-- //TODO
-## NFT version (it includes eip-721-subgraph and a basic "my nfts" page):
+## What are the benefits of owning a Bleep ?
 
-```
-npx degit wighawag/bleeps#nft <your-app-folder>
-```
--->
+Owning a Bleep transforms a mere user into a Bleeper. Bleepers are given vote in the Bleeps DAO and earn a passive revenue from Melodies created from Bleeps they own. They also get to vote on proposal about the DAO treasury which they manage. One Bleep, One Vote.
 
----
+## Wait... Melodies ?
 
-<br/>
-<br/>
-<!--- -------------------------------------------- -->
+Melodies are the next steps for Bleeps. A Melody is a sequence of 32 Bleeps fine-tuned by their creator to output the most awesome tracks. Melodies are put on auction as they are minted, and the revenue from the auction is split between the Creator (90%), the Bleepers (5%) and the DAO (5%). You can test a demo version here.
 
-# App Setup
+## What about the Bleeps DAO ?
 
-## requirements :
+Like Nouns DAO, Bleeps DAO utilizes a fork of Compound Governance and its main governing body. The Bleep DAO treasury receives a share (5%) of the ETH proceeds from Melodies auctions. Each Bleep is an irrevocable member of the Bleep DAO and entitled to one vote in all governance matters. The DAO has full power over the future of Bleeps, new instruments (up to 16), evolution of Melodies and economic models.
+
+![Bleeps Ecosystem](./web/build/images/bleeps/Core_2.svg)
+
+## App Setup
+
+### requirements :
 
 This app requires [node.js](https://nodejs.org/) (tested on v12+)
 
-### pnpm
+#### pnpm
 
 This repo use `pnpm` for package management : https://pnpm.js.org
 
@@ -44,13 +42,13 @@ npx pnpm add -g pnpm
 You might be able to switch to `yarn` but will most likely have to configure it to fix hoisting issues.
 If you decide to use `yarn` you ll have to remove the script "preinstall" that by default force the use of `pnpm`
 
-### docker and docker-compose
+#### docker and docker-compose
 
 `docker` and `docker-compose` are used to setup the external services (an ethereum node, an ipfs node and a [subgraph](https://thegraph.com) node)
 
 If you prefer (or do not have access to docker/docker-compose) you can run them independently.
 
-## intall dependencies :
+### intall dependencies :
 
 ```bash
 pnpm boot
@@ -64,7 +62,7 @@ You can also manually set the name yourself :
 pnpm set-name [<new name>] && pnpm install
 ```
 
-# Development
+## Development
 
 The following command will start everything up.
 
@@ -104,7 +102,7 @@ and then run `pnpm dev` to bring up the rest in watch mode.
 
 You can also always run them individually
 
-# full list of commands
+## full list of commands
 
 Here is the list of npm scripts you can execute:
 
@@ -224,7 +222,7 @@ This assume external service run. It will spawn a web server, watch/build the co
 It will spawn everything needed to get started, external services, a web server, watch/build the common library, the web app, the contracts and the subgraph. It will also seed the contracts with some data.
 <br/><br/>
 
-# env variables required for full deployment
+## env variables required for full deployment
 
 You need to gather the following environment variables :
 
@@ -250,7 +248,7 @@ you then need to ensure you have a subgraph already created on thegraph.com with
 
 Furthermore, you need to ensure the values in [web/application.json](web/application.json) are to your liking. Similar for the the web/public/preview.png image that is used for open graph metadata. The application.json is also where you setup the ens name if any.
 
-# fleek github integration
+## fleek github integration
 
 For `web:build` you can also use [fleek](https://fleek.co) so that building and ipfs deployment is done automatically. The repo provide a `.fleek.json` file already setup for staging.
 

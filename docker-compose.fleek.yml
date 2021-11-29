@@ -5,7 +5,7 @@ services:
     container_name: verdaccio
     image: verdaccio/verdaccio
     ports:
-      - "4873:4873"
+      - '4873:4873'
 
   app:
     depends_on:
@@ -13,9 +13,8 @@ services:
     image: node:14
     # command: sh -c 'npm set registry http://verdaccio:4873 && pnpm i --store=node_modules/.pnpm && pnpm run staging:web:build'
     working_dir: /workspace
-
 # curl -sL https://unpkg.com/@pnpm/self-installer | sudo node
-# git clone https://github.com/wighawag/bleeps.git
+# git clone https://github.com/wighawag/bleeps-code.git
 # cd bleeps/
 # git checkout svelte-kit
 # npm set registry http://verdaccio:4873 && pnpm i --store=node_modules/.pnpm && pnpm run staging:web:build
