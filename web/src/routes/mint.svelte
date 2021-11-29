@@ -528,10 +528,12 @@
                 {#each Array.from(Array(64)).map((v, i) => i + instr * 64) as bleepId}
                   <div>
                     <BleepsSvg
-                      booked={$ownersState.tokenOwners &&
-                        $ownersState.tokenOwners[bleepId] &&
-                        $ownersState.tokenOwners[bleepId].booked &&
-                        !$ownersState.tokenOwners[bleepId].pending}
+                      booked={instr === 7 ||
+                        instr === 8 ||
+                        ($ownersState.tokenOwners &&
+                          $ownersState.tokenOwners[bleepId] &&
+                          $ownersState.tokenOwners[bleepId].booked &&
+                          !$ownersState.tokenOwners[bleepId].pending)}
                       owner={$ownersState.tokenOwners ? $ownersState.tokenOwners[bleepId]?.address : undefined}
                       id={bleepId}
                       pending={$ownersState.tokenOwners &&
