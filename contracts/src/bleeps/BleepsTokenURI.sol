@@ -73,7 +73,7 @@ contract BleepsTokenURI is ITokenURI {
         } else if (instr == 7) {
             str = "NOISE";
         } else if (instr == 8) {
-            str = "FUNKY_SAW";
+            str = doubleEncoding ? bytes("FUNKY%2520SAW") : bytes("FUNKY%20SAW");
         }
     }
 
