@@ -76,8 +76,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     const privateKeysJsonString = JSON.stringify(privateKeys);
 
-    console.log({first: privateKeys[0]});
-
     await deployments.saveDotFile(privateKeysTMPFilepath, privateKeysJsonString);
 
     let startTime = Math.floor(Date.now() / 1000) + 5 * 60; // 5 min from now
@@ -100,7 +98,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const price = parseEther('0.1');
     const totalSales = price.mul(448);
     const percentageForCreator = BigNumber.from(2500); // 25%
-    console.log({
+    log({
       percentageForCreator: percentageForCreator.toNumber(),
       totalSales: totalSales.div('1000000000000000').toNumber() / 1000,
     });
