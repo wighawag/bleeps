@@ -2,6 +2,8 @@
 
 ![Bleeps and Bleeps DAO](./web/static/logo-dao.png)
 
+[bleeps.art](https://bleeps.art)
+
 ## What are Bleeps ?
 
 The very first sounds of the EVM
