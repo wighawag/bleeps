@@ -426,11 +426,10 @@
         <div class="inline-block border-bleeps md:w-64 w-32 md:h-24 h-16 border-2 mx-auto rounded-md">
           {#if $ownersState?.numLeftPerInstr !== undefined}
             <div
-              style={`width:${
-                $ownersState?.numLeft - 128 !== 448
-                  ? Math.max(((448 - ($ownersState?.numLeft - 128)) * 100) / 448, 5)
-                  : 0
-              }%; background-color:#dab894;height:100%;position:relative;line-height:inherit;`}
+              style={`width:${Math.max(
+                ((448 - $ownersState?.numLeft) * 100) / 448,
+                5
+              )}%; background-color:#dab894;height:100%;position:relative;line-height:inherit;`}
             />
           {:else}
             <div style="width:0%; background-color:#dab894;height:100%;position:relative;line-height:inherit;" />
@@ -440,16 +439,12 @@
           <p class="absolute my-8 mx-3 invisible md:visible">reserved</p>
           <div style="width:0%; background-color:#dab894;height:100%;position:relative;line-height:inherit;" />
         </div>
-        <!-- <div class="inline-block border-white border-dashed md:w-64 w-32 md:h-24 h-16 border-2 mx-auto rounded-md">
-        <p class="absolute m-8 invisible md:visible">Owned By Bleeps DAO</p>
-        <div style="width:0%; background-color:#dab894;height:100%;position:relative;line-height:inherit;" />
-      </div> -->
       </div>
 
       <div>
         <div class="inline-block md:w-64 w-32 mx-auto">
           {#if $ownersState?.numLeft !== undefined}
-            <p class="text-yellow-400">{448 - ($ownersState?.numLeft - 128)} / 448 Minted</p>
+            <p class="text-yellow-400">{448 - $ownersState?.numLeft} / 448 Minted</p>
           {/if}
         </div>
         <div class="inline-block md:w-24 w-12 mx-auto">
@@ -503,14 +498,14 @@
               >
                 {#if !(instr === 7 || instr === 8)}
                   {#if $ownersState?.priceInfo?.uptoInstr.lt(instr)}
-                    <p class="my-5">sale later</p>
+                    <p class="z-30 absolute my-5 mx-3 w-24 h-24">sale later</p>
                   {:else}
                     <p class="z-30 absolute my-5 mx-3 w-24 h-24">
                       {instrumentName(instr)}
                     </p>
                   {/if}
                 {:else}
-                  <p class="my-5">reserved</p>
+                  <p class="z-30 absolute my-5 mx-3 w-24 h-24">reserved</p>
                 {/if}
                 {#if $ownersState?.numLeftPerInstr !== undefined}
                   <div
@@ -532,17 +527,6 @@
               <div class="grid grid-cols-8 mx-auto p-1 mb-16 gap-1 sm:gap-2 md:gap-4">
                 {#each Array.from(Array(64)).map((v, i) => i + instr * 64) as bleepId}
                   <div>
-                    <!-- <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" style="background-color:#000;">
-                    <rect x="0" width="32" height="32" rx="4" style="stroke-width:0.5;stroke:#dab894" />
-                    <text
-                      x="16"
-                      y="16"
-                      dominant-baseline="middle"
-                      text-anchor="middle"
-                      style="fill: #dab894; font-size: 6px;">{noteName(bleepId)}</text
-                    ></svg
-                  > -->
-
                     <BleepsSvg
                       booked={$ownersState.tokenOwners &&
                         $ownersState.tokenOwners[bleepId] &&
@@ -557,35 +541,13 @@
                         $ownersState.tokenOwners[bleepId] &&
                         $ownersState.tokenOwners[bleepId].address.toLowerCase() === $wallet.address?.toLowerCase()}
                       disabled={!isMintable($ownersState, bleepId)}
-                      minted={$ownersState?.tokenOwners &&
+                      minted={instr !== 7 &&
+                        instr !== 8 &&
+                        $ownersState?.tokenOwners &&
                         $ownersState.tokenOwners[bleepId] &&
                         $ownersState.tokenOwners[bleepId].address !== '0x0000000000000000000000000000000000000000'}
                       on:click={() => select(bleepId)}
                     />
-
-                    <!-- <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="height: 512px; width: 512px;"
-                    ><path d="M0 0h512v512H0z" fill="#fff" fill-opacity="1" /><g
-                      class=""
-                      transform="translate(0,0)"
-                      style=""
-                      ><path
-                        d="M209.094 19.53L150.53 35.22l234.19 234.186 11.436 11.47-15.625 4.187-182.25 48.78L184 387.032l307.78-82.467.408-1.5L209.094 19.53zm-77.75 22.94L25.78 436.31l45.376 45.375 87.375-326.062 4.19-15.656 11.436 11.468 133.688 133.718 52.22-13.97L131.343 42.47zm41.062 133.655L87.53 492.845l381.126-102.126 17.53-65.314L173.22 409.28l-15.657 4.19 4.218-15.658 49.126-183.156-38.5-38.53z"
-                        fill="#000"
-                        fill-opacity="1"
-                      /></g
-                    ></svg
-                  > -->
-                    <!-- {#if $ownersState.tokenOwners && $ownersState.tokenOwners[bleepId]}
-                    {#if $ownersState.tokenOwners[bleepId].address !== '0x0000000000000000000000000000000000000000'}
-                      <NavButton label="listen" on:click={() => select(bleepId)}>listen</NavButton>
-                    {:else}
-                      <GreenNavButton label="listen" on:click={() => select(bleepId)}>listen</GreenNavButton>
-                    {/if}
-                  {:else}
-                    <GreenNavButton label="listen" on:click={() => select(bleepId)}>listen</GreenNavButton>
-                  {/if} -->
-
-                    <!-- More products... -->
                   </div>
                 {/each}
               </div>

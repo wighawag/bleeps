@@ -334,7 +334,9 @@ class OwnersStateStore extends BaseStore<OwnersState> {
         //   tokenOwners[i] = '0x1111111111111111111111111111111111111111';
         // }
         if (tokenOwners[i].address === '0x0000000000000000000000000000000000000000') {
-          numLeft++;
+          if (!(i >> 6 === 7 || i >> 6 === 8)) {
+            numLeft++;
+          }
         } else {
           numLeftPerInstr[i >> 6]--;
         }
