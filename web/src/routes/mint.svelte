@@ -544,6 +544,10 @@
                   > -->
 
                     <BleepsSvg
+                      booked={$ownersState.tokenOwners &&
+                        $ownersState.tokenOwners[bleepId] &&
+                        $ownersState.tokenOwners[bleepId].booked &&
+                        !$ownersState.tokenOwners[bleepId].pending}
                       owner={$ownersState.tokenOwners ? $ownersState.tokenOwners[bleepId]?.address : undefined}
                       id={bleepId}
                       pending={$ownersState.tokenOwners &&

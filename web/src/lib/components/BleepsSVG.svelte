@@ -6,15 +6,16 @@
   export let id: number;
   export let minted: boolean;
   export let disabled: boolean;
+  export let booked: boolean;
   export let your: boolean;
   export let pending: boolean;
   export let pointer: boolean = true;
   export let owner: string | undefined = undefined;
 
-  $: color = '#' + colorFromId(id);
+  $: color = !minted && booked ? '#aaa' : '#' + colorFromId(id);
   // $: color = minted ? '#' + colorFromId(id) : disabled ? '#666' : '#' + colorFromId(id); //minted ? '#dab894' : disabled ? '#666' : '#ddd';
 
-  $: borderColor = minted ? '#dab894' : disabled ? '#666' : '#fff';
+  $: borderColor = minted ? '#dab894' : '#666';
 
   // $: if (minted) console.log({minted, id});
 
@@ -52,9 +53,9 @@
     width="500"
     height="500"
     rx="64"
-    style={`fill:#000;stroke-width:${!minted && !disabled ? '4' : minted ? '24' : '4'};stroke:${borderColor}`}
+    style={`fill:#000;stroke-width:${minted ? '16' : '4'};stroke:${borderColor}`}
   />
-  <g class={`${disabled && !minted ? 'opacity-60' : 'opacity-100'} ${pointer ? 'hover:opacity-100' : ''}`}>
+  <g class={`${!minted ? 'opacity-70' : 'opacity-100'} ${pointer ? 'hover:opacity-100' : ''}`}>
     <rect style="visibility: visible;pointer-events: visible;fill:none;" x="0" y="0" width="512" height="512" />
     <text x="35" y="35" dominant-baseline="hanging" text-anchor="start" style={`fill: ${color}; font-size: 32px;`}
       >{hz}</text

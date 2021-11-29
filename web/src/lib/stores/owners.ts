@@ -221,7 +221,7 @@ class OwnersStateStore extends BaseStore<OwnersState> {
     if ($bookings.list) {
       this.bookingState = {};
       for (const booking of $bookings.list) {
-        if (booking.transaction?.hash || now() < booking.timestamp + 10) {
+        if (booking.transaction?.hash || now() < booking.timestamp + 15) {
           this.bookingState[booking.bleep] = true;
         }
       }
