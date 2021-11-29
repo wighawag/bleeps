@@ -70,7 +70,7 @@
       </svg></span
     >
   {:else}
-    <span class="text-bleeps" on:click={() => flow.connect()}>connect</span>
+    <button class="text-bleeps inline border border-bleeps p-1 -m-1" on:click={() => flow.connect()}>connect</button>
   {/if}
 </NavBar>
 
