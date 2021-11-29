@@ -10,6 +10,7 @@ import {MerkleTree, hashLeaves} from 'bleeps-common';
 import type {WalletData} from 'web3w';
 import type {BookingServiceState} from '$lib/services/bookingService';
 import {bookingService} from '$lib/services/bookingService';
+import {wait} from '$lib/utils';
 
 BigNumber.from(0);
 
@@ -75,6 +76,8 @@ if (hashParams['passKey']) {
   }
 }
 const merkleTree = new MerkleTree(hashLeaves(contracts.BleepsInitialSale.linkedData.leaves));
+
+const ensCache: {[address: string]: string} = {};
 
 let passId = signer
   ? contracts.BleepsInitialSale.linkedData.leaves.findIndex(
@@ -316,7 +319,17 @@ class OwnersStateStore extends BaseStore<OwnersState> {
       };
       let numLeft = 0;
       for (let i = 0; i < processedResult.addresses.length; i++) {
-        tokenOwners[i] = {address: processedResult.addresses[i], pending: pendings[i], booked: this.bookingState[i]};
+        let address = processedResult.addresses[i];
+        if (address && address != '0x0000000000000000000000000000000000000000') {
+          const ensName = ensCache[address];
+          if (!ensName || ensName == 'pending') {
+            this.fetchENS(address);
+          } else {
+            address = ensName;
+          }
+        }
+
+        tokenOwners[i] = {address, pending: pendings[i], booked: this.bookingState[i]};
         // if ((i >= 6 * 64 && i < 7 * 64) || (i >= 8 * 64 && i < 9 * 64)) {
         //   tokenOwners[i] = '0x1111111111111111111111111111111111111111';
         // }
@@ -351,6 +364,22 @@ class OwnersStateStore extends BaseStore<OwnersState> {
 
       if (this.priceInfoResolve) {
         this.priceInfoResolve();
+      }
+    }
+  }
+
+  async fetchENS(address: string) {
+    if (ensCache[address] !== 'pending') {
+      if (wallet.provider) {
+        ensCache[address] = 'pending';
+        try {
+          const name = await wallet.provider.lookupAddress(address);
+          // await wait(2, {});
+          // const name = 'hello';
+          ensCache[address] = name;
+        } catch (e) {
+          ensCache[address] = undefined;
+        }
       }
     }
   }

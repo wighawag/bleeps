@@ -13,3 +13,11 @@ export function time2text(numSeconds: number): string {
     return `${Math.floor(numSeconds / 60 / 60)} hours`;
   }
 }
+
+export function displayAddress(address: string, space: number): string {
+  if (address.startsWith('0x')) {
+    return address.slice(0, space) + '...';
+  } else {
+    return address;
+  }
+}

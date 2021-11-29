@@ -22,7 +22,7 @@
   import DiscordIcon from '$lib/components/icons/DiscordIcon.svelte';
   import PassKeyIcon from '$lib/components/icons/PassKeyIcon.svelte';
   import {onMount} from 'svelte';
-  import {time2text} from '$lib/utils';
+  import {displayAddress, time2text} from '$lib/utils';
 
   // import {hashParams} from '$lib/config';
   // import {onMount} from 'svelte';
@@ -632,47 +632,53 @@
         {/await}
       {/if}
       {#if isInstrumentMintable($ownersState, selected >> 6)}
-        <div>
-          <p>
-            <span class="text-bleeps">Bleeps DAO</span> will receive {BigNumber.from(
-              contracts.BleepsInitialSale.linkedData.price
-            )
-              .mul(10000 - contracts.BleepsInitialSale.linkedData.percentageForCreator)
-              .div(10000)
-              .div('1000000000000000')
-              .toNumber() / 1000} ETH
-          </p>
-          <p class="mb-2">
-            <a href="https://twitter.com/wighawag" target="_blank" class="text-bleeps underline">wighawag</a> will
-            receive
-            {BigNumber.from(contracts.BleepsInitialSale.linkedData.price)
-              .mul(contracts.BleepsInitialSale.linkedData.percentageForCreator)
-              .div(10000)
-              .div('1000000000000000')
-              .toNumber() / 1000} ETH
-          </p>
-        </div>
-        <!-- active={isMintable($ownersState, selected)} -->
-        <button
-          label="mint"
-          class={`block ${
-            isMintable($ownersState, selected) ? 'bg-bleeps hover:bg-yellow-600' : 'bg-gray-600 cursor-default'
-          }  text-white font-bold py-2 px-4 rounded w-64 mx-auto`}
-          disabled={!isMintable($ownersState, selected)}
-          on:click={() => {
-            if (
-              $ownersState.priceInfo?.uptoInstr?.gte(selected >> 6) &&
-              !$ownersState.invalidPassId &&
-              !$ownersState.priceInfo?.passUsed &&
-              $ownersState.tokenOwners &&
-              $ownersState.tokenOwners[selected].address === '0x0000000000000000000000000000000000000000' &&
-              !$ownersState.tokenOwners[selected].booked
-            ) {
-              mint(selected);
-              selected = undefined;
-            }
-          }}>{mintButton($ownersState, selected)}</button
-        >
+        {#if $ownersState.tokenOwners && $ownersState.tokenOwners[selected].address !== '0x0000000000000000000000000000000000000000'}
+          <div class="border-2 border-bleeps p-2 rounded-md">
+            Owned by {displayAddress($ownersState.tokenOwners[selected].address, 20)}
+          </div>
+        {:else}
+          <div>
+            <p>
+              <span class="text-bleeps">Bleeps DAO</span> will receive {BigNumber.from(
+                contracts.BleepsInitialSale.linkedData.price
+              )
+                .mul(10000 - contracts.BleepsInitialSale.linkedData.percentageForCreator)
+                .div(10000)
+                .div('1000000000000000')
+                .toNumber() / 1000} ETH
+            </p>
+            <p class="mb-2">
+              <a href="https://twitter.com/wighawag" target="_blank" class="text-bleeps underline">wighawag</a> will
+              receive
+              {BigNumber.from(contracts.BleepsInitialSale.linkedData.price)
+                .mul(contracts.BleepsInitialSale.linkedData.percentageForCreator)
+                .div(10000)
+                .div('1000000000000000')
+                .toNumber() / 1000} ETH
+            </p>
+          </div>
+          <!-- active={isMintable($ownersState, selected)} -->
+          <button
+            label="mint"
+            class={`block ${
+              isMintable($ownersState, selected) ? 'bg-bleeps hover:bg-yellow-600' : 'bg-gray-600 cursor-default'
+            }  text-white font-bold py-2 px-4 rounded w-64 mx-auto`}
+            disabled={!isMintable($ownersState, selected)}
+            on:click={() => {
+              if (
+                $ownersState.priceInfo?.uptoInstr?.gte(selected >> 6) &&
+                !$ownersState.invalidPassId &&
+                !$ownersState.priceInfo?.passUsed &&
+                $ownersState.tokenOwners &&
+                $ownersState.tokenOwners[selected].address === '0x0000000000000000000000000000000000000000' &&
+                !$ownersState.tokenOwners[selected].booked
+              ) {
+                mint(selected);
+                selected = undefined;
+              }
+            }}>{mintButton($ownersState, selected)}</button
+          >
+        {/if}
       {/if}
     </div>
   </Modal>

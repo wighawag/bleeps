@@ -1,4 +1,6 @@
 <script lang="ts">
+  import {displayAddress} from '$lib/utils';
+
   import {hertz, noteName, instrumentNameFromId, colorFromId} from '$lib/utils/notes';
   import {symbolSVG} from '$lib/utils/symbols';
   import {createEventDispatcher} from 'svelte';
@@ -69,7 +71,7 @@
 
     {#if owner && owner != '0x0000000000000000000000000000000000000000'}
       <text x="30" y="465" dominant-baseline="middle" text-anchor="start" style={`fill: ${color}; font-size: 32px;`}
-        >{owner.slice(0, 8)}...</text
+        >{displayAddress(owner, 10)}</text
       >
     {/if}
 
