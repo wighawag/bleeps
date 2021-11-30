@@ -10,7 +10,7 @@ export function time2text(numSeconds: number): string {
   } else if (numSeconds < 7200) {
     return `${Math.floor(numSeconds / 60)} minutes and ${numSeconds % 60} seconds`;
   } else {
-    return `${Math.floor(numSeconds / 60 / 60)} hours`;
+    return `${Math.floor(numSeconds / 60 / 60)} hours and ${Math.floor((numSeconds % 3600) / 60)} minutes`;
   }
 }
 
