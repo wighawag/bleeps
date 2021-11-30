@@ -384,7 +384,7 @@
 
     {#if currentTime}
       {#if currentTime < contracts.BleepsInitialSale.linkedData.startTime}
-        <div class="border-4 border-white w-96 h-24 pt-1 mx-auto">
+        <div class="border-4 border-white w-80 sm:w-96 h-24 pt-1 mx-auto">
           <span class="text-bleeps"
             >Private Sale for <MandalaIcon class="h-4 w-4 text-bleeps inline" /> and <DiscordIcon
               class="h-4 w-4 text-bleeps inline"
@@ -394,7 +394,7 @@
           <span>{time2text(contracts.BleepsInitialSale.linkedData.startTime - currentTime)}</span>
         </div>
       {:else if currentTime < contracts.BleepsInitialSale.linkedData.publicSaleTimestamp}
-        <div class="border-4 border-white w-96 h-24 pt-1 mx-auto">
+        <div class="border-4 border-white w-80 sm:w-96 h-24 pt-1 mx-auto">
           <span>Ongoing </span>
           <span class="text-bleeps"
             >Private Sale for <MandalaIcon class="h-4 w-4 text-bleeps inline" /> and <DiscordIcon
@@ -405,7 +405,7 @@
           <span>{time2text(contracts.BleepsInitialSale.linkedData.publicSaleTimestamp - currentTime)}</span>
         </div>
       {:else}
-        <div class="border-4 border-white w-96 h-12 pt-2 mx-auto">
+        <div class="border-4 border-white w-80 sm:w-96 h-12 pt-2 mx-auto">
           <span>Ongoing </span> <span class="text-bleeps">Public Sale</span>
         </div>
       {/if}
