@@ -90,10 +90,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       );
     } else if (networkName == 'staging') {
       startTime += 13 * 60;
+    } else if (networkName == 'rinkeby') {
+      startTime = Math.floor(Date.now() / 1000);
     }
     let publicSaleTimestamp = startTime + 3 * days;
     if (networkName == 'staging') {
       publicSaleTimestamp = startTime + 30 * 60;
+    } else if (networkName == 'rinkeby') {
+      publicSaleTimestamp = startTime;
     }
     const price = parseEther('0.1');
     const totalSales = price.mul(448);

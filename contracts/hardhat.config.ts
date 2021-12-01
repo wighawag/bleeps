@@ -46,6 +46,7 @@ const config: HardhatUserConfig = {
       default: 1,
       mainnet: initialAdmin,
       staging: stagingAdmin,
+      rinkeby: stagingAdmin,
     },
 
     // can set new minter contract => keep on initialAdmin until initial sale is over in case any issue arise, then DAO
@@ -53,6 +54,7 @@ const config: HardhatUserConfig = {
       default: 1,
       mainnet: initialAdmin,
       staging: stagingAdmin,
+      rinkeby: stagingAdmin,
     },
 
     // can set royalties => keep on initialAdmin for now.
@@ -60,6 +62,7 @@ const config: HardhatUserConfig = {
       default: 1,
       mainnet: initialAdmin,
       staging: stagingAdmin,
+      rinkeby: stagingAdmin,
     },
 
     // can remove DAO rights => keep on initialAdmin for now. Revoke fully later.
@@ -67,6 +70,7 @@ const config: HardhatUserConfig = {
       default: 1,
       mainnet: initialAdmin,
       staging: stagingAdmin,
+      rinkeby: stagingAdmin,
     },
 
     // this will be changeable by royaltyAdmin later
@@ -74,6 +78,7 @@ const config: HardhatUserConfig = {
       default: 1,
       mainnet: creator,
       staging: stagingCreator,
+      rinkeby: stagingCreator,
     },
 
     // can disable the gas expensive checkpointing, would require a new governance mechanism  => keep on initialAdmin for now and then revoke.
@@ -81,6 +86,7 @@ const config: HardhatUserConfig = {
       default: 1,
       mainnet: initialAdmin,
       staging: stagingAdmin,
+      rinkeby: stagingAdmin,
     },
 
     // this will receive the creator fee (25%)
@@ -88,6 +94,7 @@ const config: HardhatUserConfig = {
       default: 1,
       mainnet: creator,
       staging: stagingCreator,
+      rinkeby: stagingCreator,
     },
 
     // can block proposals (meant to protect the DAO in early days), will be revoked
@@ -95,6 +102,7 @@ const config: HardhatUserConfig = {
       default: 1,
       mainnet: initialAdmin,
       staging: stagingAdmin,
+      rinkeby: stagingAdmin,
     },
 
     // can prevent the governance mechanism to switch to a new mechanism. To ensure Bleeps will always be the voting rights
@@ -103,6 +111,7 @@ const config: HardhatUserConfig = {
       default: 1,
       mainnet: initialAdmin,
       staging: stagingAdmin,
+      rinkeby: stagingAdmin,
     },
 
     // TODO comments:
@@ -110,22 +119,26 @@ const config: HardhatUserConfig = {
       default: 1,
       mainnet: initialAdmin,
       staging: stagingAdmin,
+      rinkeby: stagingAdmin,
     },
     initialMeloBleepsTokenURIAdmin: {
       default: 1,
       mainnet: initialAdmin,
       staging: stagingAdmin,
+      rinkeby: stagingAdmin,
     },
     initialMeloBleepsRoyaltyAdmin: 1,
     initialMeloBleepsMinterAdmin: {
       default: 1,
       mainnet: initialAdmin,
       staging: stagingAdmin,
+      rinkeby: stagingAdmin,
     },
     melobleepsGuardian: {
       default: 1,
       mainnet: initialAdmin,
       staging: stagingAdmin,
+      rinkeby: stagingAdmin,
     },
   },
   networks: {
