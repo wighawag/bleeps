@@ -30,4 +30,10 @@ contract BleepsDAOAccount is TimelockController {
         require(!immortalized, "Governance is immortalized");
         super.renounceRole(role, account);
     }
+
+    // TODO
+    // Too late now but technically we could replace the account with another and transfer the assets:
+    // - ERC1155 receiver function
+    // - ERC721 receiver function
+    // - ERC1271 signed message recording
 }
