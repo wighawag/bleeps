@@ -47,6 +47,31 @@
       return e.message || e;
     }
   }
+
+  function toPNG(metadataP: Promise<{image: string; animation_url: string; name: string}>): Promise<string> {
+    return new Promise<string>(async (resolve) => {
+      metadataP.then((metadata) => {
+        const svgURL = metadata.image;
+        // console.log({svgURL});
+        const svgImage = document.createElement('img');
+        svgImage.style.visibility = 'hidden';
+        document.body.appendChild(svgImage);
+        svgImage.onload = function () {
+          const canvas = document.createElement('canvas');
+          canvas.width = 2048;
+          canvas.height = 2048;
+          const canvasCtx = canvas.getContext('2d');
+          canvasCtx.drawImage(svgImage, 0, 0);
+          const imgData = canvas.toDataURL('image/png');
+          // console.log({imgData});
+          resolve(imgData);
+        };
+        svgImage.src = svgURL;
+      });
+    });
+  }
+
+  $: pngURL = sound && toPNG(sound);
 </script>
 
 <div class="w-full mx-auto text-center">
@@ -70,6 +95,16 @@
             crossorigin="anonymous"
             class="mx-auto m-2"
           />
+
+          {#if pngURL}
+            {#await pngURL then url}
+              <a class="block underline" download={`bleep-${metadata.name}.png`} href={url}>download png</a>
+            {/await}
+          {/if}
+
+          <a class="block underline" download={`bleep-${metadata.name}.wav`} href={metadata.animation_url}
+            >download wav</a
+          >
         {:catch error}
           <p style="color: red">{formatError(error)}</p>
         {/await}
