@@ -2,17 +2,18 @@ import {joinSignature} from '@ethersproject/bytes';
 import {calculateHash, hashLeaves, MerkleTree} from 'bleeps-common';
 import {Wallet} from 'ethers';
 import {parseEther, SigningKey, solidityKeccak256} from 'ethers/lib/utils';
-import {getUnnamedAccounts, deployments, ethers} from 'hardhat';
+import {getNamedAccounts, deployments, ethers} from 'hardhat';
 import {BleepsFixedPriceSale} from '../typechain';
 
 const args = process.argv.slice(2);
 const passId = args[0];
 const tokenId = args[0];
 
+const to = args[1];
+
 async function main() {
-  const others = await getUnnamedAccounts();
-  const from = others[0];
-  const to = others[0];
+  const {deployer} = await getNamedAccounts();
+  const from = deployer;
 
   const {linkedData} = await deployments.get('BleepsInitialSale');
   const leaves = linkedData.leaves;

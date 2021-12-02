@@ -1,13 +1,13 @@
 import {getUnnamedAccounts, deployments, getNamedAccounts} from 'hardhat';
 const {execute} = deployments;
 
-// const args = process.argv.slice(2);
-// const to = args[0];
+const args = process.argv.slice(2);
+const to = args[0];
 
 async function main() {
   const {projectCreator} = await getNamedAccounts();
-  const users = await getUnnamedAccounts();
-  const to = users[0];
+  // const users = await getUnnamedAccounts();
+  // const to = users[0];
 
   await execute(
     'BleepsInitialSale',
