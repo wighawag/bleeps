@@ -77,13 +77,13 @@
 
     <g transform="translate(185,160)scale(0.7,0.7)">
       <style>
-        .Z {
+        /* .Z {
           animation: pulse 1s infinite;
           transform-box: fill-box;
           transform-origin: center;
           stroke: none;
-        }
-        #A {
+        } */
+        /* #A {
           animation-delay: 0.15s;
         }
         #B {
@@ -112,7 +112,7 @@
             transform: scaleY(1);
             transform-origin: center;
           }
-        }
+        } */
       </style>
       <rect class={minted ? 'Z' : ''} id="A" x="0" y="70" width="20" height="80" rx="10" /><rect
         class={minted ? 'Z' : ''}
