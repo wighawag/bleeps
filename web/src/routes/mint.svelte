@@ -268,7 +268,7 @@
       state.timeLeftBeforeSale <= 0 &&
       (state.timeLeftBeforePublic <= 0 || state.passId !== undefined) &&
       !state.invalidPassId &&
-      !state.priceInfo?.passUsed &&
+      // !state.priceInfo?.passUsed && // TODO
       state.tokenOwners &&
       state.tokenOwners[id].address === '0x0000000000000000000000000000000000000000' &&
       !state.tokenOwners[id].booked
@@ -292,7 +292,7 @@
       state.timeLeftBeforeSale <= 0 &&
       (state.timeLeftBeforePublic <= 0 || state.passId !== undefined) &&
       !state.invalidPassId &&
-      !state.priceInfo?.passUsed &&
+      // !state.priceInfo?.passUsed && TODO
       state.tokenOwners &&
       state.tokenOwners[id].address === '0x0000000000000000000000000000000000000000' &&
       !state.tokenOwners[id].booked
@@ -632,7 +632,7 @@
               if (
                 $ownersState.priceInfo?.uptoInstr?.gte(selected >> 6) &&
                 !$ownersState.invalidPassId &&
-                !$ownersState.priceInfo?.passUsed &&
+                // !$ownersState.priceInfo?.passUsed && // TODO
                 $ownersState.tokenOwners &&
                 $ownersState.tokenOwners[selected].address === '0x0000000000000000000000000000000000000000' &&
                 !$ownersState.tokenOwners[selected].booked
