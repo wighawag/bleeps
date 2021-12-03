@@ -488,7 +488,7 @@
 
       <div class="max-w-2xl mx-auto py-2 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
         <div>
-          {#each [3, 4, 2, 0, 1, 5, 6, 7, 8] as instr}
+          {#each [4, 3, 2, 0, 1, 5, 6, 7, 8] as instr}
             <div
               id={`instr_${instr}`}
               class={`${isInstrumentMintable($ownersState, instr) ? 'text-white' : 'text-gray-500'}`}
