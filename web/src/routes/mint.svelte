@@ -382,7 +382,11 @@
       height="128px"
     />
 
-    {#if currentTime}
+    {#if $ownersState?.numLeft !== undefined && $ownersState?.numLeft === 0}
+      <div class="border-4 border-white w-80 sm:w-96 h-12 pt-2 mx-auto">
+        <span class="text-bleeps">Sold Out</span>
+      </div>
+    {:else if currentTime}
       {#if currentTime < contracts.BleepsInitialSale.linkedData.startTime}
         <div class="border-4 border-white w-80 sm:w-96 h-24 pt-1 mx-auto">
           <span class="text-bleeps"
