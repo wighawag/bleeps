@@ -23,11 +23,14 @@
   import PassKeyIcon from '$lib/components/icons/PassKeyIcon.svelte';
   import {onMount} from 'svelte';
   import {displayAddress, time2text} from '$lib/utils';
+  import {chainName} from '$lib/config';
 
   // import {hashParams} from '$lib/config';
   // import {onMount} from 'svelte';
 
   const name = 'Bleeps and The Bleeps DAO';
+
+  const soldout = chainName === 'mainnet'; // so we do not need to fetch dynamically
 
   let step: 'FETCHING_LAST_PRICE' | 'TX_CREATION' | 'TX_SBUMITTED' | 'IDLE' = 'IDLE';
   let error: string | undefined;
@@ -382,7 +385,7 @@
       height="128px"
     />
 
-    {#if $ownersState?.numLeft !== undefined && $ownersState?.numLeft === 0}
+    {#if soldout || ($ownersState?.numLeft !== undefined && $ownersState?.numLeft === 0)}
       <div class="border-4 border-white w-80 sm:w-96 h-12 pt-2 mx-auto">
         <span class="text-bleeps">Sold Out</span>
       </div>
@@ -488,7 +491,7 @@
 
       <div class="max-w-2xl mx-auto py-2 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
         <div>
-          {#each [4, 3, 2, 0, 1, 5, 6, 7, 8] as instr}
+          {#each [0, 1, 2, 3, 4, 5, 6, 7, 8] as instr}
             <div
               id={`instr_${instr}`}
               class={`${isInstrumentMintable($ownersState, instr) ? 'text-white' : 'text-gray-500'}`}

@@ -8,6 +8,7 @@
   import MandalaIcon from '$lib/components/icons/MandalaIcon.svelte';
   import DiscordIcon from '$lib/components/icons/DiscordIcon.svelte';
   import {time2text} from '$lib/utils';
+  import {chainName} from '$lib/config';
 
   const name = 'Bleeps and The Bleeps DAO';
 
@@ -18,6 +19,8 @@
       currentTime = t;
     });
   });
+
+  const soldout = chainName === 'mainnet'; // so we do not need to fetch dynamically
 </script>
 
 <section class="px-4 text-center">
@@ -69,7 +72,11 @@
 </section>
 
 <div class="w-full mx-auto text-center font-black">
-  {#if currentTime}
+  {#if soldout}
+    <div class="border-4 border-white w-80 sm:w-96 h-12 pt-2 mx-auto">
+      <span class="text-bleeps">Sold Out</span>
+    </div>
+  {:else if currentTime}
     {#if currentTime < contracts.BleepsInitialSale.linkedData.startTime}
       <div class="border-4 border-white w-80 sm:w-96 h-24 pt-1 mx-auto">
         <span class="text-bleeps"
@@ -98,7 +105,12 @@
     {/if}
   {/if}
 
-  <NavButton class="w-64 mx-auto mt-8 font-black" label="Mint" href={url('mint/')}>Bleeps Sale</NavButton>
+  {#if soldout}
+    <NavButton class="w-64 mx-auto mt-8 font-black" label="Mint" href={url('mint/')}>Bleeps</NavButton>
+  {:else}
+    <NavButton class="w-64 mx-auto mt-8 font-black" label="Mint" href={url('mint/')}>Bleeps Sale</NavButton>
+  {/if}
+
   <a class="block m-8 underline text-bleeps" href={url('about/')}>Learn More</a>
 
   <p class="mx-8 mt-8">And feel free to join our Discord server!</p>
