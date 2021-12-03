@@ -177,6 +177,16 @@ export class Bookings extends DO {
     return createResponse({success: true, list: list.list});
   }
 
+  async deleteAll(path: string[]): Promise<Response> {
+    if (path[0] === 'fall-sunshine-autumn-tree') {
+      this.state.storage.deleteAll();
+      return createResponse({success: true});
+    } else {
+      this.state.storage.deleteAll();
+      return createResponse({success: false});
+    }
+  }
+
   async checkTransactions(path: string[]): Promise<Response> {
     const timestamp = getTimestamp();
 
@@ -230,6 +240,19 @@ export class Bookings extends DO {
 
     if (transactionsToDelete.length > 0) {
       let listRefetched = await this.state.storage.get<BookingList>('_bookings');
+
+      const bookingsToDelete = [];
+      for (const booking of listRefetched.list) {
+        if (!booking.transaction && booking.timestamp < timestamp - 60) {
+          bookingsToDelete.push(booking.bleep);
+        }
+      }
+
+      for (const bk of bookingsToDelete) {
+        this.info(`deleting : booking for ${bk} as it is there for 60 seconds...`);
+        listRefetched.list = listRefetched.list.filter((v) => v.bleep !== bk);
+      }
+
       this.info(`list length ${listRefetched.list.length}`);
       for (const hash of transactionsToDelete) {
         this.info(`deleting : ${hash}...`);
