@@ -14,7 +14,7 @@ services:
     # command: sh -c 'npm set registry http://verdaccio:4873 && pnpm i --store=node_modules/.pnpm && pnpm run staging:web:build'
     working_dir: /workspace
 # curl -sL https://unpkg.com/@pnpm/self-installer | sudo node
-# git clone https://github.com/wighawag/bleeps-code.git
+# git clone https://github.com/wighawag/bleeps.git
 # cd bleeps/
 # git checkout svelte-kit
 # npm set registry http://verdaccio:4873 && pnpm i --store=node_modules/.pnpm && pnpm run staging:web:build

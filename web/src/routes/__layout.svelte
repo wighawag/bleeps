@@ -85,7 +85,7 @@
   </a>
 
   {#if contractsInfo.contracts.Bleeps?.address}
-    <a href="https://github.com/wighawag/bleeps-code" target="_blank" class="text-bleeps hover:text-yellow-500">
+    <a href="https://github.com/wighawag/bleeps" target="_blank" class="text-bleeps hover:text-yellow-500">
       <span class="sr-only">GitHub</span>
       <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
         <path
@@ -134,7 +134,7 @@
       {#if contractsInfo.contracts.Bleeps?.address}
         <p class="mt-4 p-1">
           The source code can be found
-          <a href="https://github.com/wighawag/bleeps-code" target="_blank" class="underline">here</a>
+          <a href="https://github.com/wighawag/bleeps" target="_blank" class="underline">here</a>
           and the contract address is
           <a
             href={`https://etherscan.io/address/${contractsInfo.contracts.Bleeps?.address}`}
@@ -173,7 +173,7 @@
         </a>
 
         {#if contractsInfo.contracts.Bleeps?.address}
-          <a href="https://github.com/wighawag/bleeps-code" target="_blank" class="text-gray-400 hover:text-gray-300">
+          <a href="https://github.com/wighawag/bleeps" target="_blank" class="text-gray-400 hover:text-gray-300">
             <span class="sr-only">GitHub</span>
             <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path
