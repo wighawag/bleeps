@@ -170,7 +170,7 @@ const config: HardhatUserConfig = {
     demo: {
       url: node_url('goerli'),
       accounts: accounts('goerli'),
-      deploy: ['deploy/001_bleeps', 'deploy/002_bleepsdao', 'deploy/003_bleeps_sale', 'deploy/004_bleeps_setup'],
+      // deploy all : deploy: ['deploy/001_bleeps', 'deploy/002_bleepsdao', 'deploy/003_bleeps_sale', 'deploy/004_bleeps_setup'],
     },
     mainnet: {
       url: node_url('mainnet'),

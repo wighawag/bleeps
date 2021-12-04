@@ -383,7 +383,7 @@
         for (let i = 0; i < 32; i++) {
           notes[i].shape = global;
         }
-        global = (global + 1) % 8;
+        global = (global + 1) % 9;
         sound = null;
       }}>change all : {global}</button
     >)
@@ -392,7 +392,7 @@
     <button
       class="my-0 mx-1 w-4 h-20"
       on:click={() => {
-        note.shape = (note.shape + 1) % 8;
+        note.shape = (note.shape + 1) % 9;
         sound = null;
       }}>{note.shape}</button
     >

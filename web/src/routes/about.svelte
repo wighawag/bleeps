@@ -68,7 +68,7 @@
       the most awesome tracks. Melodies are put on auction as they are minted, and the revenue from the auction is split
       between the <span class="text-bleeps">Creator (90%)</span>, the <span class="text-bleeps">Bleepers (5%)</span> and
       the <span class="text-bleeps">DAO (5%)</span>. You can test a demo version
-      <a class="underline text-bleeps" href="https://bleeps-test.on.fleek.co/create/">here</a>.
+      <a class="underline text-bleeps" href="https://demo.bleeps.art/create/">here</a>.
     </p>
 
     <h2 class="text-3xl mt-16 font-heading text-black dark:text-white">
