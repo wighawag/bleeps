@@ -4,8 +4,8 @@ const networkName = deployments.getNetworkName();
 let url = 'http://localhost:3000';
 
 async function main() {
-  if (networkName === 'staging') {
-    url = 'https://goerli.bleeps.art';
+  if (networkName === 'demo') {
+    url = 'https://demo.bleeps.art';
   } else if (networkName === 'mainnet') {
     url = 'https://bleeps.art';
   }

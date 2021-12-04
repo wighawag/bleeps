@@ -53,8 +53,8 @@ function pause(numSeconds: number): Promise<void> {
 }
 
 async function main() {
-  if (networkName === 'staging') {
-    BOOKING_SERVICE_URL = 'https://booking-service-staging.rim.workers.dev';
+  if (networkName === 'demo') {
+    BOOKING_SERVICE_URL = 'https://booking-service-demo.rim.workers.dev';
   } else if (networkName === 'mainnet') {
     BOOKING_SERVICE_URL = 'https://booking-service-mainnet.rim.workers.dev';
   }

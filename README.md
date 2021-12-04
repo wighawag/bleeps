@@ -238,11 +238,11 @@ You need to gather the following environment variables :
 
 Note that pinata is currently the default ipfs provider setup but ipfs-deploy, the tool used to deploy to ipfs support other providers, see : https://github.com/ipfs-shipyard/ipfs-deploy
 
-For production and staging, you would need to set MENMONIC too in the respective `.env.production` and `.env.staging` files.
+For production and demo, you would need to set MENMONIC too in the respective `.env.production` and `.env.demo` files.
 
 You can remove the env if you want to use the same as the one in `.env`
 
-You'll also need to update the following for staging and production :
+You'll also need to update the following for demo and production :
 
 - `SUBGRAPH_NAME=<thegraph account name>/<subgraph name>`
 - `VITE_CHAIN_ID=<id of the chain where contracts lives>`
@@ -254,6 +254,6 @@ Furthermore, you need to ensure the values in [web/application.json](web/applica
 
 ## fleek github integration
 
-For `web:build` you can also use [fleek](https://fleek.co) so that building and ipfs deployment is done automatically. The repo provide a `.fleek.json` file already setup for staging.
+For `web:build` you can also use [fleek](https://fleek.co) so that building and ipfs deployment is done automatically. The repo provide a `.fleek.json` file already setup for demo.
 
 The only thing needed is setting up the environment variables (VITE_THE_GRAPH_HTTP, VITE_CHAIN_ID). You can either set them in fleek dashboard or set them in `.fleek.json`

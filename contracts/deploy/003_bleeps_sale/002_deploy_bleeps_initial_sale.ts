@@ -88,13 +88,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
           new Date(startTime * 1000).toLocaleString() + ' (' + Intl.DateTimeFormat().resolvedOptions().timeZone + ')'
         }`
       );
-    } else if (networkName == 'staging') {
+    } else if (networkName == 'demo') {
       startTime += 13 * 60;
     } else if (networkName == 'rinkeby') {
       startTime = Math.floor(Date.now() / 1000);
     }
     let publicSaleTimestamp = startTime + 3 * days;
-    if (networkName == 'staging') {
+    if (networkName == 'demo') {
       publicSaleTimestamp = startTime + 30 * 60;
     } else if (networkName == 'rinkeby') {
       publicSaleTimestamp = startTime;

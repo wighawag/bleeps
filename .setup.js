@@ -31,7 +31,7 @@ function copyPrettierFixVSCodeSettings(p) {
   copyUnlessExists('_prettier-vscode-fix/vscode-settings.json', `${p}/.vscode/settings.json`);
 }
 
-['bleeps.code-workspace', '.env', '.env.mainnet', '.env.staging'].map(copyFromDefault);
+['bleeps.code-workspace', '.env', '.env.mainnet', '.env.demo'].map(copyFromDefault);
 
 ['common-lib', 'contracts', 'subgraph', 'web'].map(copyPrettierFixVSCodeSettings);
 

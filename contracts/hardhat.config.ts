@@ -16,8 +16,8 @@ if (process.env.HARDHAT_FORK) {
 const creator = '0x8350c9989ef11325b36ce6f7549004d418dbcee7';
 const initialAdmin = '0xdcA9d1FA839bB9Fe65DDC4de5161BCA43751D4B4';
 
-const stagingCreator = '0xcE1AEF3e0A5324F7AB6e21B4dacc10B82666E1e2';
-const stagingAdmin = '0xCcFe9B3769473eeBb45a592313583616038f6274';
+const demoCreator = '0xcE1AEF3e0A5324F7AB6e21B4dacc10B82666E1e2';
+const demoAdmin = '0xCcFe9B3769473eeBb45a592313583616038f6274';
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -45,64 +45,64 @@ const config: HardhatUserConfig = {
     initialBleepsTokenURIAdmin: {
       default: 1,
       mainnet: initialAdmin,
-      staging: stagingAdmin,
-      rinkeby: stagingAdmin,
+      demo: demoAdmin,
+      rinkeby: demoAdmin,
     },
 
     // can set new minter contract => keep on initialAdmin until initial sale is over in case any issue arise, then DAO
     initialBleepsMinterAdmin: {
       default: 1,
       mainnet: initialAdmin,
-      staging: stagingAdmin,
-      rinkeby: stagingAdmin,
+      demo: demoAdmin,
+      rinkeby: demoAdmin,
     },
 
     // can set royalties => keep on initialAdmin for now.
     initialBleepsRoyaltyAdmin: {
       default: 1,
       mainnet: initialAdmin,
-      staging: stagingAdmin,
-      rinkeby: stagingAdmin,
+      demo: demoAdmin,
+      rinkeby: demoAdmin,
     },
 
     // can remove DAO rights => keep on initialAdmin for now. Revoke fully later.
     bleepsGuardian: {
       default: 1,
       mainnet: initialAdmin,
-      staging: stagingAdmin,
-      rinkeby: stagingAdmin,
+      demo: demoAdmin,
+      rinkeby: demoAdmin,
     },
 
     // this will be changeable by royaltyAdmin later
     initialBleepsRoyaltyRecipient: {
       default: 1,
       mainnet: creator,
-      staging: stagingCreator,
-      rinkeby: stagingCreator,
+      demo: demoCreator,
+      rinkeby: demoCreator,
     },
 
     // can disable the gas expensive checkpointing, would require a new governance mechanism  => keep on initialAdmin for now and then revoke.
     initialCheckpointingDisabler: {
       default: 1,
       mainnet: initialAdmin,
-      staging: stagingAdmin,
-      rinkeby: stagingAdmin,
+      demo: demoAdmin,
+      rinkeby: demoAdmin,
     },
 
     // this will receive the creator fee (25%)
     projectCreator: {
       default: 1,
       mainnet: creator,
-      staging: stagingCreator,
-      rinkeby: stagingCreator,
+      demo: demoCreator,
+      rinkeby: demoCreator,
     },
 
     // can block proposals (meant to protect the DAO in early days), will be revoked
     daoVetoer: {
       default: 1,
       mainnet: initialAdmin,
-      staging: stagingAdmin,
-      rinkeby: stagingAdmin,
+      demo: demoAdmin,
+      rinkeby: demoAdmin,
     },
 
     // can prevent the governance mechanism to switch to a new mechanism. To ensure Bleeps will always be the voting rights
@@ -110,35 +110,35 @@ const config: HardhatUserConfig = {
     daoGuardian: {
       default: 1,
       mainnet: initialAdmin,
-      staging: stagingAdmin,
-      rinkeby: stagingAdmin,
+      demo: demoAdmin,
+      rinkeby: demoAdmin,
     },
 
     // TODO comments:
     initialMeloBleepsOwner: {
       default: 1,
       mainnet: initialAdmin,
-      staging: stagingAdmin,
-      rinkeby: stagingAdmin,
+      demo: demoAdmin,
+      rinkeby: demoAdmin,
     },
     initialMeloBleepsTokenURIAdmin: {
       default: 1,
       mainnet: initialAdmin,
-      staging: stagingAdmin,
-      rinkeby: stagingAdmin,
+      demo: demoAdmin,
+      rinkeby: demoAdmin,
     },
     initialMeloBleepsRoyaltyAdmin: 1,
     initialMeloBleepsMinterAdmin: {
       default: 1,
       mainnet: initialAdmin,
-      staging: stagingAdmin,
-      rinkeby: stagingAdmin,
+      demo: demoAdmin,
+      rinkeby: demoAdmin,
     },
     melobleepsGuardian: {
       default: 1,
       mainnet: initialAdmin,
-      staging: stagingAdmin,
-      rinkeby: stagingAdmin,
+      demo: demoAdmin,
+      rinkeby: demoAdmin,
     },
   },
   networks: {
@@ -167,7 +167,7 @@ const config: HardhatUserConfig = {
       url: node_url('localhost'),
       accounts: accounts(),
     },
-    staging: {
+    demo: {
       url: node_url('goerli'),
       accounts: accounts('goerli'),
       deploy: ['deploy/001_bleeps', 'deploy/002_bleepsdao', 'deploy/003_bleeps_sale', 'deploy/004_bleeps_setup'],
@@ -186,7 +186,7 @@ const config: HardhatUserConfig = {
       url: node_url('kovan'),
       accounts: accounts('kovan'),
     },
-    staging2: {
+    demo2: {
       url: node_url('goerli'),
       accounts: accounts('goerli'),
       deploy: ['deploy/001_bleeps', 'deploy/002_bleepsdao', 'deploy/003_bleeps_sale', 'deploy/004_bleeps_setup'],
