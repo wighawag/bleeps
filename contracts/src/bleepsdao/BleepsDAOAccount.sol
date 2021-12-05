@@ -30,4 +30,37 @@ contract BleepsDAOAccount is TimelockController {
         require(!immortalized, "Governance is immortalized");
         super.renounceRole(role, account);
     }
+
+    bytes4 private constant ERC1155_RECEIVED = 0xf23a6e61;
+    bytes4 private constant ERC1155_BATCH_RECEIVED = 0xbc197c81;
+    bytes4 internal constant ERC721_RECEIVED = 0x150b7a02;
+
+    function onERC721Received(
+        address, /*operator*/
+        address, /*from*/
+        uint256, /*id*/
+        bytes calldata /*data*/
+    ) external pure returns (bytes4) {
+        return ERC721_RECEIVED;
+    }
+
+    function onERC1155Received(
+        address, /*operator*/
+        address, /*from*/
+        uint256, /*id*/
+        uint256, /*value*/
+        bytes calldata /*data*/
+    ) external pure returns (bytes4) {
+        return ERC1155_RECEIVED;
+    }
+
+    function onERC1155BatchReceived(
+        address, /*operator*/
+        address, /*from*/
+        uint256[] calldata, /*ids*/
+        uint256[] calldata, /*values*/
+        bytes calldata /*data*/
+    ) external pure returns (bytes4) {
+        return ERC1155_BATCH_RECEIVED;
+    }
 }

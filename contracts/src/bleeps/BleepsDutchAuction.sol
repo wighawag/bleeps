@@ -97,7 +97,10 @@ contract BleepsDutchAuction is IBleepsSale, SaleBase {
             require(isReserved(ids[i]), "NOT_RESERVED");
         }
 
+        address[] memory tos = new address[](1);
+        tos[0] = to;
+
         // mint all ids
-        _bleeps.multiMint(ids, to);
+        _bleeps.multiMint(ids, tos);
     }
 }

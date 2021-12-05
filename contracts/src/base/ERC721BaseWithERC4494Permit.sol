@@ -36,22 +36,20 @@ abstract contract ERC721BaseWithERC4494Permit is ERC721Base {
         return _DOMAIN_SEPARATOR();
     }
 
+    /// @notice return the account nonce, used for approvalForAll permit or other account related matter
+    /// @param account the account to query
+    /// @return nonce
     function nonces(address account) external view virtual returns (uint256 nonce) {
-        return accountNonces(account);
+        return _userNonces[account];
     }
 
+    /// @notice return the token nonce, used for individual approve permit or other token related matter
+    /// @param id token id to query
+    /// @return nonce
     function nonces(uint256 id) external view virtual returns (uint256 nonce) {
-        return tokenNonces(id);
-    }
-
-    function tokenNonces(uint256 id) public view returns (uint256 nonce) {
         (address owner, uint256 blockNumber) = _ownerAndBlockNumberOf(id);
         require(owner != address(0), "NONEXISTENT_TOKEN");
         return blockNumber;
-    }
-
-    function accountNonces(address owner) public view returns (uint256 nonce) {
-        return _userNonces[owner];
     }
 
     function permit(
