@@ -30,7 +30,7 @@ abstract contract ERC721Base is IERC165, IERC721 {
     function approve(address operator, uint256 id) external override {
         (address owner, uint256 blockNumber) = _ownerAndBlockNumberOf(id);
         require(owner != address(0), "NONEXISTENT_TOKEN");
-        require(msg.sender == owner || _operatorsForAll[owner][msg.sender], "UNAUTHORIZED_APPROVAL");
+        require(msg.sender == owner || isApprovedForAll(owner, msg.sender), "UNAUTHORIZED_APPROVAL");
         _approveFor(owner, blockNumber, operator, id);
     }
 
@@ -50,7 +50,7 @@ abstract contract ERC721Base is IERC165, IERC721 {
         require(to != address(this), "NOT_TO_THIS");
         if (msg.sender != from) {
             require(
-                (operatorEnabled && _operators[id] == msg.sender) || _operatorsForAll[from][msg.sender],
+                (operatorEnabled && _operators[id] == msg.sender) || isApprovedForAll(from, msg.sender),
                 "UNAUTHORIZED_TRANSFER"
             );
         }
@@ -160,7 +160,7 @@ abstract contract ERC721Base is IERC165, IERC721 {
         require(to != address(this), "NOT_TO_THIS");
         if (msg.sender != from) {
             require(
-                (operatorEnabled && _operators[id] == msg.sender) || _operatorsForAll[from][msg.sender],
+                (operatorEnabled && _operators[id] == msg.sender) || isApprovedForAll(from, msg.sender),
                 "UNAUTHORIZED_TRANSFER"
             );
         }
