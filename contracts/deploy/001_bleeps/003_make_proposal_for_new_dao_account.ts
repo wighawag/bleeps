@@ -7,6 +7,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, getNamedAccounts, network} = hre;
   const {execute} = deployments;
 
+  const networkNane = await deployments.getNetworkName();
+  if (networkNane === 'hardhat') {
+    return;
+  }
+
   const {projectCreator} = await getNamedAccounts();
 
   const BleepsDAOAccount = await deployments.get('BleepsDAOAccount');
@@ -90,4 +95,4 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 };
 export default func;
 func.tags = ['BleepsDAOAccount', 'BleepsDAOAccount_setup'];
-func.dependencies = ['BleepsDAOAccount_deploy'];
+func.dependencies = ['BleepsInitialSale_deploy', 'BleepsDAOAccount_deploy'];

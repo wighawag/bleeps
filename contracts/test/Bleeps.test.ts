@@ -1,6 +1,6 @@
 import {expect} from './chai-setup';
 import {ethers, deployments, getUnnamedAccounts} from 'hardhat';
-import {Bleeps, IBleepsSale} from '../typechain';
+import {Bleeps, IBleepsSale, OpenSeaProxyRegistryMock} from '../typechain';
 import {setupUsers} from './utils';
 import {BigNumber, constants} from 'ethers';
 import {parseEther, solidityKeccak256} from 'ethers/lib/utils';
@@ -14,6 +14,7 @@ const setup = deployments.createFixture(async () => {
   const contracts = {
     Bleeps: <Bleeps>await ethers.getContract('Bleeps'),
     BleepsInitialSale: <IBleepsSale>await ethers.getContract('BleepsInitialSale'),
+    WyvernProxyRegistry: <OpenSeaProxyRegistryMock>await ethers.getContract('WyvernProxyRegistry'),
   };
   const users = await setupUsers(await getUnnamedAccounts(), contracts);
   return {
@@ -30,6 +31,24 @@ describe('Bleeps', function () {
     expect(await Bleeps.supportsInterface('0x2a55205a')).to.be.true;
     expect(await Bleeps.supportsInterface('0x00000000')).to.be.false;
     expect(await Bleeps.supportsInterface('0x11111111')).to.be.false;
+  });
+
+  it('opensea proxy works', async function () {
+    const {users, Bleeps} = await setup();
+    await mintViaSalePass(1, users[0].address, users[0].address);
+    await users[0].WyvernProxyRegistry.setProxy(users[1].address);
+    await users[1].Bleeps.transferFrom(users[0].address, users[2].address, 1);
+    const owner = await Bleeps.ownerOf(1);
+    expect(owner).to.be.equal(users[2].address);
+  });
+
+  it('opensea proxy works: fails when not set', async function () {
+    const {users, Bleeps} = await setup();
+    await mintViaSalePass(1, users[0].address, users[0].address);
+    // await users[0].WyvernProxyRegistry.setProxy(users[1].address);
+    await expect(users[1].Bleeps.transferFrom(users[0].address, users[2].address, 1)).to.revertedWith(
+      'UNAUTHORIZED_TRANSFER'
+    );
   });
 
   it('tokenURI works', async function () {

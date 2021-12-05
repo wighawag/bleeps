@@ -161,5 +161,5 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   }
 };
 export default func;
-func.tags = ['BleepsInitialSale'];
+func.tags = ['BleepsInitialSale', 'BleepsInitialSale_deploy'];
 func.dependencies = ['Bleeps_deploy', 'MandalaToken', 'BleepsDAOAccount_deploy'];

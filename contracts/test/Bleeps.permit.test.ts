@@ -45,7 +45,7 @@ describe('Bleeps Permit', function () {
 
     const signer = users[0].address;
     const spender = users[1].address;
-    const nonce = await Bleeps.callStatic.tokenNonces(tokenId);
+    const nonce = await Bleeps.callStatic['nonces(uint256)'](tokenId);
     const deadline = 4000000000;
 
     const signature = await BleepsPermitSigner.sign(users[0], {
@@ -73,7 +73,7 @@ describe('Bleeps Permit', function () {
     const signature2 = await BleepsPermitSigner.sign(users[2], {
       spender: users[4].address,
       tokenId,
-      nonce: await Bleeps.tokenNonces(tokenId),
+      nonce: await Bleeps['nonces(uint256)'](tokenId),
       deadline,
     });
 
@@ -108,7 +108,7 @@ describe('Bleeps Permit', function () {
 
     const signer = users[0].address;
     const spender = users[1].address;
-    const nonce = await Bleeps.accountNonces(signer);
+    const nonce = await Bleeps['nonces(address)'](signer);
     const deadline = 4000000000;
 
     const signature = await BleepsPermitForAllSigner.sign(users[0], {

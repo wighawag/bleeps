@@ -8,6 +8,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, getNamedAccounts} = hre;
   const {execute} = deployments;
 
+  const networkNane = await deployments.getNetworkName();
+  if (networkNane === 'hardhat') {
+    return;
+  }
+
   const {deployer, projectCreator} = await getNamedAccounts();
 
   const Bleeps = await ethers.getContract('Bleeps');
