@@ -58,16 +58,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   // -----------------------------------------------------------------------
   // creator batch
   // -----------------------------------------------------------------------
-  const [batchOwner3] = await Bleeps.callStatic.owners([448]);
-  if (batchOwner3 === AddressZero) {
-    const ids3 = Array.from(Array(128)).map((v, i) => i + 448);
-    const addresses3: string[] = [projectCreator];
+  const [creatorBatchOwner] = await Bleeps.callStatic.owners([448]);
+  if (creatorBatchOwner === AddressZero) {
+    const ids = Array.from(Array(128)).map((v, i) => i + 448);
+    const addresses: string[] = [projectCreator];
     await execute(
       'Bleeps',
       {from: deployer, log: true, autoMine: true, gasLimit: '30000000'},
       'multiMint',
-      ids3,
-      addresses3
+      ids,
+      addresses
     );
   }
 
@@ -120,4 +120,5 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   // await execute('Bleeps', {from: deployer, log: true, autoMine: true, gasLimit: '30000000'}, 'multiMint', mints);
 };
 export default func;
-func.tags = ['Bleeps', 'Bleeps_deploy'];
+func.tags = ['Bleeps', 'Bleeps_setup'];
+func.dependencies = ['Bleeps_deploy'];
