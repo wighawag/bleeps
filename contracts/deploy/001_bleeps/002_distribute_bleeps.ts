@@ -1,8 +1,8 @@
 import {HardhatRuntimeEnvironment} from 'hardhat/types';
 import {DeployFunction} from 'hardhat-deploy/types';
 import {ethers} from 'hardhat';
-import {Wallet} from 'ethers';
 import {AddressZero} from '@ethersproject/constants';
+import fs from 'fs';
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, getNamedAccounts} = hre;
@@ -18,58 +18,50 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await execute('Bleeps', {from: currentAdmin, log: true, autoMine: true}, 'setMinter', deployer);
   }
 
+  const bleepOwners: {id: string; bleeps: number[]}[] = JSON.parse(
+    fs.readFileSync('bleepsOwners_at_13746892.json').toString()
+  ); // TODO blockNumber
+
   // -----------------------------------------------------------------------
-  // batch 1
+  // batches
   // -----------------------------------------------------------------------
-  const [batchOwner1] = await Bleeps.callStatic.owners([0]);
-  if (batchOwner1 === AddressZero) {
-    const ids1 = Array.from(Array(216)).map((v, i) => i);
-    const addresses1: string[] = [];
-    for (let i = 0; i < 116; i++) {
-      const addr = Wallet.createRandom().address;
-      addresses1.push(addr);
-      if (i >= 16) {
-        addresses1.push(addr);
+  const numBatches = 2;
+  const numPerBatch = Math.ceil(bleepOwners.length / numBatches);
+  for (let i = 0; i < numBatches; i++) {
+    const start = i * numPerBatch;
+    const end = Math.min(i * numPerBatch + numPerBatch, bleepOwners.length);
+
+    const batch = bleepOwners.slice(start, end);
+    console.log({start, end, length: batch.length});
+
+    const [firstBatchOwner] = await Bleeps.callStatic.owners([batch[0].bleeps[0]]);
+    if (firstBatchOwner === AddressZero) {
+      if (batch.length > 0) {
+        const ids: number[] = [];
+        const addresses: string[] = [];
+        for (const owner of batch) {
+          for (const bleep of owner.bleeps) {
+            ids.push(bleep);
+            addresses.push(owner.id);
+          }
+        }
+        await execute(
+          'Bleeps',
+          {from: deployer, log: true, autoMine: true, gasLimit: '30000000'},
+          'multiMint',
+          ids,
+          addresses
+        );
       }
     }
-    await execute(
-      'Bleeps',
-      {from: deployer, log: true, autoMine: true, gasLimit: '30000000'},
-      'multiMint',
-      ids1,
-      addresses1
-    );
   }
-
   // -----------------------------------------------------------------------
-  // batch 2
-  // -----------------------------------------------------------------------
-  const [batchOwner2] = await Bleeps.callStatic.owners([216]);
-  if (batchOwner2 === AddressZero) {
-    const ids2 = Array.from(Array(232)).map((v, i) => i + 216);
-    const addresses2: string[] = [];
-    for (let i = 0; i < 116; i++) {
-      const addr = Wallet.createRandom().address;
-      addresses2.push(addr);
-      addresses2.push(addr);
-    }
-    await execute(
-      'Bleeps',
-      {from: deployer, log: true, autoMine: true, gasLimit: '30000000'},
-      'multiMint',
-      ids2,
-      addresses2
-    );
-  }
-
-  // -----------------------------------------------------------------------
-  // batch 3 (creator)
+  // creator batch
   // -----------------------------------------------------------------------
   const [batchOwner3] = await Bleeps.callStatic.owners([448]);
   if (batchOwner3 === AddressZero) {
     const ids3 = Array.from(Array(128)).map((v, i) => i + 448);
     const addresses3: string[] = [projectCreator];
-    console.log({ids3, addresses3});
     await execute(
       'Bleeps',
       {from: deployer, log: true, autoMine: true, gasLimit: '30000000'},
