@@ -4,8 +4,8 @@
   "private": true,
   "version": "0.0.1",
   "devDependencies": {
-    "@graphprotocol/graph-cli": "^0.22.3",
-    "@graphprotocol/graph-ts": "^0.22.1",
+    "@graphprotocol/graph-cli": "^0.21.1",
+    "@graphprotocol/graph-ts": "^0.20.0",
     "chokidar": "^3.5.2",
     "cross-var": "^1.1.0",
     "dotenv-cli": "^4.0.0",
@@ -27,7 +27,8 @@
     "redeploy": "dotenv -- graph codegen && dotenv -- cross-var graph deploy -l v0.0.1 --ipfs $IPFS_URL --node http://$GRAPH_NODE_API $SUBGRAPH_NAME",
     "wait:deploy": "dotenv -- cross-var wait-on $IPFS_URL/api/v0/version http-get://$GRAPH_NODE_GRAPHQL && run-s redeploy",
     "deploy": "npm-run-all \"generate -- {1}\" codegen wait:deploy --",
-    "hosted:redeploy": "echo \"deploying $SUBGRAPH_NAME ...\" && dotenv -- cross-var graph deploy -l v0.0.1 --studio $SUBGRAPH_NAME",
-    "hosted:deploy": "npm-run-all \"generate -- {1}\" codegen hosted:redeploy --"
+    "hosted:auth": "dotenv -- cross-var graph auth --product hosted-service $THEGRAPH_TOKEN ",
+    "hosted:redeploy": "echo \"deploying $SUBGRAPH_NAME ...\" && dotenv -- cross-var graph deploy --product hosted-service $SUBGRAPH_NAME",
+    "hosted:deploy": "npm-run-all \"generate -- {1}\" codegen hosted:auth hosted:redeploy --"
   }
 }

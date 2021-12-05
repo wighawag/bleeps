@@ -1,5 +1,20 @@
-type MessageEntry @entity {
+type Owner @entity {
   id: ID!
-  message: String!
-  timestamp: BigInt!
+  numBleeps: BigInt!
+  numBleepsMinted: BigInt!
+  bleepsMinted: [Bleep!]! @derivedFrom(field: "minter")
+  bleeps: [Bleep!]! @derivedFrom(field: "owner")
+}
+
+type Bleep @entity {
+  id: ID!
+  owner: Owner
+  minter: Owner!
+}
+
+type All @entity {
+  id: ID!
+  numOwners: BigInt!
+  numMinters: BigInt!
+  numBleeps: BigInt!
 }

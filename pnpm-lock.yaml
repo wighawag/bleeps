@@ -174,8 +174,8 @@ importers:
 
   subgraph:
     specifiers:
-      '@graphprotocol/graph-cli': ^0.22.3
-      '@graphprotocol/graph-ts': ^0.22.1
+      '@graphprotocol/graph-cli': ^0.21.1
+      '@graphprotocol/graph-ts': ^0.20.0
       chokidar: ^3.5.2
       cross-var: ^1.1.0
       dotenv-cli: ^4.0.0
@@ -185,8 +185,8 @@ importers:
       rimraf: ^3.0.2
       wait-on: ^6.0.0
     devDependencies:
-      '@graphprotocol/graph-cli': 0.22.3
-      '@graphprotocol/graph-ts': 0.22.1
+      '@graphprotocol/graph-cli': 0.21.1
+      '@graphprotocol/graph-ts': 0.20.1
       chokidar: 3.5.2
       cross-var: 1.1.0
       dotenv-cli: 4.0.0
@@ -1373,32 +1373,29 @@ packages:
       '@ethersproject/strings': 5.5.0
     dev: false
 
-  /@graphprotocol/graph-cli/0.22.3:
-    resolution: {integrity: sha512-vM5oBieTnAgqzxvaCB/iG6F7eFMOuGfxyDJ/9g+UHGfcEQQhElNV3vWLIk4l06/sShASqAwctOTo+3s5wuWhqg==}
+  /@graphprotocol/graph-cli/0.21.1:
+    resolution: {integrity: sha512-bqHlHZTzfEJICUpGQQr4Pru07OiGiOpIiwkVSdQMJaiuwu+bflMmLJNYNbSRH2byqaWDZvc4MI3U9CwUYXdRRw==}
     hasBin: true
     dependencies:
-      assemblyscript: 0.19.10
-      binary-install-raw: 0.0.13_debug@4.3.2
+      assemblyscript: github.com/AssemblyScript/assemblyscript/3ed76a97f05335504166fce1653da75f4face28f
       chalk: 3.0.0
       chokidar: 3.5.2
-      debug: 4.3.2
+      debug: 4.3.3
       docker-compose: 0.23.13
       dockerode: 2.5.8
       fs-extra: 9.1.0
       glob: 7.2.0
-      gluegun: 4.7.0_debug@4.3.2
+      gluegun: 4.7.0_debug@4.3.3
       graphql: 15.6.1
       immutable: 3.8.2
       ipfs-http-client: 34.0.0
       jayson: 3.6.5
       js-yaml: 3.14.1
-      node-fetch: 2.6.5
+      node-fetch: 2.6.6
       pkginfo: 0.4.1
       prettier: 1.19.1
       request: 2.88.2
-      semver: 7.3.5
       tmp-promise: 3.0.2
-      which: 2.0.2
       yaml: 1.10.2
     transitivePeerDependencies:
       - bufferutil
@@ -1406,10 +1403,10 @@ packages:
       - utf-8-validate
     dev: true
 
-  /@graphprotocol/graph-ts/0.22.1:
-    resolution: {integrity: sha512-T5xrHN0tHJwd7ZnSTLhk5hAL3rCIp6rJ40kBCrETnv1mfK9hVyoojJK6VtBQXTbLsYtKe4SYjjD0cdOsAR9QiA==}
+  /@graphprotocol/graph-ts/0.20.1:
+    resolution: {integrity: sha512-JATb0tERXt+JZUYuW9rwfnLzIM4EOBHf/EEZir5JMiIVMP55CoOyQGAwH2dvKSm5O8WQ1BfdbnOvk7YNVMFHsg==}
     dependencies:
-      assemblyscript: 0.19.10
+      assemblyscript: github.com/AssemblyScript/assemblyscript/3ed76a97f05335504166fce1653da75f4face28f
     dev: true
 
   /@graphql-typed-document-node/core/3.1.0:
@@ -2251,13 +2248,13 @@ packages:
   /@types/connect/3.4.35:
     resolution: {integrity: sha512-cdeYyv4KWoEgpBISTxWvqYsVy444DOqehiF3fM3ne10AmJ62RSyNkUnxMJXHQWRQQX2eR94m5y1IZyDwBjV9FQ==}
     dependencies:
-      '@types/node': 12.20.30
+      '@types/node': 16.11.10
     dev: true
 
   /@types/express-serve-static-core/4.17.24:
     resolution: {integrity: sha512-3UJuW+Qxhzwjq3xhwXm2onQcFHn76frIYVbTu+kn24LFxI+dEhdfISDFovPB8VpEgW8oQCTpRuCe+0zJxB7NEA==}
     dependencies:
-      '@types/node': 12.20.30
+      '@types/node': 16.11.10
       '@types/qs': 6.9.7
       '@types/range-parser': 1.2.4
     dev: true
@@ -2445,7 +2442,7 @@ packages:
   /@types/ws/7.4.7:
     resolution: {integrity: sha512-JQbbmxZTZehdc2iszGKs5oC3NFnjeay7mtAWrdt7qNtAVK0g19muApzAy4bm9byz79xa2ZnO/BOBC2R8RC5Lww==}
     dependencies:
-      '@types/node': 12.20.30
+      '@types/node': 16.11.10
     dev: true
 
   /@typescript-eslint/eslint-plugin/4.33.0_cc617358c89d3f38c52462f6d809db4c:
@@ -2865,10 +2862,10 @@ packages:
       picomatch: 2.3.0
     dev: true
 
-  /apisauce/2.1.2_debug@4.3.2:
+  /apisauce/2.1.2_debug@4.3.3:
     resolution: {integrity: sha512-2/9tz9uR/56UfZpzeMkGyX33tNjYpBNjhwvT/yyYIItulboxzTqZTD3F3Q7WJVXl8fvX6PZDMaxoFH4r/sXkEA==}
     dependencies:
-      axios: 0.21.4_debug@4.3.2
+      axios: 0.21.4_debug@4.3.3
       ramda: 0.25.0
     transitivePeerDependencies:
       - debug
@@ -2984,14 +2981,6 @@ packages:
       pvutils: 1.0.17
     dev: true
 
-  /assemblyscript/0.19.10:
-    resolution: {integrity: sha512-HavcUBXB3mBTRGJcpvaQjmnmaqKHBGREjSPNsIvnAk2f9dj78y4BkMaSSdvBQYWcDDzsHQjyUC8stICFkD1Odg==}
-    hasBin: true
-    dependencies:
-      binaryen: 101.0.0-nightly.20210723
-      long: 4.0.0
-    dev: true
-
   /assert-plus/1.0.0:
     resolution: {integrity: sha1-8S4PPF13sLHN2RRpQuTpbB5N1SU=}
     engines: {node: '>=0.8'}
@@ -3083,14 +3072,6 @@ packages:
     resolution: {integrity: sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg==}
     dependencies:
       follow-redirects: 1.14.5
-    transitivePeerDependencies:
-      - debug
-    dev: true
-
-  /axios/0.21.4_debug@4.3.2:
-    resolution: {integrity: sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg==}
-    dependencies:
-      follow-redirects: 1.14.5_debug@4.3.2
     transitivePeerDependencies:
       - debug
     dev: true
@@ -3766,19 +3747,8 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
-  /binary-install-raw/0.0.13_debug@4.3.2:
-    resolution: {integrity: sha512-v7ms6N/H7iciuk6QInon3/n2mu7oRX+6knJ9xFPsJ3rQePgAqcR3CRTwUheFd8SLbiq4LL7Z4G/44L9zscdt9A==}
-    engines: {node: '>=10'}
-    dependencies:
-      axios: 0.21.4_debug@4.3.2
-      rimraf: 3.0.2
-      tar: 6.1.11
-    transitivePeerDependencies:
-      - debug
-    dev: true
-
-  /binaryen/101.0.0-nightly.20210723:
-    resolution: {integrity: sha512-eioJNqhHlkguVSbblHOtLqlhtC882SOEPKmNFZaDuz1hzQjolxZ+eu3/kaS10n3sGPONsIZsO7R9fR00UyhEUA==}
+  /binaryen/77.0.0-nightly.20190407:
+    resolution: {integrity: sha512-1mxYNvQ0xywMe582K7V6Vo2zzhZZxMTeGHH8aE/+/AND8f64D8Q1GThVY3RVRwGY/4p+p95ccw9Xbw2ovFXRIg==}
     hasBin: true
     dev: true
 
@@ -6957,18 +6927,6 @@ packages:
         optional: true
     dev: true
 
-  /follow-redirects/1.14.5_debug@4.3.2:
-    resolution: {integrity: sha512-wtphSXy7d4/OR+MvIFbCVBDzZ5520qV8XfPklSN5QtxuMUJZ+b0Wnst1e1lCDocfzuCkHqj8k0FpZqO+UIaKNA==}
-    engines: {node: '>=4.0'}
-    peerDependencies:
-      debug: '*'
-    peerDependenciesMeta:
-      debug:
-        optional: true
-    dependencies:
-      debug: 4.3.2
-    dev: true
-
   /follow-redirects/1.14.5_debug@4.3.3:
     resolution: {integrity: sha512-wtphSXy7d4/OR+MvIFbCVBDzZ5520qV8XfPklSN5QtxuMUJZ+b0Wnst1e1lCDocfzuCkHqj8k0FpZqO+UIaKNA==}
     engines: {node: '>=4.0'}
@@ -7417,11 +7375,11 @@ packages:
     resolution: {integrity: sha512-uHJgbwAMwNFf5mLst7IWLNg14x1CkeqglJb/K3doi4dw6q2IvAAmM/Y81kevy83wP+Sst+nutFTYOGg3d1lsxg==}
     dev: true
 
-  /gluegun/4.7.0_debug@4.3.2:
+  /gluegun/4.7.0_debug@4.3.3:
     resolution: {integrity: sha512-St+J/rly0FoWLeISgBGDuymwF3/b8OdmxBCbSvK1hXEoRbaaATiRpPepJSJWuRYR7cGR7Hy9drgQwGFBAolhbQ==}
     hasBin: true
     dependencies:
-      apisauce: 2.1.2_debug@4.3.2
+      apisauce: 2.1.2_debug@4.3.3
       app-module-path: 2.2.0
       cli-table3: 0.5.1
       colors: 1.4.0
@@ -8308,7 +8266,7 @@ packages:
       buffer: 5.7.1
       cids: 0.7.5
       concat-stream: github.com/hugomrdias/concat-stream/057bc7b5d6d8df26c8cf00a3f151b6721a0a8034
-      debug: 4.3.2
+      debug: 4.3.3
       detect-node: 2.1.0
       end-of-stream: 1.4.4
       err-code: 2.0.3
@@ -9472,7 +9430,7 @@ packages:
     dependencies:
       abort-controller: 3.0.0
       ky: 0.11.2
-      node-fetch: 2.6.5
+      node-fetch: 2.6.6
     dev: true
 
   /ky/0.11.2:
@@ -12109,7 +12067,6 @@ packages:
     resolution: {integrity: sha512-N9iVG+CGJsI4b4ZGazjwLnxErD2d9Pe4DPvvXSxYA9tFNu8ymXME4Qs5HIQ0LMJpNM7zj+m0NlNnNeqFpKzqnA==}
     deprecated: Unmaintained
     dev: true
-    bundledDependencies: []
 
   /protobufjs/6.11.2:
     resolution: {integrity: sha512-4BQJoPooKJl2G9j3XftkIXjoC9C0Av2NOrWmbLWT1vH32GcSUHjM0Arra6UfTsVyfMAuFzaLucXn1sadxJydAw==}
@@ -15537,6 +15494,22 @@ packages:
       cookie: 0.4.1
       mustache: 4.2.0
       stack-trace: 0.0.10
+    dev: true
+
+  github.com/AssemblyScript/assemblyscript/3ed76a97f05335504166fce1653da75f4face28f:
+    resolution: {tarball: https://codeload.github.com/AssemblyScript/assemblyscript/tar.gz/3ed76a97f05335504166fce1653da75f4face28f}
+    name: assemblyscript
+    version: 0.6.0
+    engines: {node: '>=8'}
+    hasBin: true
+    requiresBuild: true
+    dependencies:
+      '@protobufjs/utf8': 1.1.0
+      binaryen: 77.0.0-nightly.20190407
+      glob: 7.2.0
+      long: 4.0.0
+      opencollective-postinstall: 2.0.3
+      source-map-support: 0.5.20
     dev: true
 
   github.com/hugomrdias/concat-stream/057bc7b5d6d8df26c8cf00a3f151b6721a0a8034:

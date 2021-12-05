@@ -4,22 +4,24 @@ schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum/contract
-    name: GreetingsRegistry
+    name: Bleeps
     network: {{chainName}}
     source:
-      address: '{{contracts.GreetingsRegistry.address}}'
-      abi: GreetingsRegistryContract
-      startBlock: {{contracts.GreetingsRegistry.receipt.blockNumber}}
+      address: '{{contracts.Bleeps.address}}'
+      abi: BleepsContract
+      startBlock: {{contracts.Bleeps.receipt.blockNumber}}
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.3
       language: wasm/assemblyscript
       entities:
-        - MessageEntry
+        - Owner
+        - Bleep
+        - All
       abis:
-        - name: GreetingsRegistryContract
-          file: ./abis/GreetingsRegistry.json
+        - name: BleepsContract
+          file: ./abis/Bleeps.json
       eventHandlers:
-        - event: MessageChanged(indexed address,string)
-          handler: handleMessageChanged
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleTransfer
       file: ./src/mapping.ts
