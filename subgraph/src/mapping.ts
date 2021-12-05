@@ -56,7 +56,15 @@ export function handleTransfer(event: Transfer): void {
       all.numOwners = all.numOwners.plus(ONE);
     }
     owner.numBleeps = owner.numBleeps.plus(ONE);
+
+    if (owner.numBleepsMinted.equals(ZERO)) {
+      all.numMinters = all.numMinters.plus(ONE);
+    }
+    owner.numBleepsMinted = owner.numBleepsMinted.plus(ONE);
+
     owner.save();
+
+    all.numBleeps = all.numBleeps.plus(ONE);
   } else if (event.params.to == ZERO_ADDRESS) {
     // bleep.owner = null; // keep so it is handled in handleBurned
 
@@ -66,6 +74,7 @@ export function handleTransfer(event: Transfer): void {
       all.numOwners = all.numOwners.minus(ONE);
     }
     owner.save();
+    all.numBleeps = all.numBleeps.minus(ONE);
   } else {
     let ownerTo = handleOwnerViaId(to);
 
@@ -87,43 +96,3 @@ export function handleTransfer(event: Transfer): void {
   bleep.save();
   all.save();
 }
-
-// export function handleMinted(event: Minted): void {
-//   let all = handleAll();
-//   all.numBleeps = all.numBleeps.plus(ONE);
-//   all.numBleepsMinted = all.numBleepsMinted.plus(ONE);
-
-//   let bleep = handleBleep(event.params.id, event.transaction.from);
-//   bleep.numSpent = bleep.numSpent.plus(event.params.pricePaid);
-//   bleep.save();
-
-//   let owner = handleOwnerViaId(bleep.minter);
-//   if (owner.numBleepsMinted.equals(ZERO)) {
-//     all.numMinters = all.numMinters.plus(ONE);
-//   }
-//   owner.numSpent = owner.numSpent.plus(event.params.pricePaid);
-//   owner.numBleepsMinted = owner.numBleepsMinted.plus(ONE);
-//   owner.save();
-
-//   all.numSpent = all.numSpent.plus(event.params.pricePaid);
-
-//   all.save();
-// }
-
-// export function handleBurned(event: Burned): void {
-//   let all = handleAll();
-//   all.numBleeps = all.numBleeps.minus(ONE);
-//   let bleep = Bleep.load(event.params.id.toString());
-
-//   let owner = handleOwnerViaId(bleep.owner);
-//   owner.numCollected = owner.numCollected.plus(event.params.priceReceived);
-//   owner.save();
-
-//   bleep.owner = null;
-//   bleep.numCollected = bleep.numCollected.plus(event.params.priceReceived);
-//   bleep.save();
-
-//   all.numCollected = all.numCollected.plus(event.params.priceReceived);
-
-//   all.save();
-// }
