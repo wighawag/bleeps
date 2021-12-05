@@ -46,10 +46,17 @@ abstract contract ERC721BaseWithERC4494Permit is ERC721Base {
     /// @notice return the token nonce, used for individual approve permit or other token related matter
     /// @param id token id to query
     /// @return nonce
-    function nonces(uint256 id) external view virtual returns (uint256 nonce) {
+    function nonces(uint256 id) public view virtual returns (uint256 nonce) {
         (address owner, uint256 blockNumber) = _ownerAndBlockNumberOf(id);
         require(owner != address(0), "NONEXISTENT_TOKEN");
         return blockNumber;
+    }
+
+    /// @notice return the token nonce, used for individual approve permit or other token related matter
+    /// @param id token id to query
+    /// @return nonce
+    function tokenNonces(uint256 id) external view returns (uint256 nonce) {
+        return nonces(id);
     }
 
     function permit(

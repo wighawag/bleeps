@@ -213,40 +213,6 @@ contract Bleeps is IERC721, WithSupportForOpenSeaProxies, ERC721Checkpointable, 
         }
     }
 
-    // struct Mint {
-    //     uint16[] ids;
-    //     address to;
-    // }
-
-    // function multiMint(Mint[] calldata mints) external {
-    //     require(msg.sender == minter, "ONLY_MINTER_ALLOWED");
-
-    //     uint256 blockNumberMasked = (block.number << 160);
-
-    //     for (uint256 i = 0; i < mints.length; i++) {
-    //         address to = mints[i].to;
-    //         uint256 ownerData = blockNumberMasked | uint256(uint160(to));
-    //         uint16[] memory ids = mints[i].ids;
-
-    //         require(to != address(0), "NOT_TO_ZEROADDRESS");
-    //         require(to != address(this), "NOT_TO_THIS");
-
-    //         unchecked {
-    //             _balances[to] += ids.length;
-    //         }
-    //         _moveDelegates(address(0), delegates(to), uint96(ids.length));
-
-    //         for (uint256 j = 0; j < ids.length; j++) {
-    //             uint256 id = ids[j];
-    //             require(id < 1024, "INVALID_BLEEP");
-    //             require(_ownerOf(id) == address(0), "ALREADY_CREATED");
-
-    //             _owners[id] = ownerData;
-    //             emit Transfer(address(0), to, id);
-    //         }
-    //     }
-    // }
-
     /// @notice gives the note and instrument for a particular Bleep id.
     /// @param id bleep id which represent a pair of (note, instrument).
     /// @return note the note index (0 to 63) starting from C2 to D#7
