@@ -2,6 +2,7 @@ import {HardhatRuntimeEnvironment} from 'hardhat/types';
 import {DeployFunction} from 'hardhat-deploy/types';
 import {ethers} from 'hardhat';
 import {Wallet} from 'ethers';
+import {AddressZero} from '@ethersproject/constants';
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, getNamedAccounts} = hre;
@@ -20,54 +21,63 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   // -----------------------------------------------------------------------
   // batch 1
   // -----------------------------------------------------------------------
-  const ids1 = Array.from(Array(216)).map((v, i) => i);
-  const addresses1: string[] = [];
-  for (let i = 0; i < 116; i++) {
-    const addr = Wallet.createRandom().address;
-    addresses1.push(addr);
-    if (i >= 16) {
+  const [batchOwner1] = await Bleeps.callStatic.owners([0]);
+  if (batchOwner1 === AddressZero) {
+    const ids1 = Array.from(Array(216)).map((v, i) => i);
+    const addresses1: string[] = [];
+    for (let i = 0; i < 116; i++) {
+      const addr = Wallet.createRandom().address;
       addresses1.push(addr);
+      if (i >= 16) {
+        addresses1.push(addr);
+      }
     }
+    await execute(
+      'Bleeps',
+      {from: deployer, log: true, autoMine: true, gasLimit: '30000000'},
+      'multiMint',
+      ids1,
+      addresses1
+    );
   }
-  await execute(
-    'Bleeps',
-    {from: deployer, log: true, autoMine: true, gasLimit: '30000000'},
-    'multiMint',
-    ids1,
-    addresses1
-  );
 
   // -----------------------------------------------------------------------
   // batch 2
   // -----------------------------------------------------------------------
-  const ids2 = Array.from(Array(232)).map((v, i) => i + 216);
-  const addresses2: string[] = [];
-  for (let i = 0; i < 116; i++) {
-    const addr = Wallet.createRandom().address;
-    addresses2.push(addr);
-    addresses2.push(addr);
+  const [batchOwner2] = await Bleeps.callStatic.owners([216]);
+  if (batchOwner2 === AddressZero) {
+    const ids2 = Array.from(Array(232)).map((v, i) => i + 216);
+    const addresses2: string[] = [];
+    for (let i = 0; i < 116; i++) {
+      const addr = Wallet.createRandom().address;
+      addresses2.push(addr);
+      addresses2.push(addr);
+    }
+    await execute(
+      'Bleeps',
+      {from: deployer, log: true, autoMine: true, gasLimit: '30000000'},
+      'multiMint',
+      ids2,
+      addresses2
+    );
   }
-  await execute(
-    'Bleeps',
-    {from: deployer, log: true, autoMine: true, gasLimit: '30000000'},
-    'multiMint',
-    ids2,
-    addresses2
-  );
 
   // -----------------------------------------------------------------------
   // batch 3 (creator)
   // -----------------------------------------------------------------------
-  const ids3 = Array.from(Array(128)).map((v, i) => i + 448);
-  const addresses3: string[] = [projectCreator];
-  console.log({ids3, addresses3});
-  await execute(
-    'Bleeps',
-    {from: deployer, log: true, autoMine: true, gasLimit: '30000000'},
-    'multiMint',
-    ids3,
-    addresses3
-  );
+  const [batchOwner3] = await Bleeps.callStatic.owners([448]);
+  if (batchOwner3 === AddressZero) {
+    const ids3 = Array.from(Array(128)).map((v, i) => i + 448);
+    const addresses3: string[] = [projectCreator];
+    console.log({ids3, addresses3});
+    await execute(
+      'Bleeps',
+      {from: deployer, log: true, autoMine: true, gasLimit: '30000000'},
+      'multiMint',
+      ids3,
+      addresses3
+    );
+  }
 
   // // -----------------------------------------------------------------------
   // // 1 batch + creator batch
