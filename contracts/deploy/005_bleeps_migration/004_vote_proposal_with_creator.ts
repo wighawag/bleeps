@@ -16,6 +16,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const proposal = await getProposal(hre);
 
+  const voted = await read('old_BleepsDAOGovernor', 'hasVoted', proposal.id, projectCreator);
+
+  if (voted) {
+    log(`already voted`);
+    return;
+  }
+
   if (network.name === 'hardhat') {
     log(`skipping one block (votingDelay)...`);
     for (let i = 0; i < 1; i++) {

@@ -22,3 +22,4 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 export default func;
 func.tags = ['Bleeps', 'Bleeps_setup'];
 func.dependencies = ['Bleeps_deploy', 'BleepsInitialSale'];
+func.skip = async () => true; // Sale done
