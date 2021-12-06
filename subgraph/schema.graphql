@@ -4,12 +4,15 @@ type Owner @entity {
   numBleepsMinted: BigInt!
   bleepsMinted: [Bleep!]! @derivedFrom(field: "minter")
   bleeps: [Bleep!]! @derivedFrom(field: "owner")
+  sendingTransfers: [TransferEvent!]! @derivedFrom(field: "from")
+  receivinggTransfers: [TransferEvent!]! @derivedFrom(field: "to")
 }
 
 type Bleep @entity {
   id: ID!
   owner: Owner
   minter: Owner!
+  transfers: [TransferEvent!]! @derivedFrom(field: "bleep")
 }
 
 type All @entity {
@@ -17,4 +20,21 @@ type All @entity {
   numOwners: BigInt!
   numMinters: BigInt!
   numBleeps: BigInt!
+  numTransfers: BigInt!
+}
+
+type Transaction @entity {
+  id: ID!
+  from: String!
+  to: String!
+}
+
+type TransferEvent @entity {
+  id: ID! # <blockNumber>_logID
+  blockNumber: Int!
+  timestamp: BigInt!
+  transaction: Transaction!
+  from: Owner
+  to: Owner
+  bleep: Bleep!
 }

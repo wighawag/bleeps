@@ -1,12 +1,16 @@
 /* eslint-disable */
-import {Bytes, ByteArray, BigInt, Address} from '@graphprotocol/graph-ts';
+import {Bytes, ByteArray, BigInt, Address, ethereum} from '@graphprotocol/graph-ts';
 import {Transfer} from '../generated/Bleeps/BleepsContract';
-import {All, Bleep, Owner} from '../generated/schema';
+import {All, Bleep, Owner, TransferEvent, Transaction} from '../generated/schema';
 // import {log} from '@graphprotocol/graph-ts';
 
 let ZERO_ADDRESS: Bytes = Bytes.fromHexString('0x0000000000000000000000000000000000000000') as Bytes;
 let ZERO = BigInt.fromI32(0);
 let ONE = BigInt.fromI32(1);
+
+function toEventId(event: ethereum.Event): string {
+  return event.block.number.toString().concat('-').concat(event.logIndex.toString());
+}
 
 function handleOwnerViaId(id: string): Owner {
   let entity = Owner.load(id);
@@ -27,6 +31,7 @@ function handleAll(): All {
     all.numBleeps = ZERO;
     all.numMinters = ZERO;
     all.numOwners = ZERO;
+    all.numTransfers = ZERO;
   }
   return all as All;
 }
@@ -42,41 +47,59 @@ function handleBleep(id: BigInt, minter: Address): Bleep {
   return entity as Bleep;
 }
 
+function handleTransaction(event: ethereum.Event): string {
+  let transactionId = event.transaction.hash.toHex();
+  let transaction = Transaction.load(transactionId);
+  if (transaction == null) {
+    transaction = new Transaction(transactionId);
+    transaction.to = event.transaction.to.toHexString();
+    transaction.from = event.transaction.from.toHexString();
+    transaction.save();
+  }
+
+  return transactionId;
+}
+
 export function handleTransfer(event: Transfer): void {
   let all = handleAll();
   let bleep = handleBleep(event.params.tokenId, event.transaction.from);
 
+  all.numTransfers = all.numTransfers.plus(ONE);
+
   let to = event.params.to.toHexString();
   let from = event.params.from.toHexString();
+
+  let ownerFrom: Owner;
+  let ownerTo: Owner;
   if (event.params.from == ZERO_ADDRESS) {
     bleep.owner = event.params.to.toHexString();
 
-    let owner = handleOwnerViaId(to);
-    if (owner.numBleeps.equals(ZERO)) {
+    ownerTo = handleOwnerViaId(to);
+    if (ownerTo.numBleeps.equals(ZERO)) {
       all.numOwners = all.numOwners.plus(ONE);
     }
-    owner.numBleeps = owner.numBleeps.plus(ONE);
+    ownerTo.numBleeps = ownerTo.numBleeps.plus(ONE);
 
-    if (owner.numBleepsMinted.equals(ZERO)) {
+    if (ownerTo.numBleepsMinted.equals(ZERO)) {
       all.numMinters = all.numMinters.plus(ONE);
     }
-    owner.numBleepsMinted = owner.numBleepsMinted.plus(ONE);
+    ownerTo.numBleepsMinted = ownerTo.numBleepsMinted.plus(ONE);
 
-    owner.save();
+    ownerTo.save();
 
     all.numBleeps = all.numBleeps.plus(ONE);
   } else if (event.params.to == ZERO_ADDRESS) {
     // bleep.owner = null; // keep so it is handled in handleBurned
 
-    let owner = handleOwnerViaId(from);
-    owner.numBleeps = owner.numBleeps.minus(ONE);
-    if (owner.numBleeps.equals(ZERO)) {
+    ownerFrom = handleOwnerViaId(from);
+    ownerFrom.numBleeps = ownerFrom.numBleeps.minus(ONE);
+    if (ownerFrom.numBleeps.equals(ZERO)) {
       all.numOwners = all.numOwners.minus(ONE);
     }
-    owner.save();
+    ownerFrom.save();
     all.numBleeps = all.numBleeps.minus(ONE);
   } else {
-    let ownerTo = handleOwnerViaId(to);
+    ownerTo = handleOwnerViaId(to);
 
     if (ownerTo.numBleeps.equals(ZERO)) {
       all.numOwners = all.numOwners.plus(ONE);
@@ -85,7 +108,7 @@ export function handleTransfer(event: Transfer): void {
     ownerTo.numBleeps = ownerTo.numBleeps.plus(ONE);
     ownerTo.save();
 
-    let ownerFrom = handleOwnerViaId(from);
+    ownerFrom = handleOwnerViaId(from);
     ownerFrom.numBleeps = ownerFrom.numBleeps.minus(ONE);
     ownerFrom.save();
 
@@ -93,6 +116,21 @@ export function handleTransfer(event: Transfer): void {
       all.numOwners = all.numOwners.minus(ONE);
     }
   }
+
+  let transactionId = handleTransaction(event);
+  let transferEvent = new TransferEvent(toEventId(event));
+  transferEvent.blockNumber = event.block.number.toI32();
+  transferEvent.timestamp = event.block.timestamp;
+  transferEvent.transaction = transactionId;
+  transferEvent.bleep = bleep.id;
+  if (ownerFrom) {
+    transferEvent.from = ownerFrom.id;
+  }
+  if (ownerTo) {
+    transferEvent.to = ownerTo.id;
+  }
+  transferEvent.save();
+
   bleep.save();
   all.save();
 }
