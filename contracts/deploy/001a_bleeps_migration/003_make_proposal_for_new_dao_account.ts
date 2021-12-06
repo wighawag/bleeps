@@ -2,7 +2,7 @@ import {HardhatRuntimeEnvironment} from 'hardhat/types';
 import {DeployFunction} from 'hardhat-deploy/types';
 import {ethers} from 'hardhat';
 import {AddressZero} from '@ethersproject/constants';
-import {getProposal} from '../.data/.proposal_for_migration';
+import {getProposal, ProposalState} from '../.data/.proposal_for_migration';
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, getNamedAccounts} = hre;
@@ -41,20 +41,20 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const proposal = await getProposal(hre);
 
-  log('proposing: "' + proposal.description + '" ...');
-
-  let proposalState: number | undefined;
+  let proposalState: ProposalState | undefined;
   try {
     proposalState = await read('old_BleepsDAOGovernor', 'proposals', proposal.id);
-    log({proposalState});
+    log(`proposal submitted`);
   } catch (e) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if ((e as any).message.indexOf('Governor: unknown proposal id') === -1) {
-      throw e;
-    }
+    // cannot detect error as on real network it somestime does not output the reason string
+    // if ((e as any).message.indexOf('Governor: unknown proposal id') === -1) {
+    //   throw e;
+    // }
   }
 
   if (proposalState === undefined) {
+    log('proposing: "' + proposal.description + '" ...');
     const receipt = await execute(
       'old_BleepsDAOGovernor',
       {from: projectCreator, log: true, autoMine: true},

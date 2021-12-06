@@ -12,7 +12,7 @@ export type ProposalState = {
   againstVotes: BigNumber;
   abstainVotes: BigNumber;
   canceled: boolean;
-  execute: boolean;
+  executed: boolean;
 };
 
 export async function getProposal(hre: HardhatRuntimeEnvironment): Promise<{

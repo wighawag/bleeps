@@ -6,10 +6,11 @@ import fs from 'fs';
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, getNamedAccounts} = hre;
-  const {execute} = deployments;
+  const {execute, log} = deployments;
 
   const networkNane = await deployments.getNetworkName();
-  if (networkNane === 'hardhat') {
+  if (networkNane === 'hardhat' || networkNane === 'rinkeby') {
+    // rinkeby is done
     return;
   }
 
@@ -32,14 +33,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   // -----------------------------------------------------------------------
   // batches
   // -----------------------------------------------------------------------
-  const numBatches = 2;
+  const numBatches = 5;
   const numPerBatch = Math.ceil(bleepOwners.length / numBatches);
   for (let i = 0; i < numBatches; i++) {
     const start = i * numPerBatch;
     const end = Math.min(i * numPerBatch + numPerBatch, bleepOwners.length);
 
     const batch = bleepOwners.slice(start, end);
-    // log({start, end, length: batch.length});
+    log({start, end, length: batch.length});
 
     const [firstBatchOwner] = await Bleeps.callStatic.owners([batch[0].bleeps[0]]);
     if (firstBatchOwner === AddressZero) {
@@ -53,13 +54,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             addresses.push(owner.id);
           }
         }
-        await execute(
-          'Bleeps',
-          {from: deployer, log: true, autoMine: true, gasLimit: '30000000'},
-          'multiMint',
-          ids,
-          addresses
-        );
+        await execute('Bleeps', {from: deployer, log: true, autoMine: true}, 'multiMint', ids, addresses);
       }
     }
   }
@@ -71,13 +66,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await ensureMinterIs(deployer);
     const ids = Array.from(Array(128)).map((v, i) => i + 448);
     const addresses: string[] = [projectCreator];
-    await execute(
-      'Bleeps',
-      {from: deployer, log: true, autoMine: true, gasLimit: '30000000'},
-      'multiMint',
-      ids,
-      addresses
-    );
+    await execute('Bleeps', {from: deployer, log: true, autoMine: true}, 'multiMint', ids, addresses);
   }
 
   const BleepsDAOAccount = await deployments.get('BleepsDAOAccount');
