@@ -17,10 +17,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const Bleeps = await ethers.getContract('Bleeps');
 
-  const currentAdmin = await Bleeps.callStatic.minterAdmin();
-  const currentMinter = await Bleeps.callStatic.minter();
-  if (currentMinter.toLowerCase() !== deployer) {
-    await execute('Bleeps', {from: currentAdmin, log: true, autoMine: true}, 'setMinter', deployer);
+  async function ensureMinterIs(minter: string) {
+    const currentAdmin = await Bleeps.callStatic.minterAdmin();
+    const currentMinter = await Bleeps.callStatic.minter();
+    if (currentMinter.toLowerCase() !== minter.toLowerCase()) {
+      await execute('Bleeps', {from: currentAdmin, log: true, autoMine: true}, 'setMinter', minter);
+    }
   }
 
   const bleepOwners: {id: string; bleeps: number[]}[] = JSON.parse(
@@ -37,10 +39,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const end = Math.min(i * numPerBatch + numPerBatch, bleepOwners.length);
 
     const batch = bleepOwners.slice(start, end);
-    console.log({start, end, length: batch.length});
+    // log({start, end, length: batch.length});
 
     const [firstBatchOwner] = await Bleeps.callStatic.owners([batch[0].bleeps[0]]);
     if (firstBatchOwner === AddressZero) {
+      await ensureMinterIs(deployer);
       if (batch.length > 0) {
         const ids: number[] = [];
         const addresses: string[] = [];
@@ -65,6 +68,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   // -----------------------------------------------------------------------
   const [creatorBatchOwner] = await Bleeps.callStatic.owners([448]);
   if (creatorBatchOwner === AddressZero) {
+    await ensureMinterIs(deployer);
     const ids = Array.from(Array(128)).map((v, i) => i + 448);
     const addresses: string[] = [projectCreator];
     await execute(
@@ -75,6 +79,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       addresses
     );
   }
+
+  const BleepsDAOAccount = await deployments.get('BleepsDAOAccount');
+  await ensureMinterIs(BleepsDAOAccount.address);
 
   // // -----------------------------------------------------------------------
   // // 1 batch + creator batch
@@ -126,4 +133,4 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 };
 export default func;
 func.tags = ['Bleeps', 'Bleeps_setup'];
-func.dependencies = ['Bleeps_deploy'];
+func.dependencies = ['Bleeps_deploy', 'BleepsDAOAccount_deploy'];

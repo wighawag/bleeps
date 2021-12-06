@@ -1,5 +1,6 @@
 {
   "address": "0x0DB16EC25897f0aEBA70152619E164dA3bc861d9",
+  "opensea": "https://testnets.opensea.io/collection/bleeps-t2yyvezlct",
   "abi": [
     {
       "inputs": [

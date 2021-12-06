@@ -180,7 +180,13 @@ const config: HardhatUserConfig = {
     rinkeby: {
       url: node_url('rinkeby'),
       accounts: accounts('rinkeby'),
-      deploy: ['deploy/001_bleeps', 'deploy/002_bleepsdao', 'deploy/003_bleeps_sale', 'deploy/004_bleeps_setup'],
+      deploy: [
+        'deploy/001_bleeps',
+        'deploy/001a_bleeps_migration',
+        'deploy/002_bleepsdao',
+        'deploy/003_bleeps_sale',
+        'deploy/004_bleeps_setup',
+      ],
     },
     kovan: {
       url: node_url('kovan'),
