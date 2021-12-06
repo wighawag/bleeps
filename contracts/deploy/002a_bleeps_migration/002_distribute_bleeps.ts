@@ -9,8 +9,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {execute, log} = deployments;
 
   const networkNane = await deployments.getNetworkName();
-  if (networkNane === 'hardhat' || networkNane === 'rinkeby') {
-    // rinkeby is done
+  if (networkNane === 'hardhat') {
     return;
   }
 
