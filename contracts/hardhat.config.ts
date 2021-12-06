@@ -182,8 +182,8 @@ const config: HardhatUserConfig = {
       accounts: accounts('rinkeby'),
       deploy: [
         'deploy/001_bleeps',
-        'deploy/001a_bleeps_migration',
         'deploy/002_bleepsdao',
+        'deploy/002a_bleeps_migration',
         'deploy/003_bleeps_sale',
         'deploy/004_bleeps_setup',
       ],
