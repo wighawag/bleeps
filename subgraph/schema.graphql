@@ -25,6 +25,8 @@ type All @entity {
 
 type Transaction @entity {
   id: ID!
+  from: String!
+  to: String!
 }
 
 type TransferEvent @entity {

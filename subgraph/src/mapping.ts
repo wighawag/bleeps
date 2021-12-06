@@ -52,6 +52,8 @@ function handleTransaction(event: ethereum.Event): string {
   let transaction = Transaction.load(transactionId);
   if (transaction == null) {
     transaction = new Transaction(transactionId);
+    transaction.to = event.transaction.to.toHexString();
+    transaction.from = event.transaction.from.toHexString();
     transaction.save();
   }
 
