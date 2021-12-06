@@ -72,9 +72,8 @@ export function handleTransfer(event: Transfer): void {
   let ownerFrom: Owner;
   let ownerTo: Owner;
   if (event.params.from == ZERO_ADDRESS) {
-    bleep.owner = event.params.to.toHexString();
-
     ownerTo = handleOwnerViaId(to);
+    bleep.owner = ownerTo.id;
     if (ownerTo.numBleeps.equals(ZERO)) {
       all.numOwners = all.numOwners.plus(ONE);
     }
@@ -89,7 +88,8 @@ export function handleTransfer(event: Transfer): void {
 
     all.numBleeps = all.numBleeps.plus(ONE);
   } else if (event.params.to == ZERO_ADDRESS) {
-    // bleep.owner = null; // keep so it is handled in handleBurned
+    // blleps CANNOT GO TO ZERO ADDRESSS
+    // bleep.owner = null;
 
     ownerFrom = handleOwnerViaId(from);
     ownerFrom.numBleeps = ownerFrom.numBleeps.minus(ONE);
@@ -100,6 +100,7 @@ export function handleTransfer(event: Transfer): void {
     all.numBleeps = all.numBleeps.minus(ONE);
   } else {
     ownerTo = handleOwnerViaId(to);
+    bleep.owner = ownerTo.id;
 
     if (ownerTo.numBleeps.equals(ZERO)) {
       all.numOwners = all.numOwners.plus(ONE);
@@ -109,6 +110,7 @@ export function handleTransfer(event: Transfer): void {
     ownerTo.save();
 
     ownerFrom = handleOwnerViaId(from);
+
     ownerFrom.numBleeps = ownerFrom.numBleeps.minus(ONE);
     ownerFrom.save();
 
