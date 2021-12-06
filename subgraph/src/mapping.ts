@@ -62,6 +62,9 @@ function handleTransaction(event: ethereum.Event): string {
 
 export function handleTransfer(event: Transfer): void {
   let all = handleAll();
+  let minter = handleOwnerViaId(event.transaction.from.toHexString());
+  minter.numBleepsMinted = minter.numBleepsMinted.plus(ONE);
+  minter.save();
   let bleep = handleBleep(event.params.tokenId, event.transaction.from);
 
   all.numTransfers = all.numTransfers.plus(ONE);
@@ -82,13 +85,12 @@ export function handleTransfer(event: Transfer): void {
     if (ownerTo.numBleepsMinted.equals(ZERO)) {
       all.numMinters = all.numMinters.plus(ONE);
     }
-    ownerTo.numBleepsMinted = ownerTo.numBleepsMinted.plus(ONE);
 
     ownerTo.save();
 
     all.numBleeps = all.numBleeps.plus(ONE);
   } else if (event.params.to == ZERO_ADDRESS) {
-    // blleps CANNOT GO TO ZERO ADDRESSS
+    // bleeps CANNOT GO TO ZERO ADDRESSS
     // bleep.owner = null;
 
     ownerFrom = handleOwnerViaId(from);
