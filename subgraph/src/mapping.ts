@@ -127,6 +127,7 @@ export function handleTransfer(event: Transfer): void {
   if (ownerTo) {
     transferEvent.to = ownerTo.id;
   }
+  transferEvent.save();
 
   bleep.save();
   all.save();
