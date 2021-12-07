@@ -5,7 +5,7 @@ import {MerkleTree} from 'bleeps-common';
 import {createLeavesFromMandalaOwners, createLeavesFromPrivateKeys, hashLeaves} from 'bleeps-common';
 import {BigNumber, Wallet} from 'ethers';
 import fs from 'fs';
-import {getUnnamedAccounts} from 'hardhat';
+import {getUnnamedAccounts, network} from 'hardhat';
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, getNamedAccounts} = hre;
@@ -163,4 +163,4 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 export default func;
 func.tags = ['BleepsInitialSale', 'BleepsInitialSale_deploy'];
 func.dependencies = ['Bleeps_deploy', 'MandalaToken', 'BleepsDAOAccount_deploy'];
-func.skip = async () => true; // Sale done
+func.skip = async (hre) => (await hre.deployments.getNetworkName()) !== 'hardhat'; // Sale done
