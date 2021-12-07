@@ -10,6 +10,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const networkNane = await deployments.getNetworkName();
   if (networkNane === 'hardhat') {
+    log(`skip for hardhat netwotk`);
     return;
   }
 
@@ -26,7 +27,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   }
 
   const bleepOwners: {id: string; bleeps: number[]}[] = JSON.parse(
-    fs.readFileSync('bleepsOwners_at_13746892.json').toString()
+    fs.readFileSync('bleepsOwners_at_13757382.json').toString()
   ); // TODO blockNumber
 
   // -----------------------------------------------------------------------

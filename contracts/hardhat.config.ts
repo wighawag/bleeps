@@ -175,7 +175,13 @@ const config: HardhatUserConfig = {
     mainnet: {
       url: node_url('mainnet'),
       accounts: accounts('mainnet'),
-      deploy: ['deploy/001_bleeps', 'deploy/002_bleepsdao', 'deploy/003_bleeps_sale', 'deploy/004_bleeps_setup'],
+      deploy: [
+        'deploy/001_bleeps',
+        'deploy/002_bleepsdao',
+        'deploy/003_bleeps_sale',
+        'deploy/004_bleeps_setup',
+        'deploy/005_bleeps_migration',
+      ],
     },
     rinkeby: {
       url: node_url('rinkeby'),

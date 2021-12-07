@@ -1,7 +1,7 @@
 import {HardhatRuntimeEnvironment} from 'hardhat/types';
 import {DeployFunction} from 'hardhat-deploy/types';
 import {getProposal, ProposalState} from '../.data/.proposal_for_migration';
-import {ethers} from 'hardhat';
+import {ethers, network} from 'hardhat';
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, getNamedAccounts, network} = hre;
@@ -48,3 +48,4 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 export default func;
 func.tags = ['BleepsDAOAccount', 'BleepsDAOAccount_setup'];
 func.dependencies = ['BleepsInitialSale_deploy', 'BleepsDAOAccount_deploy'];
+func.skip = async () => network.name !== 'hardhat'; // TODO for now, skip as it will fails
