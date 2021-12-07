@@ -535,8 +535,7 @@
                 {#each Array.from(Array(64)).map((v, i) => i + instr * 64) as bleepId}
                   <div>
                     <BleepsSvg
-                      booked={instr === 7 ||
-                        instr === 8 ||
+                      booked={(!soldout && (instr === 7 || instr === 8)) ||
                         ($ownersState.tokenOwners &&
                           $ownersState.tokenOwners[bleepId] &&
                           $ownersState.tokenOwners[bleepId].booked &&
@@ -550,9 +549,7 @@
                         $ownersState.tokenOwners[bleepId] &&
                         $ownersState.tokenOwners[bleepId].address.toLowerCase() === $wallet.address?.toLowerCase()}
                       disabled={!isMintable($ownersState, bleepId)}
-                      minted={instr !== 7 &&
-                        instr !== 8 &&
-                        $ownersState?.tokenOwners &&
+                      minted={$ownersState?.tokenOwners &&
                         $ownersState.tokenOwners[bleepId] &&
                         $ownersState.tokenOwners[bleepId].address !== '0x0000000000000000000000000000000000000000'}
                       on:click={() => select(bleepId)}

@@ -5,7 +5,7 @@ import {SigningKey} from '@ethersproject/signing-key';
 import {Wallet} from '@ethersproject/wallet';
 import {now} from './time';
 import {contracts} from '$lib/contracts.json';
-import {hashParams} from '$lib/config';
+import {chainName, hashParams} from '$lib/config';
 import {MerkleTree, hashLeaves} from 'bleeps-common';
 import type {WalletData} from 'web3w';
 import type {BookingServiceState} from '$lib/services/bookingService';
@@ -119,6 +119,8 @@ export type OwnersState = {
   mandalaPassIdUsed?: boolean;
 };
 
+const soldout = chainName === 'mainnet'; // so we do not need to fetch dynamically
+
 const allIds = Array.from(Array(576)).map((v, i) => i);
 
 class OwnersStateStore extends BaseStore<OwnersState> {
@@ -154,11 +156,25 @@ class OwnersStateStore extends BaseStore<OwnersState> {
   async query(): Promise<null | QueryResult> {
     const contracts = chain.contracts || fallback.contracts;
     if (contracts) {
-      const data = await contracts.BleepsInitialSale.ownersAndPriceInfo(
-        this.$store.passId || 0, //  '0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF',
-        allIds
-      );
-
+      let data: QueryResult;
+      if (soldout) {
+        const basicData = await contracts.Bleeps.owners(allIds);
+        data = {
+          addresses: basicData,
+          price: BigNumber.from('100000000000000000'),
+          startTime: BigNumber.from(0),
+          whitelistPrice: BigNumber.from('100000000000000000'),
+          whitelistEndTime: BigNumber.from(0),
+          whitelistMerkleRoot: '0x0000000000000000000000000000000000000000000000000000000000000000',
+          passUsed: false,
+          uptoInstr: BigNumber.from(6),
+        };
+      } else {
+        data = await contracts.BleepsInitialSale.ownersAndPriceInfo(
+          this.$store.passId || 0, //  '0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF',
+          allIds
+        );
+      }
       return data;
     } else if (fallback.state === 'Ready') {
       throw new Error('no contracts to fetch with');
@@ -188,10 +204,25 @@ class OwnersStateStore extends BaseStore<OwnersState> {
     } else if (mandalaPassId !== undefined) {
       const liveContracts = chain.contracts || fallback.contracts;
       if (liveContracts) {
-        const data = await liveContracts.BleepsInitialSale.ownersAndPriceInfo(
-          mandalaPassId, //  '0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF',
-          []
-        );
+        let data: QueryResult;
+        if (soldout) {
+          const basicData = await liveContracts.Bleeps.owners([]);
+          data = {
+            addresses: basicData,
+            price: BigNumber.from('100000000000000000'),
+            startTime: BigNumber.from(0),
+            whitelistPrice: BigNumber.from('100000000000000000'),
+            whitelistEndTime: BigNumber.from(0),
+            whitelistMerkleRoot: '0x0000000000000000000000000000000000000000000000000000000000000000',
+            passUsed: false,
+            uptoInstr: BigNumber.from(6),
+          };
+        } else {
+          data = await liveContracts.BleepsInitialSale.ownersAndPriceInfo(
+            mandalaPassId, //  '0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF',
+            []
+          );
+        }
         this.setPartial({mandalaPassIdUsed: data.passUsed});
       }
     }
