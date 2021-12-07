@@ -1,6 +1,9 @@
 function generate(instrument: number, role: string) {
   const ids = Array.from(Array(64)).map((v, i) => i + (instrument << 6));
-  console.log(`0xC72d6D47C64460E6ED9D9aF9e01c2Ab4f37BEF78 1 -1 ${role} ` + ids.join(','));
+  console.log(`0x9d27527Ada2CF29fBDAB2973cfa243845a08Bd3F 1 -1 ${role} ` + ids.join(','));
+
+  console.log();
+  console.log();
 }
 
 generate(0, '@triangle bleeper'); // f6fe63
