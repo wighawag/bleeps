@@ -11,6 +11,7 @@
   const gap = 2;
   const slotWidth = (width - margin) / 32;
 
+  let startedDrawing = false;
   let mouseIsDown = false;
   let selectedInstrument: number = 0;
 
@@ -47,14 +48,19 @@
       var rect = element.getBoundingClientRect();
       const lx = event.pageX - rect.left;
       const ly = event.pageY - rect.top;
-      console.log({lx, ly});
+      const tx = Math.min(Math.max(0, lx), element.clientWidth - 1);
+      const ty = Math.min(Math.max(0, ly), element.clientHeight - 1);
+
+      const x = width * (tx / element.clientWidth);
+      const y = height * (1 - ty / element.clientHeight);
+
+      // console.log({lx, ly});
       if (lx < 0 || ly < 0 || lx > rect.width || ly > rect.height) {
-        const tx = Math.min(Math.max(0, lx), element.clientWidth - 1);
-        const ty = Math.min(Math.max(0, ly), element.clientHeight - 1);
-
-        const x = width * (tx / element.clientWidth);
-        const y = height * (1 - ty / element.clientHeight);
-
+        if (startedDrawing) {
+          set(x, y);
+        }
+      } else {
+        startedDrawing = true;
         set(x, y);
       }
     }
@@ -63,6 +69,7 @@
   function globalclick(event: MouseEvent) {}
 
   function globalmouseup(event: MouseEvent) {
+    startedDrawing = false;
     mouseIsDown = false;
   }
 
@@ -86,40 +93,32 @@
   }
 
   function mousemove(event: MouseEvent) {
-    if (mouseIsDown) {
-      const x = width * (event.offsetX / element.clientWidth);
-      const y = height * (1 - event.offsetY / element.clientHeight);
-      console.log({x, y});
-      set(x, y);
-    }
+    // if (mouseIsDown) {
+    //   const x = width * (event.offsetX / element.clientWidth);
+    //   const y = height * (1 - event.offsetY / element.clientHeight);
+    //   set(x, y);
+    // }
   }
 
   function set(x: number, y: number) {
-    console.log(`XY: ${x}, ${y}`);
-
     const slot = Math.floor((x - margin / 2) / slotWidth);
 
     if (y < volumeHeight) {
       const actualY = volumeHeight - y;
-
-      console.log({x, actualY});
-
       const volume = Math.floor(actualY / (volumeHeight / 8));
+      if (volume !== $currentMelody.slots[slot].volume) {
+        $currentMelody.slots[slot].volume = volume;
+      }
 
-      console.log({slot, volume});
-
-      $currentMelody.slots[slot].volume = volume;
       // TODO volume == 0 => note = 0 ?
     } else {
       const actualY = y - volumeHeight;
 
-      console.log({x, actualY});
-
       const note = Math.floor((actualY - margin / 2) / (slotHeight / 64));
-      console.log({slot, note});
-
-      $currentMelody.slots[slot].note = note;
-      $currentMelody.slots[slot].instrument = selectedInstrument;
+      if (note !== $currentMelody.slots[slot].note || selectedInstrument != $currentMelody.slots[slot].instrument) {
+        $currentMelody.slots[slot].note = note;
+        $currentMelody.slots[slot].instrument = selectedInstrument;
+      }
     }
   }
 
