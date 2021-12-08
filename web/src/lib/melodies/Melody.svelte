@@ -113,7 +113,7 @@
       }
 
       // TODO volume == 0 => note = 0 ?
-    } else if ((startedDrawing === undefined && y > volumeHeight) || startedDrawing == 'note') {
+    } else if ((startedDrawing === undefined && y > volumeHeight + middleGap) || startedDrawing == 'note') {
       startedDrawing = 'note';
 
       const actualY = Math.max(0, y - (volumeHeight + middleGap));
