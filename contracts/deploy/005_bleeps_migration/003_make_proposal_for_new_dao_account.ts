@@ -13,7 +13,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     return;
   }
 
-  const OldBleeps = await ethers.getContract('old_Bleeps');
+  const OldBleeps = await ethers.getContractOrNull('old_Bleeps');
+  if (!OldBleeps) {
+    return;
+  }
   const {projectCreator} = await getNamedAccounts();
 
   log({projectCreator, OldBleeps: OldBleeps.address});

@@ -2,7 +2,7 @@
   import WalletAccess from '$lib/WalletAccess.svelte';
   import NavButton from '$lib/components/navigation/NavButton.svelte';
   import {wallet, flow, chain} from '$lib/stores/wallet';
-  import Melody from '$lib/components/Melody.svelte';
+  import MelodyAndMint from '$lib/components/MelodyAndMint.svelte';
 </script>
 
 <section class="py-8 px-4 text-center">
@@ -13,7 +13,7 @@
 <div class="w-full mx-auto text-center">
   <WalletAccess>
     {#if $wallet.state === 'Ready' && $chain.state === 'Ready'}
-      <Melody />
+      <MelodyAndMint />
       <!-- <NavButton
         label="Disconnect"
         disabled={$wallet.unlocking || $chain.connecting}

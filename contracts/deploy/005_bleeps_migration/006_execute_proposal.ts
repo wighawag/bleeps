@@ -13,6 +13,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     return;
   }
 
+  const oldGovernor = await deployments.getOrNull('old_BleepsDAOGovernor');
+  if (!oldGovernor) {
+    return;
+  }
+
   const {projectCreator} = await getNamedAccounts();
 
   const BleepsDAOAccount = await deployments.get('BleepsDAOAccount');
