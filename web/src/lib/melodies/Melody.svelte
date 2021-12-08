@@ -2,16 +2,17 @@
   import {currentMelody, Slot} from './currentMelody';
   import {hertz, noteName, instrumentNameFromId, colorFromId} from '$lib/utils/notes';
 
-  const width = 512 + 64;
   const volumeHeight = 64;
+  const middleGap = 32;
   const slotHeight = 512;
-  const height = slotHeight + volumeHeight;
+  const height = slotHeight + middleGap + volumeHeight;
+  const width = height;
 
   const margin = 0;
   const gap = 2;
   const slotWidth = (width - margin) / 32;
 
-  let startedDrawing = false;
+  let startedDrawing: 'volume' | 'note' | undefined;
   let mouseIsDown = false;
   let selectedInstrument: number = 0;
 
@@ -60,7 +61,6 @@
           set(x, y);
         }
       } else {
-        startedDrawing = true;
         set(x, y);
       }
     }
@@ -69,7 +69,7 @@
   function globalclick(event: MouseEvent) {}
 
   function globalmouseup(event: MouseEvent) {
-    startedDrawing = false;
+    startedDrawing = undefined;
     mouseIsDown = false;
   }
 
@@ -103,23 +103,51 @@
   function set(x: number, y: number) {
     const slot = Math.floor((x - margin / 2) / slotWidth);
 
-    if (y < volumeHeight) {
-      const actualY = volumeHeight - y;
+    if ((startedDrawing === undefined && y < volumeHeight) || startedDrawing == 'volume') {
+      startedDrawing = 'volume';
+
+      const actualY = Math.max(0, volumeHeight - y);
       const volume = Math.floor(actualY / (volumeHeight / 8));
       if (volume !== $currentMelody.slots[slot].volume) {
         $currentMelody.slots[slot].volume = volume;
       }
 
       // TODO volume == 0 => note = 0 ?
-    } else {
-      const actualY = y - volumeHeight;
+    } else if ((startedDrawing === undefined && y > volumeHeight) || startedDrawing == 'note') {
+      startedDrawing = 'note';
 
+      const actualY = Math.max(0, y - (volumeHeight + middleGap));
       const note = Math.floor((actualY - margin / 2) / (slotHeight / 64));
       if (note !== $currentMelody.slots[slot].note || selectedInstrument != $currentMelody.slots[slot].instrument) {
         $currentMelody.slots[slot].note = note;
         $currentMelody.slots[slot].instrument = selectedInstrument;
       }
     }
+
+    // if (y < volumeHeight + middleGap / 2 && startedDrawing !== 'note') {
+    //   if (y < volumeHeight || startedDrawing == 'volume') {
+    //     startedDrawing = 'volume';
+
+    //     const actualY = Math.max(0, volumeHeight - y);
+    //     const volume = Math.floor(actualY / (volumeHeight / 8));
+    //     if (volume !== $currentMelody.slots[slot].volume) {
+    //       $currentMelody.slots[slot].volume = volume;
+    //     }
+    //   }
+
+    //   // TODO volume == 0 => note = 0 ?
+    // } else if (startedDrawing !== 'volume') {
+    //   if (y > volumeHeight + middleGap || startedDrawing == 'note') {
+    //     startedDrawing = 'note';
+    //     const actualY = Math.max(0, y - (volumeHeight + middleGap));
+
+    //     const note = Math.floor((actualY - margin / 2) / (slotHeight / 64));
+    //     if (note !== $currentMelody.slots[slot].note || selectedInstrument != $currentMelody.slots[slot].instrument) {
+    //       $currentMelody.slots[slot].note = note;
+    //       $currentMelody.slots[slot].instrument = selectedInstrument;
+    //     }
+    //   }
+    // }
   }
 
   function instrumentColor(instrument: number): string {
@@ -182,7 +210,7 @@
     {#each $currentMelody.slots as slot, index}
       <rect
         x={index * slotWidth + gap / 2 + margin / 2}
-        y={slotHeight + margin / 2}
+        y={middleGap + slotHeight + margin / 2}
         width={slotWidth - gap}
         height={(heightOfVolume(slot) / 8) * (volumeHeight - margin)}
         style={`fill:#${volumeColor(slot.volume)};`}
