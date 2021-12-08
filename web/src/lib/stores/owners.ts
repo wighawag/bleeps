@@ -232,7 +232,16 @@ class OwnersStateStore extends BaseStore<OwnersState> {
 
     const provider = wallet.provider || wallet.fallbackProvider;
     if (provider) {
-      const daoBalance = await provider.getBalance(contracts.BleepsDAOAccount.address);
+      let daoBalance: BigNumber = BigNumber.from(0);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if ((contracts as any).old_BleepsDAOAccount) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await provider.getBalance((contracts as any).old_BleepsDAOAccount.address);
+      }
+
+      if (daoBalance.eq(0)) {
+        daoBalance = await provider.getBalance(contracts.BleepsDAOAccount.address);
+      }
       // console.log({daoBalance: daoBalance.toString(), address: contracts.BleepsDAOAccount.address});
       this.setPartial({daoTreasury: daoBalance});
     }
