@@ -1,5 +1,6 @@
 <script lang="ts">
   import {hashParams} from '$lib/config';
+  import {currentMelody} from '$lib/melodies/currentMelody';
   import Melody from '$lib/melodies/Melody.svelte';
 
   import {flow, wallet} from '$lib/stores/wallet';
@@ -20,9 +21,12 @@
     });
   }
 
-  function encodeNote(bn: BigNumber, step: {note: number; vol: number; index: number; shape: number}): BigNumber {
-    const shift = BigNumber.from(2).pow(240 - step.index * 16);
-    const value = step.note + step.shape * 64 + step.vol * 64 * 16;
+  function encodeNote(
+    bn: BigNumber,
+    slot: {note: number; volume: number; index: number; instrument: number}
+  ): BigNumber {
+    const shift = BigNumber.from(2).pow(240 - slot.index * 16);
+    const value = slot.note + slot.instrument * 64 + slot.volume * 64 * 16;
     const extra = shift.mul(value);
     return bn.add(extra);
   }
@@ -88,36 +92,33 @@
     });
   }
 
-  $: data1 = '0x0000000000000000000000000000000000000000000000000000000000000000';
-  $: data2 = '0x0000000000000000000000000000000000000000000000000000000000000000';
-  // onMount(() => {
-  //   volumes = extractVolumes(song);
-  //   notes = extractNotes(song);
-  // });
+  $: {
+    console.log(`${$currentMelody.name} changed`);
+    sound = null;
+    if (typeof location !== undefined) {
+      location.hash = `melody=${btoa(JSON.stringify($currentMelody))}`;
+    }
+    // `${$currentMelody.name}~${$currentMelody.slots.map(
+    //   (v) => `${v.note + (v.instrument << 6)}~${v.volume}`
+    // ).join('~')}`;
+  }
 
-  // // let MeloBleepsTokenURI = contractsInfo.contracts.MeloBleepsTokenURI;
-  // // let virtualBleep = new VirtualContract(MeloBleepsTokenURI.abi, MeloBleepsTokenURI.linkedData.bytecode, AddressZero);
-
-  // $: data1 =
-  //   '0x' +
-  //   steps
-  //     .slice(0, 16)
-  //     .reduce((prev, curr, index) => encodeNote(prev, curr), BigNumber.from(0))
-  //     .toHexString()
-  //     .slice(2)
-  //     .padStart(64, '0');
-  // $: data2 =
-  //   '0x' +
-  //   steps
-  //     .slice(16)
-  //     .reduce(
-  //       (prev, curr, index) =>
-  //         encodeNote(prev, {note: curr.note, index: curr.index - 16, vol: curr.vol, shape: curr.shape}),
-  //       BigNumber.from(0)
-  //     )
-  //     .toHexString()
-  //     .slice(2)
-  //     .padStart(64, '0');
+  $: data1 =
+    '0x' +
+    $currentMelody.slots
+      .slice(0, 16)
+      .reduce((prev, curr, index) => encodeNote(prev, {...curr, index}), BigNumber.from(0))
+      .toHexString()
+      .slice(2)
+      .padStart(64, '0');
+  $: data2 =
+    '0x' +
+    $currentMelody.slots
+      .slice(16)
+      .reduce((prev, curr, index) => encodeNote(prev, {...curr, index}), BigNumber.from(0))
+      .toHexString()
+      .slice(2)
+      .padStart(64, '0');
 
   let sound;
 

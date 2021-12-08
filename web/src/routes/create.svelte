@@ -3,6 +3,17 @@
   import NavButton from '$lib/components/navigation/NavButton.svelte';
   import {wallet, flow, chain} from '$lib/stores/wallet';
   import MelodyAndMint from '$lib/components/MelodyAndMint.svelte';
+  import {onMount} from 'svelte';
+  import {hashParams} from '$lib/config';
+  import {currentMelody} from '$lib/melodies/currentMelody';
+
+  onMount(() => {
+    const melodyB64 = hashParams['melody'];
+    if (melodyB64) {
+      const melody = JSON.parse(atob(melodyB64));
+      $currentMelody = melody;
+    }
+  });
 </script>
 
 <section class="py-8 px-4 text-center">
