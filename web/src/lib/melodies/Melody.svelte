@@ -168,7 +168,7 @@
         this.blur();
         return;
       }
-      svgtext.textContent = this.value;
+      $currentMelody.name = this.value;
     };
     input.onblur = function (e) {
       myforeign.remove();
