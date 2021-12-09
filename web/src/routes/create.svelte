@@ -13,6 +13,9 @@
     if (melodyB64) {
       const melody = JSON.parse(atob(melodyB64));
       $currentMelody = melody;
+      if ($currentMelody.speed === undefined) {
+        $currentMelody.speed = 16;
+      }
     }
   });
 

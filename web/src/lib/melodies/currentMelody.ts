@@ -40,9 +40,10 @@ export type Slots = [
 export type MelodyInfo = {
   name: string;
   slots: Slots;
+  speed: number;
 };
 
-export const currentMelody = writable({
+const defaultMelody: MelodyInfo = {
   name: 'untitled',
   slots: [
     {volume: 7, note: 1, instrument: 8},
@@ -78,4 +79,7 @@ export const currentMelody = writable({
     {volume: 7, note: 1, instrument: 8},
     {volume: 5, note: 63, instrument: 7},
   ],
-});
+  speed: 16,
+};
+
+export const currentMelody = writable(defaultMelody);

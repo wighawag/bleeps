@@ -100,15 +100,19 @@
   $: {
     let diff = lastMelody == undefined;
     if (lastMelody) {
-      for (let i = 0; i < 32; i++) {
-        const lslot = lastMelody.slots[i];
-        const slot = $currentMelody.slots[i];
-        if (
-          slot.volume !== lslot.volume ||
-          (slot.volume > 0 && (slot.instrument !== lslot.instrument || slot.note !== lslot.note))
-        ) {
-          diff = true;
-          break;
+      if (lastMelody.speed !== $currentMelody.speed) {
+        diff = true;
+      } else {
+        for (let i = 0; i < 32; i++) {
+          const lslot = lastMelody.slots[i];
+          const slot = $currentMelody.slots[i];
+          if (
+            slot.volume !== lslot.volume ||
+            (slot.volume > 0 && (slot.instrument !== lslot.instrument || slot.note !== lslot.note))
+          ) {
+            diff = true;
+            break;
+          }
         }
       }
     }
@@ -120,6 +124,7 @@
             ...v,
           };
         }) as Slots,
+        speed: $currentMelody.speed,
       };
       sound = null;
       // `${$currentMelody.name}~${$currentMelody.slots.map(
@@ -145,10 +150,15 @@
       .slice(2)
       .padStart(64, '0');
 
+  $: {
+    console.log(`data1 : ${data1}`);
+    console.log(`data2 : ${data2}`);
+  }
+
   let sound;
 
   function fetchSound() {
-    dispatch('tosave', $currentMelody as MelodyInfo);
+    dispatch('tosave', $currentMelody);
     sound = fetchURI(data1, data2);
     sound.then((s) => console.log(s.animation_url));
   }

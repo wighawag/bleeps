@@ -51,8 +51,8 @@
   function globalmousemove(event: MouseEvent) {
     if (mouseIsDown) {
       var rect = element.getBoundingClientRect();
-      const lx = event.pageX - rect.left;
-      const ly = event.pageY - rect.top;
+      const lx = event.pageX - window.scrollX - rect.left;
+      const ly = event.pageY - window.scrollY - rect.top;
       const tx = Math.min(Math.max(0, lx), element.clientWidth - 1);
       const ty = Math.min(Math.max(0, ly), element.clientHeight - 1);
 
@@ -82,6 +82,7 @@
   }
 
   function mouseenter(event: MouseEvent) {
+    clearSelection();
     // console.log(event.button);
     // console.log(event);
   }
@@ -180,7 +181,10 @@
     myforeign.setAttribute('height', '100%');
     myforeign.setAttribute('x', '' + 0);
     myforeign.setAttribute('y', '' + (slotHeight + middleGap / 8 - 8));
-    myforeign.setAttribute('style', 'position:absolute; text-align:left;');
+    myforeign.setAttribute(
+      'style',
+      'position:absolute; text-align:left;user-drag: none;-webkit-user-drag: none;-webkit-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none;'
+    );
 
     myforeign.append(input);
 
@@ -191,10 +195,20 @@
     input.select();
     input.setAttribute(
       'style',
-      'width:100%; height:48px; font-size: 28px; background-color:black; text-align:center; color: #dab894;'
+      'width:100%; height:48px; font-size: 28px; background-color:black; text-align:center; color: #dab894;user-drag: none;-webkit-user-drag: none;-webkit-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none;'
     );
 
     // input.style.display = 'none'
+  }
+
+  function clearSelection() {
+    if (typeof window !== 'undefined') {
+      if (window.getSelection) {
+        window.getSelection().removeAllRanges();
+      } else if ((document as any).selection && (document as any).selection.empty) {
+        (document as any).selection.empty();
+      }
+    }
   }
 </script>
 
@@ -210,7 +224,7 @@
     class="inline-block"
     xmlns="http://www.w3.org/2000/svg"
     viewBox={`0 0 ${width} ${height}`}
-    style="width:512px;"
+    style="width:512px;user-drag: none;-webkit-user-drag: none;"
     on:click={click}
     on:mousedown={mousedown}
     on:mousemove={mousemove}
@@ -241,11 +255,12 @@
       on:click={editname}
       dominant-baseline="hanging"
       text-anchor="middle"
-      style={`fill: #dab894; font-size: 28px;${
-        editable
-          ? '-webkit-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none; -webkit-tap-highlight-color:  rgba(255, 255, 255, 0); '
-          : ''
-      }`}>{$currentMelody.name}</text
+      style={`fill: #dab894; font-size: 28px;user-drag: none;-webkit-user-drag: none;
+        ${
+          editable
+            ? '-webkit-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none; -webkit-tap-highlight-color:  rgba(255, 255, 255, 0); '
+            : ''
+        }`}>{$currentMelody.name}</text
     >
 
     <text
@@ -253,7 +268,7 @@
       y={slotHeight + (middleGap * 7) / 8}
       dominant-baseline="bottom"
       text-anchor="middle"
-      style={`fill: #dab894; font-size: 16px;${
+      style={`fill: #dab894; font-size: 16px;user-drag: none;-webkit-user-drag: none;${
         editable
           ? 'pointer-events: none;-webkit-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none; -webkit-tap-highlight-color:  rgba(255, 255, 255, 0); '
           : ''
@@ -271,6 +286,14 @@
       />
     {/each}
   </svg>
+</div>
+
+<div
+  class="m-3"
+  style="-webkit-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none; -webkit-tap-highlight-color:  rgba(255, 255, 255, 0);"
+>
+  <label class="block" for="speed">Speed: {$currentMelody.speed}</label>
+  <input class="inline-block" id="speed" type="range" bind:value={$currentMelody.speed} max="16" min="1" />
 </div>
 
 {#if editable}
