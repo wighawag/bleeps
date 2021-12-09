@@ -1,6 +1,6 @@
 <script lang="ts">
   import {hashParams} from '$lib/config';
-  import {currentMelody, MelodyInfo} from '$lib/melodies/currentMelody';
+  import {currentMelody, MelodyInfo, Slots} from '$lib/melodies/currentMelody';
   import Melody from '$lib/melodies/Melody.svelte';
   import {createEventDispatcher} from 'svelte';
 
@@ -96,12 +96,36 @@
     });
   }
 
+  let lastMelody: MelodyInfo | undefined;
   $: {
-    console.log(`${$currentMelody.name} changed`);
-    sound = null;
-    // `${$currentMelody.name}~${$currentMelody.slots.map(
-    //   (v) => `${v.note + (v.instrument << 6)}~${v.volume}`
-    // ).join('~')}`;
+    let diff = lastMelody == undefined;
+    if (lastMelody) {
+      for (let i = 0; i < 32; i++) {
+        const lslot = lastMelody.slots[i];
+        const slot = $currentMelody.slots[i];
+        if (
+          slot.volume !== lslot.volume ||
+          (slot.volume > 0 && (slot.instrument !== lslot.instrument || slot.note !== lslot.note))
+        ) {
+          diff = true;
+          break;
+        }
+      }
+    }
+    if (diff) {
+      lastMelody = {
+        name: $currentMelody.name,
+        slots: $currentMelody.slots.map((v) => {
+          return {
+            ...v,
+          };
+        }) as Slots,
+      };
+      sound = null;
+      // `${$currentMelody.name}~${$currentMelody.slots.map(
+      //   (v) => `${v.note + (v.instrument << 6)}~${v.volume}`
+      // ).join('~')}`;
+    }
   }
 
   $: data1 =
