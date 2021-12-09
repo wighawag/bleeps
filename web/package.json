@@ -24,7 +24,7 @@
     "ethereumjs-util": "^7.1.3",
     "graphql": "^15.6.1",
     "named-logs": "^0.1.0",
-    "web3w": "^0.3.2-beta.14",
+    "web3w": "^0.3.2-beta.15",
     "web3w-walletconnect-loader": "^0.3.2",
     "wonka": "^4.0.15"
   },
@@ -64,7 +64,7 @@
     "lint:fix": "eslint --fix .",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
-    "dev": "svelte-kit dev --host 0.0.0.0",
+    "dev": "svelte-kit dev --host 0.0.0.0 --port 3003",
     "build": "svelte-kit build",
     "start": "svelte-kit start",
     "serve": "ipfs-emulator --only -d build -p 8080",

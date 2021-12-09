@@ -3,7 +3,7 @@
   import {currentMelody} from '$lib/melodies/currentMelody';
   import Melody from '$lib/melodies/Melody.svelte';
 
-  import {flow, wallet} from '$lib/stores/wallet';
+  import {fallback, flow, wallet} from '$lib/stores/wallet';
   import {BigNumber} from '@ethersproject/bignumber';
   import {onMount} from 'svelte';
   import Modal from './Modal.svelte';
@@ -35,7 +35,8 @@
   let lastTime: number;
 
   function fetchURI(data1: string, data2: string): Promise<{image: string; animation_url: string}> {
-    if (!wallet.contracts) {
+    const contracts = wallet.contracts || fallback.contracts;
+    if (!contracts) {
       return Promise.reject('no contract');
     }
 
@@ -44,7 +45,7 @@
       return Promise.reject('waiting...');
     } else {
       lastTime = Date.now();
-      prom = wallet.contracts.MeloBleepsTokenURI.wav(data1, data2).then((v) => {
+      prom = contracts.MeloBleepsTokenURI.wav(data1, data2).then((v) => {
         return JSON.parse(v.substr('data:application/json,'.length));
       });
     }
@@ -95,7 +96,7 @@
   $: {
     console.log(`${$currentMelody.name} changed`);
     sound = null;
-    if (typeof location !== undefined) {
+    if (typeof location !== 'undefined') {
       location.hash = `melody=${btoa(JSON.stringify($currentMelody))}`;
     }
     // `${$currentMelody.name}~${$currentMelody.slots.map(
