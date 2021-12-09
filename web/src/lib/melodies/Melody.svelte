@@ -18,6 +18,7 @@
   let startedDrawing: 'volume' | 'note' | undefined;
   let mouseIsDown = false;
   let selectedInstrument: number = 0;
+  let drawingEmabled = true;
 
   let element: SVGSVGElement;
   function click(event: MouseEvent) {
@@ -104,7 +105,7 @@
   }
 
   function set(x: number, y: number) {
-    if (!editable) {
+    if (!editable || !drawingEmabled) {
       return;
     }
     const slot = Math.floor((x - margin / 2) / slotWidth);
@@ -156,8 +157,10 @@
   }
 
   function editname(event: MouseEvent) {
-    editable = false;
+    drawingEmabled = false;
     const svgtext = event.target as SVGTextElement;
+
+    // from : https://stackoverflow.com/questions/9308938/inline-text-editing-in-svg/68706140#68706140
     const input = document.createElement('input');
     input.value = svgtext.textContent;
     input.onkeyup = function (e) {
@@ -169,7 +172,7 @@
     };
     input.onblur = function (e) {
       myforeign.remove();
-      editable = true;
+      drawingEmabled = true;
     };
 
     var myforeign = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
