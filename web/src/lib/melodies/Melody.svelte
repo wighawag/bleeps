@@ -1,15 +1,18 @@
 <script lang="ts">
   import {currentMelody, Slot} from './currentMelody';
   import {hertz, noteName, instrumentNameFromId, colorFromId} from '$lib/utils/notes';
+  import {wallet} from '$lib/stores/wallet';
+
+  export let editable = false;
 
   const volumeHeight = 64;
-  const middleGap = 32;
+  const middleGap = 64;
   const slotHeight = 512;
   const height = slotHeight + middleGap + volumeHeight;
   const width = height;
 
   const margin = 0;
-  const gap = 2;
+  const gap = 4;
   const slotWidth = (width - margin) / 32;
 
   let startedDrawing: 'volume' | 'note' | undefined;
@@ -101,6 +104,9 @@
   }
 
   function set(x: number, y: number) {
+    if (!editable) {
+      return;
+    }
     const slot = Math.floor((x - margin / 2) / slotWidth);
 
     if ((startedDrawing === undefined && y < volumeHeight) || startedDrawing == 'volume') {
@@ -123,31 +129,6 @@
         $currentMelody.slots[slot].instrument = selectedInstrument;
       }
     }
-
-    // if (y < volumeHeight + middleGap / 2 && startedDrawing !== 'note') {
-    //   if (y < volumeHeight || startedDrawing == 'volume') {
-    //     startedDrawing = 'volume';
-
-    //     const actualY = Math.max(0, volumeHeight - y);
-    //     const volume = Math.floor(actualY / (volumeHeight / 8));
-    //     if (volume !== $currentMelody.slots[slot].volume) {
-    //       $currentMelody.slots[slot].volume = volume;
-    //     }
-    //   }
-
-    //   // TODO volume == 0 => note = 0 ?
-    // } else if (startedDrawing !== 'volume') {
-    //   if (y > volumeHeight + middleGap || startedDrawing == 'note') {
-    //     startedDrawing = 'note';
-    //     const actualY = Math.max(0, y - (volumeHeight + middleGap));
-
-    //     const note = Math.floor((actualY - margin / 2) / (slotHeight / 64));
-    //     if (note !== $currentMelody.slots[slot].note || selectedInstrument != $currentMelody.slots[slot].instrument) {
-    //       $currentMelody.slots[slot].note = note;
-    //       $currentMelody.slots[slot].instrument = selectedInstrument;
-    //     }
-    //   }
-    // }
   }
 
   function instrumentColor(instrument: number): string {
@@ -173,6 +154,45 @@
     }
     return 'fff';
   }
+
+  function editname(event: MouseEvent) {
+    editable = false;
+    const svgtext = event.target as SVGTextElement;
+    const input = document.createElement('input');
+    input.value = svgtext.textContent;
+    input.onkeyup = function (e) {
+      if (['Enter', 'Escape'].includes(e.key)) {
+        this.blur();
+        return;
+      }
+      svgtext.textContent = this.value;
+    };
+    input.onblur = function (e) {
+      myforeign.remove();
+      editable = true;
+    };
+
+    var myforeign = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
+    myforeign.setAttribute('width', '100%');
+    myforeign.setAttribute('height', '100%');
+    myforeign.setAttribute('x', '' + 0);
+    myforeign.setAttribute('y', '' + (slotHeight + middleGap / 8 - 8));
+    myforeign.setAttribute('style', 'position:absolute; text-align:left;');
+
+    myforeign.append(input);
+
+    const svg = svgtext.parentNode;
+    svg.append(myforeign);
+
+    input.focus();
+    input.select();
+    input.setAttribute(
+      'style',
+      'width:100%; height:48px; font-size: 28px; background-color:black; text-align:center; color: #dab894;'
+    );
+
+    // input.style.display = 'none'
+  }
 </script>
 
 <svelte:window
@@ -196,6 +216,11 @@
     on:mouseenter={mouseenter}
     bind:this={element}
   >
+    <style>
+      input:focus {
+        outline: none;
+      }
+    </style>
     <rect x={margin / 2} y={margin / 2} width={width - margin} height={height - margin} style={`fill:#111;`} />
     {#each $currentMelody.slots as slot, index}
       <rect
@@ -206,6 +231,32 @@
         style={`fill:#${slot.volume === 0 ? '222' : instrumentColor(slot.instrument)};`}
       />
     {/each}
+
+    <text
+      x={width / 2}
+      y={slotHeight + middleGap / 8}
+      on:click={editname}
+      dominant-baseline="hanging"
+      text-anchor="middle"
+      style={`fill: #dab894; font-size: 28px;${
+        editable
+          ? '-webkit-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none; -webkit-tap-highlight-color:  rgba(255, 255, 255, 0); '
+          : ''
+      }`}>{$currentMelody.name}</text
+    >
+
+    <text
+      x={width / 2}
+      y={slotHeight + (middleGap * 7) / 8}
+      dominant-baseline="bottom"
+      text-anchor="middle"
+      style={`fill: #dab894; font-size: 16px;${
+        editable
+          ? 'pointer-events: none;-webkit-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none; -webkit-tap-highlight-color:  rgba(255, 255, 255, 0); '
+          : ''
+      }`}
+      >{#if $wallet.address}Created by {$wallet.address}{:else}To be created....{/if}</text
+    >
 
     {#each $currentMelody.slots as slot, index}
       <rect
@@ -219,12 +270,14 @@
   </svg>
 </div>
 
-<div class="m-3">
-  {#each [0, 1, 2, 3, 4, 5, 6, 7, 8] as instrument}
-    <button
-      on:click={() => (selectedInstrument = instrument)}
-      class={`inline-block w-6 h-6 mx-2 ${selectedInstrument === instrument ? 'outline-white' : ''}`}
-      style={`background-color: #${instrumentColor(instrument)}`}
-    />
-  {/each}
-</div>
+{#if editable}
+  <div class="m-3">
+    {#each [0, 1, 2, 3, 4, 5, 6, 7, 8] as instrument}
+      <button
+        on:click={() => (selectedInstrument = instrument)}
+        class={`inline-block w-6 h-6 mx-2 ${selectedInstrument === instrument ? 'outline-white' : ''}`}
+        style={`background-color: #${instrumentColor(instrument)}`}
+      />
+    {/each}
+  </div>
+{/if}

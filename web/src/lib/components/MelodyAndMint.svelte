@@ -128,7 +128,7 @@
   }
 </script>
 
-<Melody />
+<Melody editable={true} />
 
 <div class="flex justify-center items-center">
   <p class="mx-auto">

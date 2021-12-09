@@ -1,7 +1,7 @@
 <script lang="ts">
   import WalletAccess from '$lib/WalletAccess.svelte';
   import NavButton from '$lib/components/navigation/NavButton.svelte';
-  import {wallet, flow, chain} from '$lib/stores/wallet';
+  import {wallet, flow, chain, fallback} from '$lib/stores/wallet';
   import MelodyAndMint from '$lib/components/MelodyAndMint.svelte';
   import {onMount} from 'svelte';
   import {hashParams} from '$lib/config';
@@ -23,7 +23,7 @@
 
 <div class="w-full mx-auto text-center">
   <WalletAccess>
-    {#if $wallet.state === 'Ready' && $chain.state === 'Ready'}
+    {#if $chain.state === 'Ready' || $fallback.state === 'Ready'}
       <MelodyAndMint />
       <!-- <NavButton
         label="Disconnect"
