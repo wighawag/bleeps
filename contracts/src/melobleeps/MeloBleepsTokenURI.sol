@@ -88,7 +88,7 @@ contract MeloBleepsTokenURI {
         }
 
         // compute chnksize (TODO hardcode)
-        uint256 filesizeMinus8 = ((numSamplesPlusOne - 1) * 2 + 44) - 8;
+        uint256 filesizeMinus8 = ((numSamplesPlusOne - 1) + 44) - 8;
         uint256 chunkSize = filesizeMinus8 + 8 - 44;
 
         // filesize // 46 00 00
