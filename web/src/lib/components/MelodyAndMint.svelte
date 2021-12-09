@@ -37,7 +37,7 @@
   let prom: Promise<{image: string; animation_url: string}>;
   let lastTime: number;
 
-  function fetchURI(data1: string, data2: string): Promise<{image: string; animation_url: string}> {
+  function fetchURI(data1: string, data2: string, speed: number): Promise<{image: string; animation_url: string}> {
     const contracts = wallet.contracts || fallback.contracts;
     if (!contracts) {
       return Promise.reject('no contract');
@@ -48,7 +48,7 @@
       return Promise.reject('waiting...');
     } else {
       lastTime = Date.now();
-      prom = contracts.MeloBleepsTokenURI.wav(data1, data2).then((v) => {
+      prom = contracts.MeloBleepsTokenURI.wav(data1, data2, speed).then((v) => {
         return JSON.parse(v.substr('data:application/json,'.length));
       });
     }
@@ -159,7 +159,8 @@
 
   function fetchSound() {
     dispatch('tosave', $currentMelody);
-    sound = fetchURI(data1, data2);
+    // console.log({speed: $currentMelody.speed});
+    sound = fetchURI(data1, data2, $currentMelody.speed);
     sound.then((s) => console.log(s.animation_url));
   }
 </script>

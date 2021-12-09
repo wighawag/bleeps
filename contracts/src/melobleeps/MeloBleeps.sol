@@ -58,7 +58,7 @@ contract MeloBleeps is ERC721Base, MeloBleepsRoles {
     function tokenURI(uint256 id) external view returns (string memory) {
         bytes32 d1 = _melodies[id].data1;
         bytes32 d2 = _melodies[id].data2;
-        return tokenURIContract.wav(d1, d2);
+        return tokenURIContract.wav(d1, d2, 16); // TODO speed
     }
 
     function setTokenURIContract(MeloBleepsTokenURI newTokenURIContract) external {
@@ -71,6 +71,7 @@ contract MeloBleeps is ERC721Base, MeloBleepsRoles {
         address payable artist,
         bytes32 data1,
         bytes32 data2,
+        // uint8 speed, // TODO
         address to
     ) external returns (uint256 id) {
         // TODO prevent same one
