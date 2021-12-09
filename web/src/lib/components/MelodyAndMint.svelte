@@ -1,13 +1,16 @@
 <script lang="ts">
   import {hashParams} from '$lib/config';
-  import {currentMelody} from '$lib/melodies/currentMelody';
+  import {currentMelody, MelodyInfo} from '$lib/melodies/currentMelody';
   import Melody from '$lib/melodies/Melody.svelte';
+  import {createEventDispatcher} from 'svelte';
 
   import {fallback, flow, wallet} from '$lib/stores/wallet';
   import {BigNumber} from '@ethersproject/bignumber';
   import {onMount} from 'svelte';
   import Modal from './Modal.svelte';
   import GreenNavButton from './navigation/GreenNavButton.svelte';
+
+  const dispatch = createEventDispatcher<{tosave: MelodyInfo}>();
 
   function extractVolumes(song: {vol: number; note: number; shape: number}[]) {
     return song.map((v, i) => {
@@ -121,9 +124,7 @@
   let sound;
 
   function fetchSound() {
-    if (typeof location !== 'undefined') {
-      location.hash = `melody=${btoa(JSON.stringify($currentMelody))}`;
-    }
+    dispatch('tosave', $currentMelody as MelodyInfo);
     sound = fetchURI(data1, data2);
     sound.then((s) => console.log(s.animation_url));
   }

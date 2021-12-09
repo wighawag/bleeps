@@ -5,7 +5,7 @@
   import MelodyAndMint from '$lib/components/MelodyAndMint.svelte';
   import {onMount} from 'svelte';
   import {hashParams} from '$lib/config';
-  import {currentMelody} from '$lib/melodies/currentMelody';
+  import {currentMelody, MelodyInfo} from '$lib/melodies/currentMelody';
   import {getHashParamsFromLocation} from '$lib/utils/web';
 
   onMount(() => {
@@ -16,13 +16,31 @@
     }
   });
 
+  let saving = false;
+  function save(event: CustomEvent<MelodyInfo>) {
+    const melody = event.detail;
+    console.log(`saving...`);
+    saving = true;
+    if (typeof location !== 'undefined') {
+      location.hash = `melody=${btoa(JSON.stringify(melody))}`;
+    }
+    console.log(`saved`);
+  }
+
   function hashchange() {
     const hParams = getHashParamsFromLocation();
     console.log(hParams);
     const melodyB64 = hParams['melody'];
-    if (melodyB64) {
-      const melody = JSON.parse(atob(melodyB64));
-      $currentMelody = melody;
+
+    if (!saving) {
+      if (melodyB64) {
+        console.log('applying...');
+        const melody = JSON.parse(atob(melodyB64));
+        $currentMelody = melody;
+      }
+    } else {
+      console.log('applied');
+      saving = false;
     }
   }
 
@@ -46,7 +64,7 @@
 <div class="w-full mx-auto text-center">
   <WalletAccess>
     {#if $chain.state === 'Ready' || $fallback.state === 'Ready'}
-      <MelodyAndMint />
+      <MelodyAndMint on:tosave={save} />
       <!-- <NavButton
         label="Disconnect"
         disabled={$wallet.unlocking || $chain.connecting}
