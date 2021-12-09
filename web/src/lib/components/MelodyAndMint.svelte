@@ -96,9 +96,6 @@
   $: {
     console.log(`${$currentMelody.name} changed`);
     sound = null;
-    if (typeof location !== 'undefined') {
-      location.hash = `melody=${btoa(JSON.stringify($currentMelody))}`;
-    }
     // `${$currentMelody.name}~${$currentMelody.slots.map(
     //   (v) => `${v.note + (v.instrument << 6)}~${v.volume}`
     // ).join('~')}`;
@@ -124,6 +121,9 @@
   let sound;
 
   function fetchSound() {
+    if (typeof location !== 'undefined') {
+      location.hash = `melody=${btoa(JSON.stringify($currentMelody))}`;
+    }
     sound = fetchURI(data1, data2);
     sound.then((s) => console.log(s.animation_url));
   }

@@ -6,6 +6,7 @@
   import {onMount} from 'svelte';
   import {hashParams} from '$lib/config';
   import {currentMelody} from '$lib/melodies/currentMelody';
+  import {getHashParamsFromLocation} from '$lib/utils/web';
 
   onMount(() => {
     const melodyB64 = hashParams['melody'];
@@ -14,7 +15,28 @@
       $currentMelody = melody;
     }
   });
+
+  function hashchange() {
+    const hParams = getHashParamsFromLocation();
+    console.log(hParams);
+    const melodyB64 = hParams['melody'];
+    if (melodyB64) {
+      const melody = JSON.parse(atob(melodyB64));
+      $currentMelody = melody;
+    }
+  }
+
+  // $: {
+  //   if (typeof location !== 'undefined') {
+  //     location.hash = `melody=${btoa(JSON.stringify($currentMelody))}`;
+  //   }
+  //   // `${$currentMelody.name}~${$currentMelody.slots.map(
+  //   //   (v) => `${v.note + (v.instrument << 6)}~${v.volume}`
+  //   // ).join('~')}`;
+  // }
 </script>
+
+<svelte:window on:hashchange={hashchange} />
 
 <section class="py-8 px-4 text-center">
   <h2 class="text-5xl mb-2 font-heading text-black dark:text-white">Melody creation (in progress!)</h2>
