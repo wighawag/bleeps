@@ -100,7 +100,7 @@
   $: {
     let diff = lastMelody == undefined;
     if (lastMelody) {
-      if (lastMelody.speed !== $currentMelody.speed) {
+      if (lastMelody.speed !== $currentMelody.speed || lastMelody.name !== $currentMelody.name) {
         diff = true;
       } else {
         for (let i = 0; i < 32; i++) {

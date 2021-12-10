@@ -158,6 +158,7 @@
   }
 
   function editname(event: MouseEvent) {
+    let name = $currentMelody.name;
     drawingEmabled = false;
     const svgtext = event.target as SVGTextElement;
 
@@ -169,9 +170,10 @@
         this.blur();
         return;
       }
-      $currentMelody.name = this.value;
+      name = this.value;
     };
     input.onblur = function (e) {
+      $currentMelody.name = name;
       myforeign.remove();
       drawingEmabled = true;
     };
@@ -210,6 +212,37 @@
       }
     }
   }
+
+  async function drop(event: any) {
+    event.preventDefault();
+    if (event.dataTransfer.items) {
+      // Use DataTransferItemList interface to access the file(s)
+      for (let i = 0; i < event.dataTransfer.items.length; i++) {
+        // If dropped items aren't files, reject them
+        if (event.dataTransfer.items[i].kind === 'file') {
+          const file = event.dataTransfer.items[i].getAsFile();
+          console.log('dataTransfer.items ... file[' + i + '].name = ' + file.name);
+          console.log(await file.text());
+        }
+      }
+    } else {
+      // Use DataTransfer interface to access the file(s)
+      for (var i = 0; i < event.dataTransfer.files.length; i++) {
+        const file = event.dataTransfer.files[i];
+        console.log('dataTransfer.files ... file[' + i + '].name = ' + file.name);
+        console.log(await file.text());
+      }
+    }
+  }
+  function dragover(event: any) {
+    event.preventDefault();
+  }
+  function globaldrop(event: any) {
+    event.preventDefault();
+  }
+  function globaldragover(event: any) {
+    event.preventDefault();
+  }
 </script>
 
 <svelte:window
@@ -217,9 +250,11 @@
   on:mouseup={globalmouseup}
   on:mousemove={globalmousemove}
   on:click={globalclick}
+  on:drop={globaldrop}
+  on:dragover={globaldragover}
 />
 
-<div class="text-center">
+<div class="text-center" on:drop|capture={drop} on:dragenter|capture={dragover}>
   <svg
     class="inline-block"
     xmlns="http://www.w3.org/2000/svg"
@@ -233,11 +268,7 @@
     on:mouseenter={mouseenter}
     bind:this={element}
   >
-    <style>
-      input:focus {
-        outline: none;
-      }
-    </style>
+    <style></style>
     <rect x={margin / 2} y={margin / 2} width={width - margin} height={height - margin} style={`fill:#111;`} />
     {#each $currentMelody.slots as slot, index}
       <rect
@@ -294,6 +325,18 @@
 >
   <label class="block" for="speed">Speed: {$currentMelody.speed}</label>
   <input class="inline-block" id="speed" type="range" bind:value={$currentMelody.speed} max="16" min="1" />
+  <!-- {#if $currentMelody.speed >= 16}
+    <br />
+    <input
+      class="inline-block bg-red-500"
+      id="extra_speed"
+      type="range"
+      value={$currentMelody.speed - 16}
+      on:input={(event) => ($currentMelody.speed = 16 + parseInt(event.target.value))}
+      max="16"
+      min="0"
+    />
+  {/if} -->
 </div>
 
 {#if editable}
@@ -307,3 +350,21 @@
     {/each}
   </div>
 {/if}
+
+<style>
+  #extra_speed {
+    -webkit-appearance: none;
+    background-color: red;
+    /* width: 200px; */
+    height: 5px;
+  }
+
+  #extra_speed::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    background-color: red;
+    opacity: 1;
+    width: 15px;
+    height: 15px;
+    border-radius: 15px;
+  }
+</style>
