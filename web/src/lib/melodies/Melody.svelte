@@ -427,6 +427,7 @@
     background-color: red;
   }
 
+  /* from  https://moderncss.dev/custom-select-styles-with-pure-css/ */
   .select {
     appearance: none;
     background-color: transparent;
