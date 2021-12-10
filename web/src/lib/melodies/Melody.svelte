@@ -323,8 +323,19 @@
   class="m-3"
   style="-webkit-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none; -webkit-tap-highlight-color:  rgba(255, 255, 255, 0);"
 >
-  <label class="block" for="speed">Speed: {$currentMelody.speed}</label>
-  <input class="inline-block" id="speed" type="range" bind:value={$currentMelody.speed} max="16" min="1" />
+  <label class="block" for="speed"
+    >Length: {$currentMelody.speed} ({Math.floor($currentMelody.speed * ((61 / 7350) * 32) * 100) / 100} seconds)
+    {#if $currentMelody.speed > 16}<span class="text-yellow-600">(too long)</span>{/if}</label
+  >
+  <input
+    class={`inline-block range ${$currentMelody.speed > 16 ? 'bg-red-500 sl-red-500' : 'bg-blue-500'}`}
+    id="speed"
+    type="range"
+    style="width:24em;"
+    bind:value={$currentMelody.speed}
+    max="32"
+    min="1"
+  />
   <!-- {#if $currentMelody.speed >= 16}
     <br />
     <input
@@ -352,19 +363,20 @@
 {/if}
 
 <style>
-  #extra_speed {
+  .range {
     -webkit-appearance: none;
-    background-color: red;
-    /* width: 200px; */
     height: 5px;
   }
 
-  #extra_speed::-webkit-slider-thumb {
+  .range::-webkit-slider-thumb {
     -webkit-appearance: none;
-    background-color: red;
-    opacity: 1;
+    background-color: blue;
     width: 15px;
     height: 15px;
     border-radius: 15px;
+  }
+
+  .sl-red-500::-webkit-slider-thumb {
+    background-color: red;
   }
 </style>
