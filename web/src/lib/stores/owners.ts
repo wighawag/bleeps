@@ -236,7 +236,7 @@ class OwnersStateStore extends BaseStore<OwnersState> {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if ((contracts as any).old_BleepsDAOAccount) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await provider.getBalance((contracts as any).old_BleepsDAOAccount.address);
+        daoBalance = await provider.getBalance((contracts as any).old_BleepsDAOAccount.address);
       }
 
       if (daoBalance.eq(0)) {
