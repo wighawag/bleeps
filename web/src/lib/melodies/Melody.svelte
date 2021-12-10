@@ -1,7 +1,10 @@
 <script lang="ts">
-  import {currentMelody, Slot} from './currentMelody';
+  import {currentMelody, MelodyInfo, Slot} from './currentMelody';
   import {hertz, noteName, instrumentNameFromId, colorFromId} from '$lib/utils/notes';
   import {wallet} from '$lib/stores/wallet';
+  import GreenNavButton from '$lib/components/navigation/GreenNavButton.svelte';
+  import Modal from '$lib/components/Modal.svelte';
+  import {importMelodiesFromPico8String} from '$lib/utils/importer';
 
   export let editable = false;
 
@@ -126,7 +129,14 @@
 
       const actualY = Math.max(0, y - (volumeHeight + middleGap));
       const note = Math.floor((actualY - margin / 2) / (slotHeight / 64));
-      if (note !== $currentMelody.slots[slot].note || selectedInstrument != $currentMelody.slots[slot].instrument) {
+      if (
+        note !== $currentMelody.slots[slot].note ||
+        selectedInstrument != $currentMelody.slots[slot].instrument ||
+        $currentMelody.slots[slot].volume === 0
+      ) {
+        if ($currentMelody.slots[slot].volume === 0) {
+          $currentMelody.slots[slot].volume = 5;
+        }
         $currentMelody.slots[slot].note = note;
         $currentMelody.slots[slot].instrument = selectedInstrument;
       }
@@ -213,24 +223,45 @@
     }
   }
 
+  let choices: undefined | MelodyInfo[];
+  let sfxSelected = 0;
+  function selectFromP8(index: number) {
+    $currentMelody = choices[index];
+    choices = undefined;
+  }
+
   async function drop(event: any) {
+    sfxSelected = 0;
+    choices = [];
     event.preventDefault();
+
+    let file: File | undefined;
     if (event.dataTransfer.items) {
       // Use DataTransferItemList interface to access the file(s)
       for (let i = 0; i < event.dataTransfer.items.length; i++) {
         // If dropped items aren't files, reject them
         if (event.dataTransfer.items[i].kind === 'file') {
-          const file = event.dataTransfer.items[i].getAsFile();
+          file = event.dataTransfer.items[i].getAsFile();
           console.log('dataTransfer.items ... file[' + i + '].name = ' + file.name);
-          console.log(await file.text());
+          // TODO futher files?
+          break;
         }
       }
     } else {
       // Use DataTransfer interface to access the file(s)
       for (var i = 0; i < event.dataTransfer.files.length; i++) {
-        const file = event.dataTransfer.files[i];
+        file = event.dataTransfer.files[i];
         console.log('dataTransfer.files ... file[' + i + '].name = ' + file.name);
-        console.log(await file.text());
+        // TODO futher files?
+        break;
+      }
+    }
+    if (file) {
+      // console.log(await file.text());
+      try {
+        choices = importMelodiesFromPico8String(await file.text());
+      } catch (e) {
+        console.error(e);
       }
     }
   }
@@ -362,6 +393,22 @@
   </div>
 {/if}
 
+{#if choices && choices.length > 0}
+  <Modal on:close={() => (choices = undefined)}>
+    <div class="select-wrapper mx-auto my-2">
+      <select class="select" bind:value={sfxSelected}>
+        {#each choices as choice, index}
+          <option value={index}>
+            SFX {index}
+          </option>
+        {/each}
+      </select>
+      <span class="focus" />
+    </div>
+    <GreenNavButton label="select" on:click={() => selectFromP8(sfxSelected)}>OK</GreenNavButton>
+  </Modal>
+{/if}
+
 <style>
   .range {
     -webkit-appearance: none;
@@ -378,5 +425,68 @@
 
   .sl-red-500::-webkit-slider-thumb {
     background-color: red;
+  }
+
+  .select {
+    appearance: none;
+    background-color: transparent;
+    border: none;
+    padding: 0 1em 0 0;
+    margin: 0;
+    width: 100%;
+    font-family: inherit;
+    font-size: inherit;
+    cursor: inherit;
+    line-height: inherit;
+
+    outline: none;
+  }
+
+  .select::-ms-expand {
+    display: none;
+  }
+
+  .select-wrapper {
+    width: 100%;
+    min-width: 15ch;
+    max-width: 30ch;
+    border: 1px solid#777;
+    border-radius: 0.25em;
+    padding: 0.25em 0.5em;
+    font-size: 1.25rem;
+    cursor: pointer;
+    line-height: 1.1;
+    background-color: #000;
+    /* background-image: linear-gradient(to top, #000, #000 33%); */
+    color: #fff;
+
+    display: grid;
+    grid-template-areas: 'select';
+    align-items: center;
+    position: relative;
+  }
+
+  .select-wrapper::after {
+    content: '';
+    width: 0.8em;
+    height: 0.5em;
+    background-color: #fff;
+    clip-path: polygon(100% 0%, 0 0%, 50% 100%);
+    justify-self: end;
+  }
+
+  .select,
+  .select-wrapper:after {
+    grid-area: select;
+  }
+
+  .select:focus + .focus {
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    right: -1px;
+    bottom: -1px;
+    border: 2px solid blue;
+    border-radius: inherit;
   }
 </style>
