@@ -185,10 +185,10 @@
     input.value = svgtext.textContent;
     input.onkeyup = function (e) {
       if (['Enter', 'Escape'].includes(e.key)) {
-        this.blur();
+        (this as any).blur(); // TODO check this is event.target ?
         return;
       }
-      name = this.value;
+      name = (this as any).value; // TODO check this is event.target ?
     };
     input.onblur = function (e) {
       $currentMelody.name = name;
@@ -228,6 +228,13 @@
       } else if ((document as any).selection && (document as any).selection.empty) {
         (document as any).selection.empty();
       }
+    }
+  }
+
+  function selectOnEvent(event: FocusEvent) {
+    const target = event.target as HTMLInputElement;
+    if (target.select) {
+      target.select();
     }
   }
 
@@ -619,7 +626,7 @@
                     (noteSharp($currentMelody.slots[r * 4 + c].note) ? '#' : ' ')}
                   class="inline bg-black text-white w-6"
                   maxlength="2"
-                  on:focus={(e) => e.target.select()}
+                  on:focus={selectOnEvent}
                   on:keydown={onNoteEntered}
                 />
                 <input
@@ -628,7 +635,7 @@
                   value={noteOctave($currentMelody.slots[r * 4 + c].note)}
                   class="inline bg-black text-white w-3"
                   maxlength="1"
-                  on:focus={(e) => e.target.select()}
+                  on:focus={selectOnEvent}
                   on:keydown={onOctaveEntered}
                 />
                 <input
@@ -637,7 +644,7 @@
                   value={$currentMelody.slots[r * 4 + c].instrument}
                   class="inline bg-black text-white w-3"
                   maxlength="1"
-                  on:focus={(e) => e.target.select()}
+                  on:focus={selectOnEvent}
                   on:keydown={onInstrumentEntered}
                 />
 
@@ -647,7 +654,7 @@
                   value={$currentMelody.slots[r * 4 + c].volume}
                   class="inline bg-black text-white w-3"
                   maxlength="1"
-                  on:focus={(e) => e.target.select()}
+                  on:focus={selectOnEvent}
                   on:keydown={onVolumeEntered}
                 />
               </p>
