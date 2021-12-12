@@ -32,7 +32,7 @@
     // const x = width * (event.offsetX / element.clientWidth);
     // const y = height * (1 - event.offsetY / element.clientHeight);
     // console.log({x, y});
-    // set(x, y);
+    // set(x, y, !event.shiftKey);
   }
 
   function mousedown(event: MouseEvent) {
@@ -40,7 +40,7 @@
     const x = width * (event.offsetX / element.clientWidth);
     const y = height * (1 - event.offsetY / element.clientHeight);
     console.log({x, y});
-    set(x, y);
+    set(x, y, !event.shiftKey);
   }
 
   function mouseup(event: MouseEvent) {
@@ -52,6 +52,9 @@
   }
 
   function globalmousemove(event: MouseEvent) {
+    if (!element) {
+      return;
+    }
     if (mouseIsDown) {
       var rect = element.getBoundingClientRect();
       const lx = event.pageX - window.scrollX - rect.left;
@@ -65,10 +68,10 @@
       // console.log({lx, ly});
       if (lx < 0 || ly < 0 || lx > rect.width || ly > rect.height) {
         if (startedDrawing) {
-          set(x, y);
+          set(x, y, !event.shiftKey);
         }
       } else {
-        set(x, y);
+        set(x, y, !event.shiftKey);
       }
     }
   }
@@ -104,11 +107,11 @@
     // if (mouseIsDown) {
     //   const x = width * (event.offsetX / element.clientWidth);
     //   const y = height * (1 - event.offsetY / element.clientHeight);
-    //   set(x, y);
+    //   set(x, y, !event.shiftKey);
     // }
   }
 
-  function set(x: number, y: number) {
+  function set(x: number, y: number, setNote: boolean = true) {
     if (!editable || !drawingEmabled) {
       return;
     }
@@ -137,7 +140,10 @@
         if ($currentMelody.slots[slot].volume === 0) {
           $currentMelody.slots[slot].volume = 5;
         }
-        $currentMelody.slots[slot].note = note;
+        if (setNote) {
+          $currentMelody.slots[slot].note = note;
+        }
+
         $currentMelody.slots[slot].instrument = selectedInstrument;
       }
     }
