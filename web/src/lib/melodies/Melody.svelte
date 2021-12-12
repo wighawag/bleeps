@@ -1,6 +1,6 @@
 <script lang="ts">
   import {currentMelody, MelodyInfo, Slot} from './currentMelody';
-  import {hertz, noteName, instrumentNameFromId, colorFromId} from '$lib/utils/notes';
+  import {hertz, noteName, instrumentNameFromId, colorFromId, noteOctave, noteSharp} from '$lib/utils/notes';
   import {wallet} from '$lib/stores/wallet';
   import GreenNavButton from '$lib/components/navigation/GreenNavButton.svelte';
   import Modal from '$lib/components/Modal.svelte';
@@ -22,6 +22,8 @@
   let mouseIsDown = false;
   let selectedInstrument: number = 0;
   let drawingEmabled = true;
+
+  let graphView = false;
 
   let element: SVGSVGElement;
   function click(event: MouseEvent) {
@@ -280,6 +282,252 @@
   function globaldragover(event: any) {
     event.preventDefault();
   }
+
+  function keyCodeToNote(code: string): string | undefined {
+    switch (code) {
+      case 'KeyZ':
+        return 'C';
+      case 'KeyS':
+        return 'C#';
+      case 'KeyX':
+        return 'D';
+      case 'KeyD':
+        return 'D#';
+      case 'KeyC':
+        return 'E';
+      case 'KeyV':
+        return 'F';
+      case 'KeyG':
+        return 'F#';
+      case 'KeyB':
+        return 'G';
+      case 'KeyH':
+        return 'G#';
+      case 'KeyN':
+        return 'A';
+      case 'KeyJ':
+        return 'A#';
+      case 'KeyM':
+        return 'B';
+    }
+    return undefined;
+  }
+
+  function noteNameToNote(noteName: string): number | undefined {
+    switch (noteName.trim()) {
+      case 'C':
+        return 0;
+      case 'C#':
+        return 1;
+      case 'D':
+        return 2;
+      case 'D#':
+        return 3;
+      case 'E':
+        return 4;
+      case 'F':
+        return 5;
+      case 'F#':
+        return 6;
+      case 'G':
+        return 7;
+      case 'G#':
+        return 8;
+      case 'A':
+        return 9;
+      case 'A#':
+        return 10;
+      case 'B':
+        return 11;
+    }
+    console.log(`note not found: ${noteName}`);
+    return undefined;
+  }
+
+  function applyValue(index: number) {
+    if (typeof document === 'undefined') {
+      return;
+    }
+    const noteInputElement = document.getElementById(`input_note_${index}`);
+    const octaveInputElement = document.getElementById(`input_octave_${index}`);
+    const instrumentInputElement = document.getElementById(`input_instrument_${index}`);
+    const volumeInputElement = document.getElementById(`input_volume_${index}`);
+
+    if (!(noteInputElement && octaveInputElement && instrumentInputElement && volumeInputElement)) {
+      return;
+    }
+
+    noteInputElement.value =
+      noteName($currentMelody.slots[index].note).slice(0, 1) +
+      (noteSharp($currentMelody.slots[index].note) ? '#' : ' ');
+    octaveInputElement.value = noteOctave($currentMelody.slots[index].note);
+    instrumentInputElement.value = $currentMelody.slots[index].instrument;
+    volumeInputElement.value = $currentMelody.slots[index].volume;
+  }
+
+  function setValue(index: number) {
+    if (typeof document === 'undefined') {
+      return;
+    }
+    const noteInputElement = document.getElementById(`input_note_${index}`);
+    const octaveInputElement = document.getElementById(`input_octave_${index}`);
+    const instrumentInputElement = document.getElementById(`input_instrument_${index}`);
+    const volumeInputElement = document.getElementById(`input_volume_${index}`);
+
+    if (!(noteInputElement && octaveInputElement && instrumentInputElement && volumeInputElement)) {
+      return;
+    }
+
+    const noteIndex = noteNameToNote(noteInputElement.value);
+    const octave = parseInt(octaveInputElement.value) - 2;
+    const instrument = parseInt(instrumentInputElement.value);
+    let volume = parseInt(volumeInputElement.value);
+
+    console.log({index, noteIndex, octave, instrument, volume, note: octave * 12 + noteIndex});
+
+    if (volume == 0) {
+      volume = 5;
+    }
+
+    $currentMelody.slots[index].note = octave * 12 + noteIndex;
+    $currentMelody.slots[index].instrument = instrument;
+    $currentMelody.slots[index].volume = volume;
+  }
+
+  function keyCodeToNumber(key: string): number | undefined {
+    const n = parseInt(key);
+    if (isNaN(n)) {
+      return undefined;
+    }
+    return n;
+  }
+
+  function getIndex(id: string): number | undefined {
+    const lastIndexOfUnderscore = id.lastIndexOf('_');
+    if (lastIndexOfUnderscore !== -1) {
+      return parseInt(id.slice(lastIndexOfUnderscore + 1));
+    }
+  }
+
+  function focusNext(id: string) {
+    // id={`input_note_${r * 8 + c}`}
+    const lastIndexOfUnderscore = id.lastIndexOf('_');
+    if (lastIndexOfUnderscore !== -1) {
+      const index = parseInt(id.slice(lastIndexOfUnderscore + 1));
+      const newIndex = (index + 1) % 32;
+      const newElement = document.getElementById(id.slice(0, lastIndexOfUnderscore + 1) + newIndex);
+      newElement.focus();
+    }
+  }
+
+  function focusprev(id: string) {
+    // id={`input_note_${r * 8 + c}`}
+    const lastIndexOfUnderscore = id.lastIndexOf('_');
+    if (lastIndexOfUnderscore !== -1) {
+      const index = parseInt(id.slice(lastIndexOfUnderscore + 1));
+      let newIndex = index - 1;
+      if (newIndex < 0) {
+        newIndex = 31;
+      }
+      const newElement = document.getElementById(id.slice(0, lastIndexOfUnderscore + 1) + newIndex);
+      newElement.focus();
+    }
+  }
+
+  function onNoteEntered(event: KeyboardEvent) {
+    console.log(event.code);
+    if (event.code == 'ArrowUp') {
+      focusprev(event.target.id);
+      return;
+    }
+    if (event.code == 'ArrowDown') {
+      focusNext(event.target.id);
+      return;
+    }
+    if (event.code == 'Tab') {
+      return;
+    }
+    if (event.isComposing || event.keyCode === 229) {
+      return;
+    }
+
+    const v = keyCodeToNote(event.code);
+
+    if (v) {
+      event.target.value = v;
+      setValue(getIndex(event.target.id));
+      // event.target.setSelectionRange(0, event.target.value.length);
+      focusNext(event.target.id);
+    }
+
+    event.preventDefault();
+  }
+  function onOctaveEntered(event: KeyboardEvent) {
+    if (event.code == 'ArrowUp') {
+      focusprev(event.target.id);
+      return;
+    }
+    if (event.code == 'ArrowDown') {
+      focusNext(event.target.id);
+      return;
+    }
+    if (event.code == 'Tab') {
+      return;
+    }
+    const n = keyCodeToNumber(event.key);
+    if (n !== undefined && n >= 2 && n <= 9) {
+      event.target.value = n;
+      setValue(getIndex(event.target.id));
+      focusNext(event.target.id);
+    }
+    event.preventDefault();
+  }
+  function onInstrumentEntered(event: KeyboardEvent) {
+    if (event.code == 'ArrowUp') {
+      focusprev(event.target.id);
+      return;
+    }
+    if (event.code == 'ArrowDown') {
+      focusNext(event.target.id);
+      return;
+    }
+    if (event.code == 'Tab') {
+      return;
+    }
+    const n = keyCodeToNumber(event.key);
+    if (n !== undefined && n >= 0 && n <= 8) {
+      event.target.value = n;
+      setValue(getIndex(event.target.id));
+      focusNext(event.target.id);
+    }
+    event.preventDefault();
+  }
+  function onVolumeEntered(event: KeyboardEvent) {
+    if (event.code == 'ArrowUp') {
+      focusprev(event.target.id);
+      return;
+    }
+    if (event.code == 'ArrowDown') {
+      focusNext(event.target.id);
+      return;
+    }
+    if (event.code == 'Tab') {
+      return;
+    }
+    const n = keyCodeToNumber(event.key);
+    if (n !== undefined && n >= 0 && n <= 7) {
+      event.target.value = n;
+      setValue(getIndex(event.target.id));
+      focusNext(event.target.id);
+    }
+    event.preventDefault();
+  }
+
+  $: {
+    for (let i = 0; i < $currentMelody.slots.length; i++) {
+      applyValue(i);
+    }
+  }
 </script>
 
 <svelte:window
@@ -291,69 +539,124 @@
   on:dragover={globaldragover}
 />
 
-<div class="text-center" on:drop|capture={drop} on:dragenter|capture={dragover}>
-  <svg
-    class="inline-block"
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox={`0 0 ${width} ${height}`}
-    style="width:512px;user-drag: none;-webkit-user-drag: none;"
-    on:click={click}
-    on:mousedown={mousedown}
-    on:mousemove={mousemove}
-    on:mouseup={mouseup}
-    on:mouseleave={mouseleave}
-    on:mouseenter={mouseenter}
-    bind:this={element}
-  >
-    <style></style>
-    <rect x={margin / 2} y={margin / 2} width={width - margin} height={height - margin} style={`fill:#111;`} />
-    {#each $currentMelody.slots as slot, index}
-      <rect
-        x={index * slotWidth + gap / 2 + margin / 2}
-        y={slotHeight - (heightOfNote(slot) / 64) * (slotHeight - margin) - margin / 2}
-        width={slotWidth - gap}
-        height={(heightOfNote(slot) / 64) * (slotHeight - margin)}
-        style={`fill:#${slot.volume === 0 ? '222' : instrumentColor(slot.instrument)};`}
-      />
-    {/each}
+<input type="checkbox" bind:checked={graphView} />
 
-    <text
-      x={width / 2}
-      y={slotHeight + middleGap / 8}
-      on:click={editname}
-      dominant-baseline="hanging"
-      text-anchor="middle"
-      style={`fill: #dab894; font-size: 28px;user-drag: none;-webkit-user-drag: none;
+<div class="text-center" on:drop|capture={drop} on:dragenter|capture={dragover}>
+  {#if graphView}
+    <svg
+      class="inline-block"
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox={`0 0 ${width} ${height}`}
+      style="width:512px;user-drag: none;-webkit-user-drag: none;"
+      on:click={click}
+      on:mousedown={mousedown}
+      on:mousemove={mousemove}
+      on:mouseup={mouseup}
+      on:mouseleave={mouseleave}
+      on:mouseenter={mouseenter}
+      bind:this={element}
+    >
+      <style></style>
+      <rect x={margin / 2} y={margin / 2} width={width - margin} height={height - margin} style={`fill:#111;`} />
+      {#each $currentMelody.slots as slot, index}
+        <rect
+          x={index * slotWidth + gap / 2 + margin / 2}
+          y={slotHeight - (heightOfNote(slot) / 64) * (slotHeight - margin) - margin / 2}
+          width={slotWidth - gap}
+          height={(heightOfNote(slot) / 64) * (slotHeight - margin)}
+          style={`fill:#${slot.volume === 0 ? '222' : instrumentColor(slot.instrument)};`}
+        />
+      {/each}
+
+      <text
+        x={width / 2}
+        y={slotHeight + middleGap / 8}
+        on:click={editname}
+        dominant-baseline="hanging"
+        text-anchor="middle"
+        style={`fill: #dab894; font-size: 28px;user-drag: none;-webkit-user-drag: none;
         ${
           editable
             ? '-webkit-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none; -webkit-tap-highlight-color:  rgba(255, 255, 255, 0); '
             : ''
         }`}>{$currentMelody.name}</text
-    >
+      >
 
-    <text
-      x={width / 2}
-      y={slotHeight + (middleGap * 7) / 8}
-      dominant-baseline="bottom"
-      text-anchor="middle"
-      style={`fill: #dab894; font-size: 16px;user-drag: none;-webkit-user-drag: none;${
-        editable
-          ? 'pointer-events: none;-webkit-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none; -webkit-tap-highlight-color:  rgba(255, 255, 255, 0); '
-          : ''
-      }`}
-      >{#if $wallet.address}Created by {$wallet.address}{:else}To be created....{/if}</text
-    >
+      <text
+        x={width / 2}
+        y={slotHeight + (middleGap * 7) / 8}
+        dominant-baseline="bottom"
+        text-anchor="middle"
+        style={`fill: #dab894; font-size: 16px;user-drag: none;-webkit-user-drag: none;${
+          editable
+            ? 'pointer-events: none;-webkit-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none; -webkit-tap-highlight-color:  rgba(255, 255, 255, 0); '
+            : ''
+        }`}
+        >{#if $wallet.address}Created by {$wallet.address}{:else}To be created....{/if}</text
+      >
 
-    {#each $currentMelody.slots as slot, index}
-      <rect
-        x={index * slotWidth + gap / 2 + margin / 2}
-        y={middleGap + slotHeight + margin / 2}
-        width={slotWidth - gap}
-        height={(heightOfVolume(slot) / 8) * (volumeHeight - margin)}
-        style={`fill:#${volumeColor(slot.volume)};`}
-      />
-    {/each}
-  </svg>
+      {#each $currentMelody.slots as slot, index}
+        <rect
+          x={index * slotWidth + gap / 2 + margin / 2}
+          y={middleGap + slotHeight + margin / 2}
+          width={slotWidth - gap}
+          height={(heightOfVolume(slot) / 8) * (volumeHeight - margin)}
+          style={`fill:#${volumeColor(slot.volume)};`}
+        />
+      {/each}
+    </svg>
+  {:else}
+    <table class="inline-block" style={`width:512px;height:512px;`}>
+      <tr>
+        {#each [0, 1, 2, 3] as r}
+          <td style="width:256px;">
+            {#each [0, 1, 2, 3, 4, 5, 6, 7] as c}
+              <p>
+                <input
+                  id={`input_note_${r * 8 + c}`}
+                  tabindex={r * 8 + c + 100}
+                  value={noteName($currentMelody.slots[r * 4 + c].note).slice(0, 1) +
+                    (noteSharp($currentMelody.slots[r * 4 + c].note) ? '#' : ' ')}
+                  class="inline bg-black text-white w-6"
+                  maxlength="2"
+                  on:focus={(e) => e.target.select()}
+                  on:keydown={onNoteEntered}
+                />
+                <input
+                  id={`input_octave_${r * 8 + c}`}
+                  tabindex={r * 4 + c + 200}
+                  value={noteOctave($currentMelody.slots[r * 4 + c].note)}
+                  class="inline bg-black text-white w-3"
+                  maxlength="1"
+                  on:focus={(e) => e.target.select()}
+                  on:keydown={onOctaveEntered}
+                />
+                <input
+                  id={`input_instrument_${r * 8 + c}`}
+                  tabindex={r * 4 + c + 300}
+                  value={$currentMelody.slots[r * 4 + c].instrument}
+                  class="inline bg-black text-white w-3"
+                  maxlength="1"
+                  on:focus={(e) => e.target.select()}
+                  on:keydown={onInstrumentEntered}
+                />
+
+                <input
+                  id={`input_volume_${r * 8 + c}`}
+                  tabindex={r * 4 + c + 400}
+                  value={$currentMelody.slots[r * 4 + c].volume}
+                  class="inline bg-black text-white w-3"
+                  maxlength="1"
+                  on:focus={(e) => e.target.select()}
+                  on:keydown={onVolumeEntered}
+                />
+              </p>
+            {/each}
+          </td>
+        {/each}
+      </tr>
+    </table>
+  {/if}
 </div>
 
 <div
