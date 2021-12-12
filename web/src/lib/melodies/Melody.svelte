@@ -1,6 +1,15 @@
 <script lang="ts">
   import {currentMelody, MelodyInfo, Slot} from './currentMelody';
-  import {hertz, noteName, instrumentNameFromId, colorFromId, noteOctave, noteSharp} from '$lib/utils/notes';
+  import {
+    hertz,
+    noteName,
+    instrumentNameFromId,
+    colorFromId,
+    noteOctave,
+    noteSharp,
+    noteNameToNote,
+    keyCodeToNote,
+  } from '$lib/utils/notes';
   import {wallet} from '$lib/stores/wallet';
   import GreenNavButton from '$lib/components/navigation/GreenNavButton.svelte';
   import Modal from '$lib/components/Modal.svelte';
@@ -290,75 +299,14 @@
     event.preventDefault();
   }
 
-  function keyCodeToNote(code: string): string | undefined {
-    switch (code) {
-      case 'KeyZ':
-        return 'C';
-      case 'KeyS':
-        return 'C#';
-      case 'KeyX':
-        return 'D';
-      case 'KeyD':
-        return 'D#';
-      case 'KeyC':
-        return 'E';
-      case 'KeyV':
-        return 'F';
-      case 'KeyG':
-        return 'F#';
-      case 'KeyB':
-        return 'G';
-      case 'KeyH':
-        return 'G#';
-      case 'KeyN':
-        return 'A';
-      case 'KeyJ':
-        return 'A#';
-      case 'KeyM':
-        return 'B';
-    }
-    return undefined;
-  }
-
-  function noteNameToNote(noteName: string): number | undefined {
-    switch (noteName.trim()) {
-      case 'C':
-        return 0;
-      case 'C#':
-        return 1;
-      case 'D':
-        return 2;
-      case 'D#':
-        return 3;
-      case 'E':
-        return 4;
-      case 'F':
-        return 5;
-      case 'F#':
-        return 6;
-      case 'G':
-        return 7;
-      case 'G#':
-        return 8;
-      case 'A':
-        return 9;
-      case 'A#':
-        return 10;
-      case 'B':
-        return 11;
-    }
-    console.log(`note not found: ${noteName}`);
-    return undefined;
-  }
-
   function applyValue(index: number) {
     if (typeof document === 'undefined') {
       return;
     }
-    const noteInputElement = document.getElementById(`input_note_${index}`);
-    const octaveInputElement = document.getElementById(`input_octave_${index}`);
-    const instrumentInputElement = document.getElementById(`input_instrument_${index}`);
-    const volumeInputElement = document.getElementById(`input_volume_${index}`);
+    const noteInputElement = document.getElementById(`input_note_${index}`) as HTMLInputElement;
+    const octaveInputElement = document.getElementById(`input_octave_${index}`) as HTMLInputElement;
+    const instrumentInputElement = document.getElementById(`input_instrument_${index}`) as HTMLInputElement;
+    const volumeInputElement = document.getElementById(`input_volume_${index}`) as HTMLInputElement;
 
     if (!(noteInputElement && octaveInputElement && instrumentInputElement && volumeInputElement)) {
       return;
@@ -367,19 +315,19 @@
     noteInputElement.value =
       noteName($currentMelody.slots[index].note).slice(0, 1) +
       (noteSharp($currentMelody.slots[index].note) ? '#' : ' ');
-    octaveInputElement.value = noteOctave($currentMelody.slots[index].note);
-    instrumentInputElement.value = $currentMelody.slots[index].instrument;
-    volumeInputElement.value = $currentMelody.slots[index].volume;
+    octaveInputElement.value = '' + noteOctave($currentMelody.slots[index].note);
+    instrumentInputElement.value = '' + $currentMelody.slots[index].instrument;
+    volumeInputElement.value = '' + $currentMelody.slots[index].volume;
   }
 
   function setValue(index: number) {
     if (typeof document === 'undefined') {
       return;
     }
-    const noteInputElement = document.getElementById(`input_note_${index}`);
-    const octaveInputElement = document.getElementById(`input_octave_${index}`);
-    const instrumentInputElement = document.getElementById(`input_instrument_${index}`);
-    const volumeInputElement = document.getElementById(`input_volume_${index}`);
+    const noteInputElement = document.getElementById(`input_note_${index}`) as HTMLInputElement;
+    const octaveInputElement = document.getElementById(`input_octave_${index}`) as HTMLInputElement;
+    const instrumentInputElement = document.getElementById(`input_instrument_${index}`) as HTMLInputElement;
+    const volumeInputElement = document.getElementById(`input_volume_${index}`) as HTMLInputElement;
 
     if (!(noteInputElement && octaveInputElement && instrumentInputElement && volumeInputElement)) {
       return;
@@ -442,13 +390,14 @@
   }
 
   function onNoteEntered(event: KeyboardEvent) {
-    console.log(event.code);
+    const target = event.target as HTMLInputElement & {id: string};
+
     if (event.code == 'ArrowUp') {
-      focusprev(event.target.id);
+      focusprev(target.id);
       return;
     }
     if (event.code == 'ArrowDown') {
-      focusNext(event.target.id);
+      focusNext(target.id);
       return;
     }
     if (event.code == 'Tab') {
@@ -461,21 +410,23 @@
     const v = keyCodeToNote(event.code);
 
     if (v) {
-      event.target.value = v;
-      setValue(getIndex(event.target.id));
-      // event.target.setSelectionRange(0, event.target.value.length);
-      focusNext(event.target.id);
+      target.value = v;
+      setValue(getIndex(target.id));
+      // target.setSelectionRange(0, target.value.length);
+      focusNext(target.id);
     }
 
     event.preventDefault();
   }
   function onOctaveEntered(event: KeyboardEvent) {
+    const target = event.target as HTMLInputElement & {id: string};
+
     if (event.code == 'ArrowUp') {
-      focusprev(event.target.id);
+      focusprev(target.id);
       return;
     }
     if (event.code == 'ArrowDown') {
-      focusNext(event.target.id);
+      focusNext(target.id);
       return;
     }
     if (event.code == 'Tab') {
@@ -483,19 +434,21 @@
     }
     const n = keyCodeToNumber(event.key);
     if (n !== undefined && n >= 2 && n <= 9) {
-      event.target.value = n;
-      setValue(getIndex(event.target.id));
-      focusNext(event.target.id);
+      target.value = '' + n;
+      setValue(getIndex(target.id));
+      focusNext(target.id);
     }
     event.preventDefault();
   }
   function onInstrumentEntered(event: KeyboardEvent) {
+    const target = event.target as HTMLInputElement & {id: string};
+
     if (event.code == 'ArrowUp') {
-      focusprev(event.target.id);
+      focusprev(target.id);
       return;
     }
     if (event.code == 'ArrowDown') {
-      focusNext(event.target.id);
+      focusNext(target.id);
       return;
     }
     if (event.code == 'Tab') {
@@ -503,19 +456,21 @@
     }
     const n = keyCodeToNumber(event.key);
     if (n !== undefined && n >= 0 && n <= 8) {
-      event.target.value = n;
-      setValue(getIndex(event.target.id));
-      focusNext(event.target.id);
+      target.value = '' + n;
+      setValue(getIndex(target.id));
+      focusNext(target.id);
     }
     event.preventDefault();
   }
   function onVolumeEntered(event: KeyboardEvent) {
+    const target = event.target as HTMLInputElement & {id: string};
+
     if (event.code == 'ArrowUp') {
-      focusprev(event.target.id);
+      focusprev(target.id);
       return;
     }
     if (event.code == 'ArrowDown') {
-      focusNext(event.target.id);
+      focusNext(target.id);
       return;
     }
     if (event.code == 'Tab') {
@@ -523,9 +478,9 @@
     }
     const n = keyCodeToNumber(event.key);
     if (n !== undefined && n >= 0 && n <= 7) {
-      event.target.value = n;
-      setValue(getIndex(event.target.id));
-      focusNext(event.target.id);
+      target.value = '' + n;
+      setValue(getIndex(target.id));
+      focusNext(target.id);
     }
     event.preventDefault();
   }

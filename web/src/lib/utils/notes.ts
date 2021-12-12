@@ -212,3 +212,63 @@ export function hertz(id: number): string {
   const note = id % 64;
   return '' + Math.floor(notes[note]) + ' Hz';
 }
+
+export function keyCodeToNote(code: string): string | undefined {
+  switch (code) {
+    case 'KeyZ':
+      return 'C';
+    case 'KeyS':
+      return 'C#';
+    case 'KeyX':
+      return 'D';
+    case 'KeyD':
+      return 'D#';
+    case 'KeyC':
+      return 'E';
+    case 'KeyV':
+      return 'F';
+    case 'KeyG':
+      return 'F#';
+    case 'KeyB':
+      return 'G';
+    case 'KeyH':
+      return 'G#';
+    case 'KeyN':
+      return 'A';
+    case 'KeyJ':
+      return 'A#';
+    case 'KeyM':
+      return 'B';
+  }
+  return undefined;
+}
+
+export function noteNameToNote(noteName: string): number | undefined {
+  switch (noteName.trim()) {
+    case 'C':
+      return 0;
+    case 'C#':
+      return 1;
+    case 'D':
+      return 2;
+    case 'D#':
+      return 3;
+    case 'E':
+      return 4;
+    case 'F':
+      return 5;
+    case 'F#':
+      return 6;
+    case 'G':
+      return 7;
+    case 'G#':
+      return 8;
+    case 'A':
+      return 9;
+    case 'A#':
+      return 10;
+    case 'B':
+      return 11;
+  }
+  return undefined;
+}
