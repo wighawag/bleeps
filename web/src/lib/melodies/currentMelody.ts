@@ -65,7 +65,7 @@ export function encodeMelodyToString(melody: MelodyInfo): string {
       .padStart(64, '0');
   const bytes = data1.concat(data2.slice(2)).concat(melody.speed.toString(16).padStart(2, '0'));
 
-  return `${melody.name}~${base64.encode(bytes)}`;
+  return `${melody.name.replace(/ /g, '_')}~${base64.encode(bytes)}`;
 }
 
 // https://stackoverflow.com/a/12686857
@@ -79,7 +79,7 @@ function splitNChars(txt: string, num: number): string[] {
 
 // 0x155f095f155f095f155f095f155a095a155c095c1414081414171418141b081e141f0822142508281429096115610961155f155f155f155f155f0d5f095f015f10
 export function decodeMelodyFromString(melodyString: string): MelodyInfo {
-  const [name, bytes64] = melodyString.split('~');
+  const [nameStr, bytes64] = melodyString.split('~');
   const bytes = hexlify(base64.decode(bytes64));
   const slotStrings = splitNChars(bytes.slice(2, 130), 4);
   const slots: Slot[] = [];
@@ -89,7 +89,7 @@ export function decodeMelodyFromString(melodyString: string): MelodyInfo {
 
   const speed = parseInt(bytes.slice(130, 132), 16);
 
-  return {slots: slots as Slots, speed, name};
+  return {slots: slots as Slots, speed, name: nameStr.replace(/_/g, ' ')};
 }
 
 const defaultMelody: MelodyInfo = {

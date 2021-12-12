@@ -192,6 +192,7 @@
     return 'fff';
   }
 
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!?£$%&*()[]{}@#><+=;,/:"\' -.';
   function editname(event: MouseEvent) {
     let name = $currentMelody.name;
     drawingEmabled = false;
@@ -200,12 +201,24 @@
     // from : https://stackoverflow.com/questions/9308938/inline-text-editing-in-svg/68706140#68706140
     const input = document.createElement('input');
     input.value = svgtext.textContent;
+    input.onkeydown = function (e) {
+      if (['Enter', 'Escape', 'Backspace', 'Delete', 'ArrowRight', 'ArrowLeft', 'End', 'Home'].includes(e.key)) {
+        return;
+      }
+      if (alphabet.indexOf(e.key) === -1) {
+        e.preventDefault();
+      }
+    };
     input.onkeyup = function (e) {
       if (['Enter', 'Escape'].includes(e.key)) {
         (this as any).blur(); // TODO check this is event.target ?
         return;
       }
-      name = (this as any).value; // TODO check this is event.target ?
+      // TODO check this is event.target ?
+      (this as any).value = (this as any).value.replace(/_/g, ' ');
+      if ((this as any).value.length > 0 && !(this as any).value.startsWith(' ')) {
+        name = (this as any).value;
+      }
     };
     input.onblur = function (e) {
       $currentMelody.name = name;
