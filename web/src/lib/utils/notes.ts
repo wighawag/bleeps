@@ -110,6 +110,17 @@ export function noteName(id: number): string {
   return str;
 }
 
+export function noteSharp(id: number): boolean {
+  const note = id % 64;
+  const m = note % 12;
+  return m == 1 || m == 3 || m == 6 || m == 8 || m == 10;
+}
+
+export function noteOctave(id: number): number {
+  const note = id % 64;
+  return Math.floor(note / 12) + 2;
+}
+
 const notes = [
   65.41, // C2
   69.3, // C#2
