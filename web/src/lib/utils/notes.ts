@@ -1,3 +1,5 @@
+import {BigNumber} from '@ethersproject/bignumber';
+
 export function instrumentNameFromId(id: number): string {
   return instrumentName(id >> 6);
 }
@@ -278,4 +280,21 @@ export function noteNameToNote(noteName: string): number | undefined {
       return 11;
   }
   return undefined;
+}
+
+export function encodeNote(
+  bn: BigNumber,
+  slot: {note: number; volume: number; index: number; instrument: number}
+): BigNumber {
+  const shift = BigNumber.from(2).pow(240 - slot.index * 16);
+  const value = slot.note + slot.instrument * 64 + slot.volume * 64 * 16;
+  const extra = shift.mul(value);
+  return bn.add(extra);
+}
+
+export function decodeNote(bn: BigNumber): {note: number; volume: number; instrument: number} {
+  const note = bn.mod(64).toNumber();
+  const instrument = bn.shr(6).mod(16).toNumber();
+  const volume = bn.shr(10).mod(8).toNumber();
+  return {note, instrument, volume};
 }

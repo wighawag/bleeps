@@ -202,6 +202,7 @@ importers:
       '@ethereumjs/vm': ^5.5.3
       '@ethersproject/abi': ^5.4.1
       '@ethersproject/abstract-provider': ^5.4.1
+      '@ethersproject/base64': ^5.5.0
       '@ethersproject/bignumber': ^5.4.2
       '@ethersproject/bytes': ^5.4.0
       '@ethersproject/constants': ^5.5.0
@@ -251,6 +252,7 @@ importers:
       '@ethereumjs/vm': 5.5.3
       '@ethersproject/abi': 5.4.1
       '@ethersproject/abstract-provider': 5.4.1
+      '@ethersproject/base64': 5.5.0
       '@ethersproject/bignumber': 5.4.2
       '@ethersproject/bytes': 5.4.0
       '@ethersproject/constants': 5.5.0

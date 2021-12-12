@@ -5,14 +5,19 @@
   import MelodyAndMint from '$lib/components/MelodyAndMint.svelte';
   import {onMount} from 'svelte';
   import {hashParams} from '$lib/config';
-  import {currentMelody, MelodyInfo} from '$lib/melodies/currentMelody';
+  import {currentMelody, decodeMelodyFromString, encodeMelodyToString, MelodyInfo} from '$lib/melodies/currentMelody';
   import {getHashParamsFromLocation} from '$lib/utils/web';
 
   onMount(() => {
-    const melodyB64 = hashParams['melody'];
-    if (melodyB64) {
-      const melody = JSON.parse(atob(melodyB64));
-      $currentMelody = melody;
+    const melodyString = hashParams['melody'];
+    if (melodyString) {
+      if (melodyString.indexOf('~') > 0) {
+        $currentMelody = decodeMelodyFromString(melodyString);
+      } else {
+        // old
+        const melody = JSON.parse(atob(melodyString));
+        $currentMelody = melody;
+      }
       if ($currentMelody.speed === undefined) {
         $currentMelody.speed = 16;
       }
@@ -25,7 +30,7 @@
     console.log(`saving...`);
     saving = true;
     if (typeof location !== 'undefined') {
-      location.hash = `melody=${btoa(JSON.stringify(melody))}`;
+      location.hash = `melody=${encodeMelodyToString(melody)}`;
     }
     console.log(`saved`);
   }

@@ -9,6 +9,7 @@
   import {onMount} from 'svelte';
   import Modal from './Modal.svelte';
   import GreenNavButton from './navigation/GreenNavButton.svelte';
+  import {encodeNote} from '$lib/utils/notes';
 
   const dispatch = createEventDispatcher<{tosave: MelodyInfo}>();
 
@@ -22,16 +23,6 @@
     return song.map((v, i) => {
       return {note: v.note, shape: v.shape, index: i};
     });
-  }
-
-  function encodeNote(
-    bn: BigNumber,
-    slot: {note: number; volume: number; index: number; instrument: number}
-  ): BigNumber {
-    const shift = BigNumber.from(2).pow(240 - slot.index * 16);
-    const value = slot.note + slot.instrument * 64 + slot.volume * 64 * 16;
-    const extra = shift.mul(value);
-    return bn.add(extra);
   }
 
   let prom: Promise<{image: string; animation_url: string}>;
