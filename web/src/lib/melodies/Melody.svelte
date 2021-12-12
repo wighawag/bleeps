@@ -9,6 +9,7 @@
     noteSharp,
     noteNameToNote,
     keyCodeToNote,
+    noteNameWithoutOctave,
   } from '$lib/utils/notes';
   import {wallet} from '$lib/stores/wallet';
   import GreenNavButton from '$lib/components/navigation/GreenNavButton.svelte';
@@ -32,7 +33,14 @@
   let selectedInstrument: number = 0;
   let drawingEmabled = true;
 
-  let graphView = false;
+  export let graphView = true;
+
+  const table = [
+    [0, 1, 2, 3, 4, 5, 6, 7],
+    [8, 9, 10, 11, 12, 13, 14, 15],
+    [16, 17, 18, 19, 20, 21, 22, 23],
+    [24, 25, 26, 27, 28, 29, 30, 31],
+  ];
 
   let element: SVGSVGElement;
   function click(event: MouseEvent) {
@@ -167,19 +175,19 @@
   function volumeColor(volume: number): string {
     switch (volume) {
       case 0:
-        return '000';
+        return '111';
       case 1:
-        return '222';
+        return '333';
       case 2:
-        return '444';
+        return '555';
       case 3:
-        return '666';
+        return '777';
       case 4:
-        return '888';
+        return '999';
       case 5:
-        return 'aaa';
+        return 'bbb';
       case 6:
-        return 'ccc';
+        return 'ddd';
     }
     return 'fff';
   }
@@ -320,7 +328,7 @@
     volumeInputElement.value = '' + $currentMelody.slots[index].volume;
   }
 
-  function setValue(index: number) {
+  function setValue(index: number, forceVolume: boolean = false) {
     if (typeof document === 'undefined') {
       return;
     }
@@ -340,7 +348,7 @@
 
     console.log({index, noteIndex, octave, instrument, volume, note: octave * 12 + noteIndex});
 
-    if (volume == 0) {
+    if (forceVolume && volume == 0) {
       volume = 5;
     }
 
@@ -411,7 +419,7 @@
 
     if (v) {
       target.value = v;
-      setValue(getIndex(target.id));
+      setValue(getIndex(target.id), true);
       // target.setSelectionRange(0, target.value.length);
       focusNext(target.id);
     }
@@ -501,7 +509,29 @@
   on:dragover={globaldragover}
 />
 
-<input type="checkbox" bind:checked={graphView} />
+<!-- <span><input type="checkbox" bind:checked={graphView} /></span> -->
+
+<!-- <div class="mx-auto" style="width:512px;">
+  <div
+    class={`relative rounded-full w-12 h-6 transition duration-200 ease-linear ${
+      graphView ? 'bg-green-400' : 'bg-gray-400'
+    }`}
+  >
+    <label
+      for="toggle"
+      class={`absolute left-0 bg-white border-2 mb-2 w-6 h-6 rounded-full transition transform duration-100 ease-linear cursor-pointer ${
+        graphView ? 'bg-green-400 translate-x-full' : 'bg-gray-400 translate-x-0'
+      }`}
+    />
+    <input
+      type="checkbox"
+      id="toggle"
+      name="toggle"
+      on:click={() => (graphView = !graphView)}
+      class={`appearance-none w-full h-full active:outline-none focus:outline-none`}
+    />
+  </div>
+</div> -->
 
 <div class="text-center" on:drop|capture={drop} on:dragenter|capture={dragover}>
   {#if graphView}
@@ -568,46 +598,48 @@
       {/each}
     </svg>
   {:else}
-    <table class="inline-block" style={`width:512px;height:512px;`}>
+    <table class="inline-block" style={`width:512px;`}>
       <tr>
-        {#each [0, 1, 2, 3] as r}
+        {#each table as row}
           <td style="width:256px;">
-            {#each [0, 1, 2, 3, 4, 5, 6, 7] as c}
-              <p>
+            {#each row as index}
+              <p class="border-r border-l border-red-300">
                 <input
-                  id={`input_note_${r * 8 + c}`}
-                  tabindex={r * 8 + c + 100}
-                  value={noteName($currentMelody.slots[r * 4 + c].note).slice(0, 1) +
-                    (noteSharp($currentMelody.slots[r * 4 + c].note) ? '#' : ' ')}
-                  class="inline bg-black text-white w-6"
+                  id={`input_note_${index}`}
+                  tabindex={index + 100}
+                  value={noteNameWithoutOctave($currentMelody.slots[index].note)}
+                  class="inline bg-black text-white w-6 m-1 my-4"
                   maxlength="2"
                   on:focus={selectOnEvent}
                   on:keydown={onNoteEntered}
                 />
                 <input
-                  id={`input_octave_${r * 8 + c}`}
-                  tabindex={r * 4 + c + 200}
-                  value={noteOctave($currentMelody.slots[r * 4 + c].note)}
-                  class="inline bg-black text-white w-3"
+                  id={`input_octave_${index}`}
+                  tabindex={index + 200}
+                  value={noteOctave($currentMelody.slots[index].note)}
+                  class="inline bg-black text-white w-3 m-1 my-4"
                   maxlength="1"
                   on:focus={selectOnEvent}
                   on:keydown={onOctaveEntered}
                 />
+
                 <input
-                  id={`input_instrument_${r * 8 + c}`}
-                  tabindex={r * 4 + c + 300}
-                  value={$currentMelody.slots[r * 4 + c].instrument}
-                  class="inline bg-black text-white w-3"
+                  id={`input_instrument_${index}`}
+                  tabindex={index + 300}
+                  value={$currentMelody.slots[index].instrument}
+                  class="inline bg-black text-white w-3 m-1 my-4"
+                  style={`color:#${colorFromId($currentMelody.slots[index].instrument << 6)};`}
                   maxlength="1"
                   on:focus={selectOnEvent}
                   on:keydown={onInstrumentEntered}
                 />
 
                 <input
-                  id={`input_volume_${r * 8 + c}`}
-                  tabindex={r * 4 + c + 400}
-                  value={$currentMelody.slots[r * 4 + c].volume}
-                  class="inline bg-black text-white w-3"
+                  id={`input_volume_${index}`}
+                  tabindex={index + 400}
+                  value={$currentMelody.slots[index].volume}
+                  class="inline bg-black text-white w-3 m-1 my-4"
+                  style={`color:#${volumeColor($currentMelody.slots[index].volume)};`}
                   maxlength="1"
                   on:focus={selectOnEvent}
                   on:keydown={onVolumeEntered}
@@ -652,7 +684,7 @@
   {/if} -->
 </div>
 
-{#if editable}
+{#if editable && graphView}
   <div class="m-3">
     {#each [0, 1, 2, 3, 4, 5, 6, 7, 8] as instrument}
       <button

@@ -121,6 +121,13 @@ export function noteOctave(id: number): number {
   return Math.floor(note / 12) + 2;
 }
 
+export function noteNameWithoutOctave(note: number): string {
+  const base = noteName(note).slice(0, 1);
+  const str = base + (noteSharp(note) ? '#' : ' ');
+  console.log({note, str});
+  return str;
+}
+
 const notes = [
   65.41, // C2
   69.3, // C#2

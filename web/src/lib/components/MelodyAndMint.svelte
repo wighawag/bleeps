@@ -163,9 +163,33 @@
     sound = fetchURI(data1, data2, $currentMelody.speed);
     sound.then((s) => console.log(s.animation_url));
   }
+
+  let graphView = true;
 </script>
 
-<Melody editable={true} />
+<Melody editable={true} {graphView} />
+
+<div class="absolute top-16 right-2">
+  <div
+    class={`relative rounded-full w-12 h-6 transition duration-200 ease-linear ${
+      graphView ? 'bg-green-400' : 'bg-gray-400'
+    }`}
+  >
+    <label
+      for="toggle"
+      class={`absolute left-0 bg-white border-2 mb-2 w-6 h-6 rounded-full transition transform duration-100 ease-linear cursor-pointer ${
+        graphView ? 'bg-green-400 translate-x-full' : 'bg-gray-400 translate-x-0'
+      }`}
+    />
+    <input
+      type="checkbox"
+      id="toggle"
+      name="toggle"
+      on:click={() => (graphView = !graphView)}
+      class={`appearance-none w-full h-full active:outline-none focus:outline-none`}
+    />
+  </div>
+</div>
 
 <div class="flex justify-center items-center">
   <p class="mx-auto">

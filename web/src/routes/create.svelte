@@ -60,8 +60,8 @@
 <svelte:window on:hashchange={hashchange} />
 
 <section class="py-8 px-4 text-center">
-  <h2 class="text-5xl mb-2 font-heading text-black dark:text-white">Melody creation (in progress!)</h2>
-  <p class="m-6 text-gray-500 dark:text-gray-400 text-xl">Bleeps DAO member get a share of each melody auction</p>
+  <h2 class="text-3xl mb-2 font-heading text-black dark:text-white">Melody creation (in progress!)</h2>
+  <!-- <p class="m-6 text-gray-500 dark:text-gray-400 text-xl">Bleeps DAO member get a share of each melody auction</p> -->
 </section>
 
 <div class="w-full mx-auto text-center">
