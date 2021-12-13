@@ -38,13 +38,20 @@
   function hashchange() {
     const hParams = getHashParamsFromLocation();
     console.log(hParams);
-    const melodyB64 = hParams['melody'];
-
+    const melodyString = hashParams['melody'];
     if (!saving) {
-      if (melodyB64) {
-        console.log('applying...');
-        const melody = JSON.parse(atob(melodyB64));
-        $currentMelody = melody;
+      if (melodyString) {
+        console.log(`applying...`);
+        if (melodyString.indexOf('~') > 0) {
+          $currentMelody = decodeMelodyFromString(melodyString);
+        } else {
+          // old
+          const melody = JSON.parse(atob(melodyString));
+          $currentMelody = melody;
+        }
+        if ($currentMelody.speed === undefined) {
+          $currentMelody.speed = 16;
+        }
       }
     } else {
       console.log('applied');
