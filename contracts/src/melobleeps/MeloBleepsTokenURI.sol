@@ -45,7 +45,7 @@ contract MeloBleepsTokenURI {
             "https://hello",
             "\",\"image\":\"data:image/svg+xml,<svg viewBox='0 0 32 16' ><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' style='fill: rgb(219, 39, 119); font-size: 12px;'>",
             "hello",
-            '</text></svg>","animation_url":"data:audio/wav;base64,UklGRgAAAABXQVZFZm10IBAAAAABAAEA+CoAAPBVAAABAAgAZGF0YQAA'
+            '</text></svg>","animation_url":"data:audio/wav;base64,UklGRgAAAABXQVZFZm10IBAAAAABAAEA+CoAAPgqAAABAAgAZGF0YQAA'
         ); // missing 2 zero bytes
         uint256 len = start.length;
         uint256 src;
