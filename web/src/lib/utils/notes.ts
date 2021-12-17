@@ -1,3 +1,5 @@
+import {BigNumber} from '@ethersproject/bignumber';
+
 export function instrumentNameFromId(id: number): string {
   return instrumentName(id >> 6);
 }
@@ -110,6 +112,24 @@ export function noteName(id: number): string {
   return str;
 }
 
+export function noteSharp(id: number): boolean {
+  const note = id % 64;
+  const m = note % 12;
+  return m == 1 || m == 3 || m == 6 || m == 8 || m == 10;
+}
+
+export function noteOctave(id: number): number {
+  const note = id % 64;
+  return Math.floor(note / 12) + 2;
+}
+
+export function noteNameWithoutOctave(note: number): string {
+  const base = noteName(note).slice(0, 1);
+  const str = base + (noteSharp(note) ? '#' : ' ');
+  console.log({note, str});
+  return str;
+}
+
 const notes = [
   65.41, // C2
   69.3, // C#2
@@ -200,4 +220,81 @@ const notes = [
 export function hertz(id: number): string {
   const note = id % 64;
   return '' + Math.floor(notes[note]) + ' Hz';
+}
+
+export function keyCodeToNote(code: string): string | undefined {
+  switch (code) {
+    case 'KeyZ':
+      return 'C';
+    case 'KeyS':
+      return 'C#';
+    case 'KeyX':
+      return 'D';
+    case 'KeyD':
+      return 'D#';
+    case 'KeyC':
+      return 'E';
+    case 'KeyV':
+      return 'F';
+    case 'KeyG':
+      return 'F#';
+    case 'KeyB':
+      return 'G';
+    case 'KeyH':
+      return 'G#';
+    case 'KeyN':
+      return 'A';
+    case 'KeyJ':
+      return 'A#';
+    case 'KeyM':
+      return 'B';
+  }
+  return undefined;
+}
+
+export function noteNameToNote(noteName: string): number | undefined {
+  switch (noteName.trim()) {
+    case 'C':
+      return 0;
+    case 'C#':
+      return 1;
+    case 'D':
+      return 2;
+    case 'D#':
+      return 3;
+    case 'E':
+      return 4;
+    case 'F':
+      return 5;
+    case 'F#':
+      return 6;
+    case 'G':
+      return 7;
+    case 'G#':
+      return 8;
+    case 'A':
+      return 9;
+    case 'A#':
+      return 10;
+    case 'B':
+      return 11;
+  }
+  return undefined;
+}
+
+export function encodeNote(
+  bn: BigNumber,
+  slot: {note: number; volume: number; index: number; instrument: number}
+): BigNumber {
+  const shift = BigNumber.from(2).pow(240 - slot.index * 16);
+  const value = slot.note + slot.instrument * 64 + slot.volume * 64 * 16;
+  const extra = shift.mul(value);
+  return bn.add(extra);
+}
+
+export function decodeNote(bn: BigNumber): {note: number; volume: number; instrument: number} {
+  const note = bn.mod(64).toNumber();
+  const instrument = bn.shr(6).mod(16).toNumber();
+  const volume = bn.shr(10).mod(8).toNumber();
+  return {note, instrument, volume};
 }

@@ -29,8 +29,12 @@ contract MeloBleepsTokenURI {
     int256 internal constant MIN_VALUE = MINUS_ONE + 1;
     int256 internal constant MAX_VALUE = ONE - 1;
 
-    function wav(bytes32 d1, bytes32 d2) external pure returns (string memory) {
-        return _generateWav(d1, d2);
+    function wav(
+        bytes32 d1,
+        bytes32 d2,
+        uint8 speed
+    ) external pure returns (string memory) {
+        return _generateWav(d1, d2, speed);
     }
 
     function _prepareBuffer(bytes memory buffer) internal pure returns (uint256) {
@@ -41,7 +45,7 @@ contract MeloBleepsTokenURI {
             "https://hello",
             "\",\"image\":\"data:image/svg+xml,<svg viewBox='0 0 32 16' ><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' style='fill: rgb(219, 39, 119); font-size: 12px;'>",
             "hello",
-            '</text></svg>","animation_url":"data:audio/wav;base64,UklGRgAAAABXQVZFZm10IBAAAAABAAEA+CoAAPBVAAABAAgAZGF0YQAA'
+            '</text></svg>","animation_url":"data:audio/wav;base64,UklGRgAAAABXQVZFZm10IBAAAAABAAEA+CoAAPgqAAABAAgAZGF0YQAA'
         ); // missing 2 zero bytes
         uint256 len = start.length;
         uint256 src;
@@ -88,7 +92,7 @@ contract MeloBleepsTokenURI {
         }
 
         // compute chnksize (TODO hardcode)
-        uint256 filesizeMinus8 = ((numSamplesPlusOne - 1) * 2 + 44) - 8;
+        uint256 filesizeMinus8 = ((numSamplesPlusOne - 1) + 44) - 8;
         uint256 chunkSize = filesizeMinus8 + 8 - 44;
 
         // filesize // 46 00 00
@@ -148,7 +152,11 @@ contract MeloBleepsTokenURI {
         }
     }
 
-    function _generateWav(bytes32 d1, bytes32 d2) internal pure returns (string memory) {
+    function _generateWav(
+        bytes32 d1,
+        bytes32 d2,
+        uint8 speed
+    ) internal pure returns (string memory) {
         bytes memory buffer = new bytes(500000);
         uint256 startLength = _prepareBuffer(buffer);
 
@@ -165,7 +173,7 @@ contract MeloBleepsTokenURI {
 
         bytes memory freqTable = FREQUENCIES;
 
-        uint256 numSamplesPlusOne = (3 * (((32 * (61 * 16 * SAMPLE_RATE)) / (7350)) + 1)) / 3; //3 * 3 * ((22050 + 3) / 3); // 16 = speed
+        uint256 numSamplesPlusOne = (3 * (((32 * (61 * uint256(speed) * SAMPLE_RATE)) / (7350)) + 1)) / 3; //3 * 3 * ((22050 + 3) / 3); // 16 = speed
 
         uint256[] memory noise_handler = new uint256[](4);
 
@@ -190,7 +198,7 @@ contract MeloBleepsTokenURI {
                         meloIndex := 15
                     }
                 }
-                data := and(shr(add(16, mul(sub(16, meloIndex), 16)), data), 0xFFFF) // sub(15) is to divide the data in 2
+                data := and(shr(mul(sub(15, meloIndex), 16), data), 0xFFFF) // sub(15) is to divide the data in 2
                 let note := and(data, 0x3F)
                 let instr := and(shr(6, data), 0x0F)
                 let vol := mul(and(shr(10, data), 0x07), 100)
