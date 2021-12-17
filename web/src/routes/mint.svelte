@@ -389,6 +389,7 @@
       <div class="border-4 border-white w-80 sm:w-96 h-12 pt-2 mx-auto">
         <span class="text-bleeps">Sold Out</span>
       </div>
+      <a href="https://opensea.io/collection/bleeps" class="mt-4 underline inline-block">Check on Opensea</a>
     {:else if currentTime}
       {#if currentTime < contracts.BleepsInitialSale.linkedData.startTime}
         <div class="border-4 border-white w-80 sm:w-96 h-24 pt-1 mx-auto">
