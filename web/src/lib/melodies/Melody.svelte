@@ -552,7 +552,7 @@
       class="inline-block"
       xmlns="http://www.w3.org/2000/svg"
       viewBox={`0 0 ${width} ${height}`}
-      style="width:512px;user-drag: none;-webkit-user-drag: none;"
+      style="width:100%;max-height:60vh;user-drag: none;-webkit-user-drag: none;"
       on:click={click}
       on:mousedown={mousedown}
       on:mousemove={mousemove}
@@ -611,17 +611,17 @@
       {/each}
     </svg>
   {:else}
-    <table class="inline-block" style={`width:512px;`}>
+    <table class="mx-auto" style={`width:100%;`}>
       <tr>
         {#each table as row}
-          <td style="width:256px;">
+          <td style="width:25%;">
             {#each row as index}
               <p class="border-r border-l border-red-300">
                 <input
                   id={`input_note_${index}`}
                   tabindex={index + 100}
                   value={noteNameWithoutOctave($currentMelody.slots[index].note)}
-                  class="inline bg-black text-white w-6 m-1 my-4"
+                  class="inline bg-black text-white w-6 sm:m-1 sm:my-4"
                   maxlength="2"
                   on:focus={selectOnEvent}
                   on:keydown={onNoteEntered}
@@ -630,7 +630,7 @@
                   id={`input_octave_${index}`}
                   tabindex={index + 200}
                   value={noteOctave($currentMelody.slots[index].note)}
-                  class="inline bg-black text-white w-3 m-1 my-4"
+                  class="inline bg-black text-white w-3 sm:m-1 sm:my-4"
                   maxlength="1"
                   on:focus={selectOnEvent}
                   on:keydown={onOctaveEntered}
@@ -640,19 +640,19 @@
                   id={`input_instrument_${index}`}
                   tabindex={index + 300}
                   value={$currentMelody.slots[index].instrument}
-                  class="inline bg-black text-white w-3 m-1 my-4"
+                  class="inline bg-black text-white w-3 sm:m-1 sm:my-4"
                   style={`color:#${colorFromId($currentMelody.slots[index].instrument << 6)};`}
                   maxlength="1"
                   on:focus={selectOnEvent}
                   on:keydown={onInstrumentEntered}
                 />
 
+                <!-- style={`color:#${volumeColor($currentMelody.slots[index].volume)};`} -->
                 <input
                   id={`input_volume_${index}`}
                   tabindex={index + 400}
                   value={$currentMelody.slots[index].volume}
-                  class="inline bg-black text-white w-3 m-1 my-4"
-                  style={`color:#${volumeColor($currentMelody.slots[index].volume)};`}
+                  class="inline bg-black text-white w-3 sm:m-1 sm:my-4"
                   maxlength="1"
                   on:focus={selectOnEvent}
                   on:keydown={onVolumeEntered}
