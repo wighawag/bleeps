@@ -113,8 +113,7 @@
   {/if}
 
   <a class="block m-8 underline text-bleeps" href={url('about/')}>Learn More</a>
-
-  <p class="mx-8 mt-8">And feel free to join our Discord server!</p>
+  <p class="mx-8 mt-8">Or join us on our Discord server!</p>
   <a href="https://discord.com/invite/DRtq7xBdtn" target="_blank" class="mx-auto block w-min discord">
     <svg class="h-10 w-26 block" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 800 272.1"
       ><path
@@ -126,4 +125,10 @@
       /></svg
     >
   </a>
+
+  <p class="text-green-400 m-8">
+    You can also checkout the <a class="underline" href="https://demo.bleeps.art/create/">Melodies Demo</a>
+  </p>
+
+  <a class="block m-8 underline text-bleeps" href={url('about/')}>Or Learn More</a>
 </div>
