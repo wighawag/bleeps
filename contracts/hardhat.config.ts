@@ -13,6 +13,15 @@ const initialAdmin = '0xdcA9d1FA839bB9Fe65DDC4de5161BCA43751D4B4';
 const demoCreator = '0xcE1AEF3e0A5324F7AB6e21B4dacc10B82666E1e2';
 const demoAdmin = '0xCcFe9B3769473eeBb45a592313583616038f6274';
 
+const devDeploy = [
+  'deploy/000_externals',
+  'deploy/001_bleeps',
+  'deploy/002_bleepsdao',
+  'deploy/003_bleeps_sale',
+  'deploy/004_bleeps_setup',
+  'deploy/006_melobleeps',
+];
+
 const config: HardhatUserConfig = {
   solidity: {
     compilers: [
@@ -140,21 +149,17 @@ const config: HardhatUserConfig = {
       // TODO
       blockGasLimit: 50000000,
       initialBaseFeePerGas: 0, // to fix : https://github.com/sc-forks/solidity-coverage/issues/652, see https://github.com/sc-forks/solidity-coverage/issues/652#issuecomment-896330136
+      deploy: devDeploy,
     },
     localhost: {
       url: node_url('localhost'),
       accounts: accounts(),
+      deploy: devDeploy,
     },
     demo: {
       url: node_url('goerli'),
       accounts: accounts('goerli'),
-      deploy: [
-        'deploy/001_bleeps',
-        'deploy/002_bleepsdao',
-        'deploy/003_bleeps_sale',
-        'deploy/004_bleeps_setup',
-        'deploy/006_melobleeps',
-      ],
+      deploy: devDeploy,
     },
     mainnet: {
       url: node_url('mainnet'),
