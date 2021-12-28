@@ -129,6 +129,4 @@
   <p class="text-green-400 m-8">
     You can also checkout the <a class="underline" href="https://demo.bleeps.art/create/">Melodies Demo</a>
   </p>
-
-  <a class="block m-8 underline text-bleeps" href={url('about/')}>Or Learn More</a>
 </div>
