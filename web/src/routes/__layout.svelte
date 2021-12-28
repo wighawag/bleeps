@@ -110,7 +110,7 @@
     >
   </a>
 
-  <a href="https://knowledge.bleeps.art/" target="_blank" class="text-bleeps hover:text-yellow-500">
+  <!-- <a href="https://knowledge.bleeps.art/" target="_blank" class="text-bleeps hover:text-yellow-500">
     <span class="sr-only">Discord</span>
     <svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"
       ><g transform="translate(0.000000, 71.000000)">
@@ -120,7 +120,7 @@
         />
       </g></svg
     >
-  </a>
+  </a> -->
 </div>
 
 <div class="text-white">
@@ -198,7 +198,7 @@
           >
         </a>
 
-        <a href="https://knowledge.bleeps.art/" target="_blank" class="text-gray-400 hover:text-gray-300">
+        <!-- <a href="https://knowledge.bleeps.art/" target="_blank" class="text-gray-400 hover:text-gray-300">
           <span class="sr-only">Discord</span>
           <svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"
             ><g transform="translate(0.000000, 71.000000)">
@@ -208,7 +208,7 @@
               />
             </g></svg
           >
-        </a>
+        </a> -->
       </div>
     </div>
   </div>
