@@ -2,16 +2,16 @@
   import '../service-worker-handler';
   import '../global.css';
   import {url} from '$lib/utils/url';
-  import NavBar from '$lib/components/navigation/NavBar.svelte';
-  import Notifications from '$lib/components/notification/Notifications.svelte';
-  import NoInstallPrompt from '$lib/components/NoInstallPrompt.svelte';
-  import NewVersionNotification from '$lib/components/NewVersionNotification.svelte';
+  import NavBar from '$lib/components/styled/navigation/NavBar.svelte';
+  import Notifications from '$lib/components/styled/notification/Notifications.svelte';
+  import NoInstallPrompt from '$lib/components/generic/NoInstallPrompt.svelte';
+  import NewVersionNotification from '$lib/components/styled/NewVersionNotification.svelte';
 
   import {appDescription, url as appUrl} from '../../application.json';
 
   import {base} from '$app/paths';
   import contractsInfo from '$lib/contracts.json';
-  import {flow, wallet} from '$lib/stores/wallet';
+  import {flow, wallet} from '$lib/blockchain/wallet';
 
   const title = 'Bleeps And The Bleeps DAO';
   const description = appDescription;

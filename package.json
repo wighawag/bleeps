@@ -7,10 +7,10 @@
     "change-name": "^0.2.6",
     "cross-env": "^7.0.3",
     "dotenv": "^10.0.0",
-    "dotenv-cli": "^4.0.0",
+    "dotenv-cli": "^4.1.1",
     "npm-run-all": "^4.1.5",
     "rimraf": "^3.0.2",
-    "svelte": "^3.42.4",
+    "svelte": "^3.44.3",
     "wait-on": "^6.0.0",
     "wighawag_newsh": "0.0.6"
   },
@@ -32,7 +32,8 @@
     "seed": "node ./_scripts.js contracts:seed",
     "contracts:execute": "node ./_scripts.js contracts:execute",
     "contracts:fork:execute": "node ./_scripts.js contracts:fork:execute",
-    "---------------------- agent-service ----------------------": "deploy agent-service",
+    "tenderly:push": "node ./_scripts.js tenderly:push",
+    "---------------------- booking-service ----------------------": "deploy booking-service",
     "booking-service:dev": "node ./_scripts.js booking-service:dev",
     "booking-service:build": "node ./_scripts.js booking-service:build",
     "booking-service:deploy": "node ./_scripts.js booking-service:deploy",
@@ -42,6 +43,7 @@
     "---------------------- web ----------------------": "build and serve the web app",
     "web:dev": "node ./_scripts.js web:dev",
     "web:build": "node ./_scripts.js web:build",
+    "build": "node ./_scripts.js web:build",
     "web:serve": "node ./_scripts.js web:serve",
     "web:build:serve": "node ./_scripts.js web:build:serve",
     "---------------------- DEPLOYMENT ----------------------": "deployments",
@@ -51,7 +53,9 @@
     "---------------------- DEVELOPMENT ----------------------": "run external services, setup subgraph and deploy it on the local graph-node + deploy the contracts and seed it",
     "stop": "node ./_scripts.js stop",
     "externals": "node ./_scripts.js externals",
+    "externals:geth": "node ./_scripts.js externals:geth",
     "dev": "node ./_scripts.js dev",
-    "start": "node ./_scripts.js start"
+    "start": "node ./_scripts.js start",
+    "start:geth": "node ./_scripts.js start:geth"
   }
 }

@@ -163,4 +163,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 export default func;
 func.tags = ['BleepsInitialSale', 'BleepsInitialSale_deploy'];
 func.dependencies = ['Bleeps_deploy', 'MandalaToken', 'BleepsDAOAccount_deploy'];
-func.skip = async (hre) => (await hre.deployments.getNetworkName()) !== 'hardhat'; // Sale done
+func.skip = async (hre) => {
+  // Sale done
+  const networkName = await hre.deployments.getNetworkName();
+  return networkName !== 'hardhat' && networkName !== 'localhost';
+};

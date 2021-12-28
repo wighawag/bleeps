@@ -1,12 +1,12 @@
 <script lang="ts">
-  import NavButton from '$lib/components/navigation/NavButton.svelte';
+  import NavButton from '$lib/components/styled/navigation/NavButton.svelte';
   import {base} from '$app/paths';
   import {url} from '$lib/utils/url';
   import {onMount} from 'svelte';
-  import {time, now} from '$lib/stores/time';
+  import {time, now} from '$lib/time';
   import {contracts} from '$lib/contracts.json';
-  import MandalaIcon from '$lib/components/icons/MandalaIcon.svelte';
-  import DiscordIcon from '$lib/components/icons/DiscordIcon.svelte';
+  import MandalaIcon from '$lib/components/generic/icons/MandalaIcon.svelte';
+  import DiscordIcon from '$lib/components/generic/icons/DiscordIcon.svelte';
   import {time2text} from '$lib/utils';
   import {chainName} from '$lib/config';
 

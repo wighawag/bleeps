@@ -1,9 +1,8 @@
 <script lang="ts">
-  import WalletAccess from '$lib/WalletAccess.svelte';
-  import NavButton from '$lib/components/navigation/NavButton.svelte';
-  import GreenNavButton from '$lib/components/navigation/GreenNavButton.svelte';
-  import {wallet, flow, chain, fallback} from '$lib/stores/wallet';
-  import Modal from '$lib/components/Modal.svelte';
+  import WalletAccess from '$lib/blockchain/WalletAccess.svelte';
+  import NavButton from '$lib/components/styled/navigation/NavButton.svelte';
+  import {wallet, flow, chain, fallback} from '$lib/blockchain/wallet';
+  import Modal from '$lib/components/styled/Modal.svelte';
   import {ownersState} from '$lib/stores/owners';
   import type {OwnersState} from '$lib/stores/owners';
   import {base} from '$app/paths';
@@ -14,13 +13,13 @@
   import {joinSignature} from '@ethersproject/bytes';
   import {keccak256 as solidityKeccak256} from '@ethersproject/solidity';
   import {BigNumber} from '@ethersproject/bignumber';
-  import {now, time} from '$lib/stores/time';
+  import {now, time} from '$lib/time';
   import {bookingService} from '$lib/services/bookingService';
   import type {TransactionRequest, TransactionResponse} from '@ethersproject/abstract-provider';
   import {rebuildLocationHash} from '$lib/utils/web';
-  import MandalaIcon from '$lib/components/icons/MandalaIcon.svelte';
-  import DiscordIcon from '$lib/components/icons/DiscordIcon.svelte';
-  import PassKeyIcon from '$lib/components/icons/PassKeyIcon.svelte';
+  import MandalaIcon from '$lib/components/generic/icons/MandalaIcon.svelte';
+  import DiscordIcon from '$lib/components/generic/icons/DiscordIcon.svelte';
+  import PassKeyIcon from '$lib/components/generic/icons/PassKeyIcon.svelte';
   import {onMount} from 'svelte';
   import {displayAddress, time2text} from '$lib/utils';
   import {chainName} from '$lib/config';

@@ -2,7 +2,6 @@
   import {displayAddress} from '$lib/utils';
 
   import {hertz, noteName, instrumentNameFromId, colorFromId} from '$lib/utils/notes';
-  import {symbolSVG} from '$lib/utils/symbols';
   import {createEventDispatcher} from 'svelte';
 
   export let id: number;

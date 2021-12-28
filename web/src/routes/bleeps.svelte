@@ -1,7 +1,7 @@
 <script lang="ts">
-  import WalletAccess from '$lib/WalletAccess.svelte';
-  import NavButton from '$lib/components/navigation/NavButton.svelte';
-  import {wallet, flow, chain, fallback} from '$lib/stores/wallet';
+  import WalletAccess from '$lib/blockchain/WalletAccess.svelte';
+  import NavButton from '$lib/components/styled/navigation/NavButton.svelte';
+  import {wallet, flow, chain, fallback} from '$lib/blockchain/wallet';
   import {instrumentName, instrumentNameFromId, noteName} from '$lib/utils/notes';
   import {onMount} from 'svelte';
   import {hashParams} from '$lib/config';

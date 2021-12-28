@@ -4,11 +4,11 @@
   import Melody from '$lib/melodies/Melody.svelte';
   import {createEventDispatcher} from 'svelte';
 
-  import {fallback, flow, wallet} from '$lib/stores/wallet';
+  import {fallback, flow, wallet} from '$lib/blockchain/wallet';
   import {BigNumber} from '@ethersproject/bignumber';
   import {onMount} from 'svelte';
-  import Modal from './Modal.svelte';
-  import GreenNavButton from './navigation/GreenNavButton.svelte';
+  import Modal from '$lib/components/styled/Modal.svelte';
+  import GreenNavButton from '$lib/components/styled/navigation/GreenNavButton.svelte';
   import {encodeNote} from '$lib/utils/notes';
 
   const dispatch = createEventDispatcher<{tosave: MelodyInfo}>();

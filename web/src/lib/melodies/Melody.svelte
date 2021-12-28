@@ -11,9 +11,9 @@
     keyCodeToNote,
     noteNameWithoutOctave,
   } from '$lib/utils/notes';
-  import {wallet} from '$lib/stores/wallet';
-  import GreenNavButton from '$lib/components/navigation/GreenNavButton.svelte';
-  import Modal from '$lib/components/Modal.svelte';
+  import {wallet} from '$lib/blockchain/wallet';
+  import GreenNavButton from '$lib/components/styled/navigation/GreenNavButton.svelte';
+  import Modal from '$lib/components/styled/Modal.svelte';
   import {importMelodiesFromPico8String} from '$lib/utils/importer';
 
   export let editable = false;

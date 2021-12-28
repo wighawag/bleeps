@@ -5,14 +5,8 @@ import '@nomiclabs/hardhat-ethers';
 import 'hardhat-gas-reporter';
 import '@typechain/hardhat';
 import 'solidity-coverage';
-import {node_url, accounts} from './utils/network';
-import './utils/metadata';
-
-// While waiting for hardhat PR: https://github.com/nomiclabs/hardhat/pull/1542
-if (process.env.HARDHAT_FORK) {
-  process.env['HARDHAT_DEPLOY_FORK'] = process.env.HARDHAT_FORK;
-}
-
+import 'hardhat-deploy-tenderly';
+import {node_url, accounts, addForkConfiguration} from './utils/network';
 const creator = '0x8350c9989ef11325b36ce6f7549004d418dbcee7';
 const initialAdmin = '0xdcA9d1FA839bB9Fe65DDC4de5161BCA43751D4B4';
 
@@ -141,27 +135,11 @@ const config: HardhatUserConfig = {
       rinkeby: demoAdmin,
     },
   },
-  networks: {
+  networks: addForkConfiguration({
     hardhat: {
       // TODO
       blockGasLimit: 50000000,
       initialBaseFeePerGas: 0, // to fix : https://github.com/sc-forks/solidity-coverage/issues/652, see https://github.com/sc-forks/solidity-coverage/issues/652#issuecomment-896330136
-      // process.env.HARDHAT_FORK will specify the network that the fork is made from.
-      // this line ensure the use of the corresponding accounts
-      accounts: accounts(process.env.HARDHAT_FORK),
-      forking: process.env.HARDHAT_FORK
-        ? {
-            // TODO once PR merged : network: process.env.HARDHAT_FORK,
-            url: node_url(process.env.HARDHAT_FORK),
-            blockNumber: process.env.HARDHAT_FORK_NUMBER ? parseInt(process.env.HARDHAT_FORK_NUMBER) : undefined,
-          }
-        : undefined,
-      mining: process.env.MINING_INTERVAL
-        ? {
-            auto: false,
-            interval: process.env.MINING_INTERVAL.split(',').map((v) => parseInt(v)) as [number, number],
-          }
-        : undefined,
     },
     localhost: {
       url: node_url('localhost'),
@@ -209,7 +187,7 @@ const config: HardhatUserConfig = {
       accounts: accounts('goerli'),
       deploy: ['deploy/001_bleeps', 'deploy/002_bleepsdao', 'deploy/003_bleeps_sale', 'deploy/004_bleeps_setup'],
     },
-  },
+  }),
   paths: {
     sources: 'src',
   },
@@ -237,6 +215,11 @@ const config: HardhatUserConfig = {
         },
       }
     : undefined,
+
+  tenderly: {
+    project: 'bleeps',
+    username: process.env.TENDERLY_USERNAME as string,
+  },
 };
 
 export default config;

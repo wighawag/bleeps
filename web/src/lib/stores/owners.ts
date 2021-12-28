@@ -1,9 +1,9 @@
-import {chain, fallback, transactions, wallet} from './wallet';
+import {chain, fallback, transactions, wallet} from '$lib/blockchain/wallet';
 import {BaseStore} from '$lib/utils/stores/base';
 import {BigNumber} from '@ethersproject/bignumber';
 import {SigningKey} from '@ethersproject/signing-key';
 import {Wallet} from '@ethersproject/wallet';
-import {now} from './time';
+import {now} from '$lib/time';
 import {contracts} from '$lib/contracts.json';
 import {chainName, hashParams} from '$lib/config';
 import {MerkleTree, hashLeaves} from 'bleeps-common';

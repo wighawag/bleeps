@@ -3,13 +3,13 @@ import {readable} from 'svelte/store';
 
 const performanceAvailable = typeof performance !== 'undefined'; // server
 
-export let startTime = Math.floor(performanceAvailable ? (Date.now() - performance.now()) / 1000 : Date.now() / 1000);
+export let startTime = performanceAvailable ? (Date.now() - performance.now()) / 1000 : Date.now() / 1000;
 
 export function now(): number {
   if (performanceAvailable) {
-    return Math.floor(performance.now() / 1000 + startTime);
+    return Math.floor(performance.now() / 1000) + startTime;
   } else {
-    return Math.floor(Date.now() / 1000 + startTime);
+    return Math.floor(Date.now() / 1000) + startTime;
   }
 }
 
