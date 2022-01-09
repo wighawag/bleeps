@@ -17,7 +17,6 @@ const devDeploy = [
   'deploy/000_externals',
   'deploy/001_bleeps',
   'deploy/002_bleepsdao',
-  'deploy/003_bleeps_sale',
   'deploy/004_bleeps_setup',
   'deploy/006_melobleeps',
 ];
@@ -164,33 +163,12 @@ const config: HardhatUserConfig = {
     mainnet: {
       url: node_url('mainnet'),
       accounts: accounts('mainnet'),
-      deploy: [
-        'deploy/001_bleeps',
-        'deploy/002_bleepsdao',
-        'deploy/003_bleeps_sale',
-        'deploy/004_bleeps_setup',
-        'deploy/005_bleeps_migration',
-      ],
+      deploy: ['deploy/001_bleeps', 'deploy/002_bleepsdao', 'deploy/004_bleeps_setup'],
     },
     rinkeby: {
       url: node_url('rinkeby'),
       accounts: accounts('rinkeby'),
-      deploy: [
-        'deploy/001_bleeps',
-        'deploy/002_bleepsdao',
-        'deploy/003_bleeps_sale',
-        'deploy/004_bleeps_setup',
-        'deploy/005_bleeps_migration',
-      ],
-    },
-    kovan: {
-      url: node_url('kovan'),
-      accounts: accounts('kovan'),
-    },
-    demo2: {
-      url: node_url('goerli'),
-      accounts: accounts('goerli'),
-      deploy: ['deploy/001_bleeps', 'deploy/002_bleepsdao', 'deploy/003_bleeps_sale', 'deploy/004_bleeps_setup'],
+      deploy: ['deploy/001_bleeps', 'deploy/002_bleepsdao', 'deploy/004_bleeps_setup'],
     },
   }),
   paths: {
