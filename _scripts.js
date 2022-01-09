@@ -269,7 +269,7 @@ async function performAction(rawArgs) {
     await performAction(['contracts:deploy', network]);
     // await performAction(['subgraph:deploy', network]);
     await performAction(['web:deploy', network]);
-    await performAction(['booking-service:deploy', network]);
+    // await performAction(['booking-service:deploy', network]);
   } else if (firstArg === 'deploy:noweb') {
     const {fixedArgs, extra} = parseArgs(args, 1, {});
     const network = fixedArgs[0] || (await getNetworkName());
@@ -279,7 +279,7 @@ async function performAction(rawArgs) {
     }
     await performAction(['contracts:deploy', network]);
     // await performAction(['subgraph:deploy', network]);
-    await performAction(['booking-service:deploy', network]);
+    // await performAction(['booking-service:deploy', network]);
   } else if (firstArg === 'stop') {
     await execute(`docker-compose down -v --remove-orphans`);
   } else if (firstArg === 'externals') {
@@ -292,7 +292,7 @@ async function performAction(rawArgs) {
     const {extra} = parseArgs(args, 0, {});
     execute(`newsh "npm run common:dev"`);
     execute(`newsh "npm run web:dev localhost -- --skipContracts --waitContracts ${extra.join(' ')}"`);
-    execute(`newsh "npm run booking-service:dev"`);
+    // execute(`newsh "npm run booking-service:dev"`);
     execute(`newsh "npm run contracts:node"`);
     execute(`newsh "npm run contracts:local:dev -- --reset"`);
     execute(`newsh "npm run subgraph:dev"`);
@@ -304,7 +304,7 @@ async function performAction(rawArgs) {
     execute(`newsh "npm run externals"`);
     execute(`newsh "npm run common:dev"`);
     execute(`newsh "npm run web:dev localhost -- --skipContracts --waitContracts ${extra.join(' ')}"`);
-    execute(`newsh "npm run booking-service:dev"`);
+    // execute(`newsh "npm run booking-service:dev"`);
     execute(`newsh "npm run contracts:node"`);
     execute(`newsh "npm run contracts:local:dev -- --reset"`);
     execute(`newsh "npm run subgraph:dev"`);
@@ -316,7 +316,7 @@ async function performAction(rawArgs) {
     execute(`newsh "npm run externals:geth"`);
     execute(`newsh "npm run common:dev"`);
     execute(`newsh "npm run web:dev localhost -- --skipContracts --waitContracts ${extra.join(' ')}"`);
-    execute(`newsh "npm run booking-service:dev"`);
+    // execute(`newsh "npm run booking-service:dev"`);
     execute(`newsh "npm run contracts:local:dev -- --reset"`);
     execute(`newsh "npm run subgraph:dev"`);
     await performAction(['common:build']);
