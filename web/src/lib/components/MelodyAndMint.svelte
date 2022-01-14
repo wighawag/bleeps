@@ -73,7 +73,14 @@
         const startPrice = '2000000000000000000';
         const endPrice = '200000000000000000';
         const duration = 7 * 24 * 3600;
-        const tx = await contracts.MeloBleepsAuction.mint(wallet.address, data1, data2, startPrice, endPrice, duration);
+        const tx = await contracts.MeloBleepsAuctions.mint(
+          wallet.address,
+          data1,
+          data2,
+          startPrice,
+          endPrice,
+          duration
+        );
         step = 'TX_SUBMITTED';
         await tx.wait();
         step = 'IDLE';

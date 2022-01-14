@@ -3,6 +3,7 @@ description: Bleeps
 schema:
   file: ./schema.graphql
 dataSources:
+  # Bleeps
   - kind: ethereum/contract
     name: Bleeps
     network: {{chainName}}
@@ -24,4 +25,53 @@ dataSources:
       eventHandlers:
         - event: Transfer(indexed address,indexed address,indexed uint256)
           handler: handleTransfer
-      file: ./src/mapping.ts
+      file: ./src/bleeps.ts
+
+  # MeloBleeps
+  - kind: ethereum/contract
+    name: MeloBleeps
+    network: {{chainName}}
+    source:
+      address: '{{contracts.MeloBleeps.address}}'
+      abi: MeloBleepsContract
+      startBlock: {{contracts.MeloBleeps.receipt.blockNumber}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - Owner
+        - Bleep
+        - Melody
+        - All
+      abis:
+        - name: MeloBleepsContract
+          file: ./abis/MeloBleeps.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleTransfer
+      file: ./src/melobleeps.ts
+  # MeloBleeps Auctions
+  - kind: ethereum/contract
+    name: MeloBleepsAuctions
+    network: {{chainName}}
+    source:
+      address: '{{contracts.MeloBleepsAuctions.address}}'
+      abi: MeloBleepsAuctionsContract
+      startBlock: {{contracts.MeloBleepsAuctions.receipt.blockNumber}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - Owner
+        - Bleep
+        - Melody
+        - All
+      abis:
+        - name: MeloBleepsAuctionsContract
+          file: ./abis/MeloBleepsAuctions.json
+      eventHandlers:
+        - event: AuctionSetup(indexed address,indexed address,indexed uint256)
+          handler: handleAuctionSetup
+      file: ./src/melobleepsauctions.ts

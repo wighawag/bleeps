@@ -1,10 +1,11 @@
 import {expect} from './chai-setup';
 import {ethers, deployments, getUnnamedAccounts} from 'hardhat';
-import {MeloBleeps, MeloBleepsAuction} from '../typechain';
+import {MeloBleeps} from '../typechain';
 import {setupUsers} from './utils';
 import {BigNumber, constants} from 'ethers';
 import {parseEther, solidityKeccak256} from 'ethers/lib/utils';
-const {AddressZero} = constants;
+import {ensureIsMeloBleepsMinter} from './utils/melobleeps';
+const {AddressZero, HashZero} = constants;
 // import Sound from 'node-aplay';
 // import fs from 'fs';
 
@@ -45,10 +46,9 @@ function createData(steps: {note: number; shape: number; vol: number}[]): {
 }
 
 const setup = deployments.createFixture(async () => {
-  await deployments.fixture(['MeloBleeps', 'MeloBleepsAuction']);
+  await deployments.fixture(['MeloBleeps']);
   const contracts = {
     MeloBleeps: <MeloBleeps>await ethers.getContract('MeloBleeps'),
-    MeloBleepsAuction: <MeloBleepsAuction>await ethers.getContract('MeloBleepsAuction'),
   };
   const users = await setupUsers(await getUnnamedAccounts(), contracts);
   return {
@@ -58,7 +58,7 @@ const setup = deployments.createFixture(async () => {
 });
 describe('MeloBleeps tokenURI', function () {
   it('minting works', async function () {
-    const {users, MeloBleeps, MeloBleepsAuction} = await setup();
+    const {users, MeloBleeps} = await setup();
     // TODO :
     // let tokenID = BigNumber.from(0);
     // for (let i = 0; i < 16; i++) {
@@ -176,23 +176,18 @@ describe('MeloBleeps tokenURI', function () {
 
     const {data1, data2} = createData(testSong3);
 
-    const tokenID = 1; // solidityKeccak256(['bytes32', 'bytes32'], [data1, data2]);
+    const tokenID = 1;
 
-    /*
-      address payable artist,
-        bytes32 data1,
-        bytes32 data2,
-        uint256 startPrice,
-        uint256 endPrice,
-        uint256 duration
-    */
-    await expect(
-      users[1].MeloBleepsAuction.mint(users[1].address, data1, data2, parseEther('1'), parseEther('0.5'), 3600)
-    )
+    const artist = users[1].address;
+    await ensureIsMeloBleepsMinter(artist);
+    const melobleepHash = solidityKeccak256(['bytes32', 'bytes32'], [data1, data2]);
+    await expect(users[1].MeloBleeps.reserve(artist, 'test', melobleepHash, 16))
+      .to.emit(MeloBleeps, 'ReservationSubmitted')
+      .withArgs(artist, tokenID, melobleepHash, 'test', 16);
+
+    await expect(users[1].MeloBleeps.mint(tokenID, data1, data2, users[1].address))
       .to.emit(MeloBleeps, 'Transfer')
-      .withArgs(AddressZero, MeloBleepsAuction.address, tokenID);
-
-    await users[0].MeloBleepsAuction.purchase(1, users[0].address, {value: parseEther('1')});
+      .withArgs(AddressZero, users[1].address, tokenID);
 
     const tokenURI = await MeloBleeps.tokenURI(tokenID);
     // console.log(tokenURI);

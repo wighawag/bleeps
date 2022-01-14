@@ -10,25 +10,26 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const Bleeps = await deployments.get('Bleeps');
   const MeloBleeps = await deployments.get('MeloBleeps');
   const BleepsDAOAccount = await deployments.get('BleepsDAOAccount');
+  const WETH = await deployments.get('WETH');
 
-  const MeloBleepsAuction = await deploy('MeloBleepsAuction', {
+  const MeloBleepsAuctions = await deploy('MeloBleepsAuctions', {
     from: deployer,
-    args: [Bleeps.address, MeloBleeps.address, BleepsDAOAccount.address],
+    args: [WETH.address, Bleeps.address, MeloBleeps.address, BleepsDAOAccount.address],
     skipIfAlreadyDeployed: true,
     log: true,
     autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
   });
 
   const currentMinter = await read('MeloBleeps', 'minter');
-  if (currentMinter?.toLowerCase() !== MeloBleepsAuction.address.toLowerCase()) {
+  if (currentMinter?.toLowerCase() !== MeloBleepsAuctions.address.toLowerCase()) {
     await execute(
       'MeloBleeps',
       {from: initialMeloBleepsMinterAdmin, log: true, autoMine: true},
       'setMinter',
-      MeloBleepsAuction.address
+      MeloBleepsAuctions.address
     );
   }
 };
 export default func;
-func.tags = ['MeloBleepsAuction'];
-func.dependencies = ['Bleeps_deploy', 'MeloBleeps_deploy', 'BleepsDAOAccount_deploy'];
+func.tags = ['MeloBleepsAuctions'];
+func.dependencies = ['Bleeps_deploy', 'MeloBleeps_deploy', 'BleepsDAOAccount_deploy', 'WETH'];

@@ -4,20 +4,33 @@ pragma solidity 0.8.9;
 import "../base/ERC721Base.sol";
 import "./MeloBleepsRoles.sol";
 import "./MeloBleepsTokenURI.sol";
+import "../lib/ShortString.sol";
 
 contract MeloBleeps is ERC721Base, MeloBleepsRoles {
     event TokenURIContractSet(MeloBleepsTokenURI newTokenURIContract);
+    event ReservationSubmitted(address indexed artist, uint256 id, bytes32 melobleepsHash, string name, uint8 speed);
 
     /// @notice the contract that actually generate the sound (and all metadata via the a data: uri as tokenURI)
     MeloBleepsTokenURI public tokenURIContract;
 
-    struct Melody {
+    struct MelodyMetadata {
+        address payable artist;
+        uint8 speed;
+    }
+    struct MelodyData {
         bytes32 data1;
         bytes32 data2;
-        address payable artist;
     }
-    mapping(uint256 => Melody) internal _melodies;
+    mapping(uint256 => MelodyMetadata) internal _melodyMetadatas;
+    mapping(uint256 => MelodyData) internal _melodyDatas;
+
+    // allow artist to name the piece (optional, cost 2 storage slot)
+    mapping(uint256 => ShortString) internal _named;
+    mapping(ShortString => uint256) internal _names;
+
     uint256 _supply = 0;
+
+    mapping(bytes32 => uint256) internal _reservations;
 
     struct BleepUsed {
         uint104 num;
@@ -56,9 +69,12 @@ contract MeloBleeps is ERC721Base, MeloBleepsRoles {
     }
 
     function tokenURI(uint256 id) external view returns (string memory) {
-        bytes32 d1 = _melodies[id].data1;
-        bytes32 d2 = _melodies[id].data2;
-        return tokenURIContract.wav(d1, d2, 16); // TODO speed
+        bytes32 d1 = _melodyDatas[id].data1;
+        bytes32 d2 = _melodyDatas[id].data2;
+        address artist = _melodyMetadatas[id].artist;
+        uint8 speed = _melodyMetadatas[id].speed;
+        ShortString name = _named[id];
+        return tokenURIContract.wav(d1, d2, speed); // TODO name
     }
 
     function setTokenURIContract(MeloBleepsTokenURI newTokenURIContract) external {
@@ -67,25 +83,54 @@ contract MeloBleeps is ERC721Base, MeloBleepsRoles {
         emit TokenURIContractSet(newTokenURIContract);
     }
 
-    function mint(
+    function reserve(
         address payable artist,
-        bytes32 data1,
-        bytes32 data2,
-        // uint8 speed, // TODO
-        address to
+        string calldata name,
+        bytes32 melobleepsHash,
+        uint8 speed
     ) external returns (uint256 id) {
-        // TODO prevent same one
-        // record bleeps used and value
         require(msg.sender == minter, "ONLY_MINTER_ALLOWED");
         id = ++_supply;
-        _melodies[id] = Melody(data1, data2, artist);
+
+        require(_reservations[melobleepsHash] == 0, "ALREADY_RESERVED"); // TODO allow reservation expiry ?
+
+        _reservations[melobleepsHash] = id;
+        _melodyMetadatas[id].artist = artist;
+        _melodyMetadatas[id].speed = speed;
+
+        if (bytes(name).length > 0) {
+            ShortString shortString = toShortString(name);
+            require(_names[shortString] == 0, "NAME_ALREADY_TAKEN");
+            _names[shortString] = id;
+            _named[id] = shortString;
+        }
+        emit ReservationSubmitted(artist, id, melobleepsHash, name, speed);
+    }
+
+    function mint(
+        uint256 id,
+        bytes32 data1,
+        bytes32 data2,
+        address to
+    ) external {
+        require(msg.sender == minter, "ONLY_MINTER_ALLOWED");
+        address payable artist = creatorOf(id);
+
+        // TODO normalize data1 and data2 => volume 0 means note 0 and instrument 0
+        bytes32 computedHash = keccak256(abi.encodePacked(data1, data2));
+        uint256 computedId = _reservations[computedHash];
+        require(id == computedId, "INVALID_HASH");
+        require(_ownerOf(id) == address(0), "ALREADY_MINTED"); // TODO use uint256 data == 0 so we can burn Melodies ?
+
+        _melodyDatas[id].data1 = data1;
+        _melodyDatas[id].data2 = data2;
         require(to != address(0), "NOT_TO_ZEROADDRESS");
         require(to != address(this), "NOT_TO_THIS");
         // _safeTransferFrom(address(0), to, id, "");
         _transferFrom(address(0), to, id);
     }
 
-    function creatorOf(uint256 id) external view returns (address payable) {
-        return _melodies[id].artist;
+    function creatorOf(uint256 id) public view returns (address payable) {
+        return _melodyMetadatas[id].artist;
     }
 }

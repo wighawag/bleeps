@@ -7,3 +7,4 @@ node_modules/
 typechain/
 dapp_test/test.sol
 src/lib/
+src/externals
