@@ -1,11 +1,11 @@
 import {deployments, getUnnamedAccounts, getNamedAccounts, network, ethers} from 'hardhat';
 
 import {erc721} from 'ethereum-contracts-test-suite';
-import {mintViaSalePass} from './utils/bleepsfixedsale';
+import {mintViaMinterAdmin} from './utils/bleepsfixedsale';
 
 erc721.runMochaTests('Bleeps ERC721', {}, async () => {
   //{burn: true}
-  await deployments.fixture(['Bleeps', 'BleepsInitialSale']);
+  await deployments.fixture(['Bleeps']);
   const {deployer} = await getNamedAccounts();
   const Bleeps = await deployments.get('Bleeps');
   const users = await getUnnamedAccounts();
@@ -13,7 +13,7 @@ erc721.runMochaTests('Bleeps ERC721', {}, async () => {
   async function mint(to: string): Promise<{hash: string; tokenId: string}> {
     const tokenId = nextTokenId;
     nextTokenId++;
-    const tx = await mintViaSalePass(tokenId, to, to);
+    const tx = await mintViaMinterAdmin(tokenId, to, to);
     return {
       tokenId: '' + tokenId,
       hash: tx.hash,

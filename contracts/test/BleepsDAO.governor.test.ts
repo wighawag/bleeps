@@ -4,7 +4,7 @@ import {Bleeps, BleepsDAOAccount, BleepsDAOGovernor, IBleepsSale} from '../typec
 import {setupNamedUsers, setupUsers, waitFor} from './utils';
 import {parseEther} from 'ethers/lib/utils';
 import {DelegationSignerFactory} from './utils/eip712';
-import {mintViaSalePass} from './utils/bleepsfixedsale';
+import {mintMultipleViaMinterAdmin, mintViaMinterAdmin} from './utils/bleepsfixedsale';
 
 const ZeroBytes = '0x0000000000000000000000000000000000000000000000000000000000000000';
 
@@ -12,7 +12,6 @@ const setup = deployments.createFixture(async () => {
   await deployments.fixture(['BleepsDAOGovernor']);
   const contracts = {
     Bleeps: <Bleeps>await ethers.getContract('Bleeps'),
-    BleepsInitialSale: <IBleepsSale>await ethers.getContract('BleepsInitialSale'),
     BleepsDAOGovernor: <BleepsDAOGovernor>await ethers.getContract('BleepsDAOGovernor'),
     BleepsDAOAccount: <BleepsDAOAccount>await ethers.getContract('BleepsDAOAccount'),
   };
@@ -45,7 +44,7 @@ describe('BleepsDAOGovernor', function () {
 
   it('propose', async function () {
     const {users, accounts, BleepsDAOAccount} = await setup();
-    await mintViaSalePass(0, users[0].address, users[0].address);
+    await mintViaMinterAdmin(0, users[0].address, users[0].address);
     await deployments.rawTx({from: accounts.deployer.address, to: BleepsDAOAccount.address, value: parseEther('1')});
     await waitFor(
       users[0].BleepsDAOGovernor['propose(address[],uint256[],bytes[],string)'](
@@ -59,7 +58,7 @@ describe('BleepsDAOGovernor', function () {
 
   it('cannot veto if not vetoer', async function () {
     const {users, accounts, BleepsDAOAccount} = await setup();
-    await mintViaSalePass(0, users[0].address, users[0].address);
+    await mintViaMinterAdmin(0, users[0].address, users[0].address);
     await deployments.rawTx({from: accounts.deployer.address, to: BleepsDAOAccount.address, value: parseEther('1')});
     const receipt = await waitFor(
       users[0].BleepsDAOGovernor['propose(address[],uint256[],bytes[],string)'](
@@ -81,7 +80,7 @@ describe('BleepsDAOGovernor', function () {
 
   it('veto', async function () {
     const {users, accounts, BleepsDAOAccount} = await setup();
-    await mintViaSalePass(0, users[0].address, users[0].address);
+    await mintViaMinterAdmin(0, users[0].address, users[0].address);
     await deployments.rawTx({from: accounts.deployer.address, to: BleepsDAOAccount.address, value: parseEther('1')});
     const receipt = await waitFor(
       users[0].BleepsDAOGovernor['propose(address[],uint256[],bytes[],string)'](
@@ -159,12 +158,10 @@ describe('BleepsDAOGovernor', function () {
   it('vote', async function () {
     const {users, accounts, BleepsDAOAccount} = await setup();
 
-    // await mintViaSalePass(0, users[0].address, users[0].address);
-    await waitFor(
-      accounts.projectCreator.BleepsInitialSale.creatorMultiMint(
-        Array.from(Array(65)).map((v, i) => i + 448),
-        users[0].address
-      )
+    await mintMultipleViaMinterAdmin(
+      Array.from(Array(65)).map((v, i) => i + 448),
+      accounts.projectCreator.address,
+      [users[0].address]
     );
 
     console.log('proposing...');
@@ -234,12 +231,10 @@ describe('BleepsDAOGovernor', function () {
     //   user0: users[0].address,
     // });
 
-    // await mintViaSalePass(0, users[0].address, users[0].address);
-    await waitFor(
-      accounts.projectCreator.BleepsInitialSale.creatorMultiMint(
-        Array.from(Array(65)).map((v, i) => i + 448),
-        users[0].address
-      )
+    await mintMultipleViaMinterAdmin(
+      Array.from(Array(65)).map((v, i) => i + 448),
+      accounts.projectCreator.address,
+      [users[0].address]
     );
 
     await deployments.rawTx({from: accounts.deployer.address, to: BleepsDAOAccount.address, value: parseEther('1')});

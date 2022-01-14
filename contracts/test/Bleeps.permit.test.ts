@@ -6,14 +6,13 @@ import {BigNumber, constants} from 'ethers';
 import {parseEther, solidityKeccak256} from 'ethers/lib/utils';
 import {PermitSignerFactory, PermitForAllSignerFactory} from './utils/eip712';
 import {splitSignature} from '@ethersproject/bytes';
-import {mintViaSalePass} from './utils/bleepsfixedsale';
+import {mintViaMinterAdmin} from './utils/bleepsfixedsale';
 const {AddressZero} = constants;
 
 const setup = deployments.createFixture(async () => {
-  await deployments.fixture(['Bleeps', 'BleepsInitialSale']);
+  await deployments.fixture(['Bleeps']);
   const contracts = {
     Bleeps: <Bleeps>await ethers.getContract('Bleeps'),
-    BleepsInitialSale: <IBleepsSale>await ethers.getContract('BleepsInitialSale'),
   };
   const BleepsPermitSigner = PermitSignerFactory.createSigner({
     verifyingContract: contracts.Bleeps.address,
@@ -36,12 +35,12 @@ describe('Bleeps Permit', function () {
     const {users, BleepsPermitSigner, Bleeps} = await setup();
 
     const tokenId = 1;
-    await mintViaSalePass(tokenId, users[0].address, users[0].address);
-    await mintViaSalePass(2, users[0].address, users[0].address);
-    await mintViaSalePass(3, users[0].address, users[0].address);
-    await mintViaSalePass(4, users[0].address, users[0].address);
-    await mintViaSalePass(5, users[0].address, users[0].address);
-    await mintViaSalePass(6, users[0].address, users[2].address);
+    await mintViaMinterAdmin(tokenId, users[0].address, users[0].address);
+    await mintViaMinterAdmin(2, users[0].address, users[0].address);
+    await mintViaMinterAdmin(3, users[0].address, users[0].address);
+    await mintViaMinterAdmin(4, users[0].address, users[0].address);
+    await mintViaMinterAdmin(5, users[0].address, users[0].address);
+    await mintViaMinterAdmin(6, users[0].address, users[2].address);
 
     const signer = users[0].address;
     const spender = users[1].address;
@@ -99,12 +98,12 @@ describe('Bleeps Permit', function () {
   it('permitForAll works', async function () {
     const {users, BleepsPermitForAllSigner, Bleeps} = await setup();
 
-    await mintViaSalePass(1, users[0].address, users[0].address);
-    await mintViaSalePass(2, users[0].address, users[0].address);
-    await mintViaSalePass(3, users[0].address, users[0].address);
-    await mintViaSalePass(4, users[0].address, users[0].address);
-    await mintViaSalePass(5, users[0].address, users[0].address);
-    await mintViaSalePass(6, users[0].address, users[0].address);
+    await mintViaMinterAdmin(1, users[0].address, users[0].address);
+    await mintViaMinterAdmin(2, users[0].address, users[0].address);
+    await mintViaMinterAdmin(3, users[0].address, users[0].address);
+    await mintViaMinterAdmin(4, users[0].address, users[0].address);
+    await mintViaMinterAdmin(5, users[0].address, users[0].address);
+    await mintViaMinterAdmin(6, users[0].address, users[0].address);
 
     const signer = users[0].address;
     const spender = users[1].address;

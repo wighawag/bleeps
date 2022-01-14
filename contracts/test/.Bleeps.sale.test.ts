@@ -9,7 +9,7 @@ import {MerkleTree} from 'bleeps-common';
 import {calculateHash, hashLeaves} from 'bleeps-common';
 
 const setup = deployments.createFixture(async () => {
-  await deployments.fixture(['Bleeps', 'BleepsInitialSale']);
+  await deployments.fixture(['Bleeps']);
   const contracts = {
     Bleeps: <Bleeps>await ethers.getContract('Bleeps'),
     BleepsInitialSale: <BleepsFixedPriceSale>await ethers.getContract('BleepsInitialSale'),

@@ -4,13 +4,12 @@ import {Bleeps, IBleepsSale} from '../typechain';
 import {setupUsers} from './utils';
 import {DelegationSignerFactory} from './utils/eip712';
 import {splitSignature} from '@ethersproject/bytes';
-import {mintViaSalePass} from './utils/bleepsfixedsale';
+import {mintViaMinterAdmin} from './utils/bleepsfixedsale';
 
 const setup = deployments.createFixture(async () => {
-  await deployments.fixture(['Bleeps', 'BleepsInitialSale']);
+  await deployments.fixture(['Bleeps']);
   const contracts = {
     Bleeps: <Bleeps>await ethers.getContract('Bleeps'),
-    BleepsInitialSale: <IBleepsSale>await ethers.getContract('BleepsInitialSale'),
   };
   const DelegationSigner = DelegationSignerFactory.createSigner({
     verifyingContract: contracts.Bleeps.address,
@@ -18,11 +17,11 @@ const setup = deployments.createFixture(async () => {
 
   const users = await setupUsers(await getUnnamedAccounts(), contracts);
 
-  await mintViaSalePass(1, users[0].address, users[0].address);
-  await mintViaSalePass(2, users[0].address, users[0].address);
-  await mintViaSalePass(3, users[0].address, users[0].address);
-  await mintViaSalePass(4, users[0].address, users[0].address);
-  await mintViaSalePass(5, users[0].address, users[0].address);
+  await mintViaMinterAdmin(1, users[0].address, users[0].address);
+  await mintViaMinterAdmin(2, users[0].address, users[0].address);
+  await mintViaMinterAdmin(3, users[0].address, users[0].address);
+  await mintViaMinterAdmin(4, users[0].address, users[0].address);
+  await mintViaMinterAdmin(5, users[0].address, users[0].address);
 
   const tokenHolder = users[0];
   users.shift();
