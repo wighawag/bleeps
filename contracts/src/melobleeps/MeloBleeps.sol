@@ -74,7 +74,7 @@ contract MeloBleeps is ERC721Base, MeloBleepsRoles {
         address artist = _melodyMetadatas[id].artist;
         uint8 speed = _melodyMetadatas[id].speed;
         ShortString name = _named[id];
-        return tokenURIContract.wav(d1, d2, speed); // TODO name
+        return tokenURIContract.tokenURI(d1, d2, speed, toString(name));
     }
 
     function setTokenURIContract(MeloBleepsTokenURI newTokenURIContract) external {
