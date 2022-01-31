@@ -1,40 +1,10 @@
 /* eslint-disable */
-import {Bytes, ByteArray, BigInt, Address, ethereum} from '@graphprotocol/graph-ts';
+import {BigInt, Address, ethereum} from '@graphprotocol/graph-ts';
 import {Transfer} from '../generated/Bleeps/BleepsContract';
-import {All, Bleep, Owner, TransferEvent, Transaction} from '../generated/schema';
+import {Bleep, Owner} from '../generated/schema';
 // import {log} from '@graphprotocol/graph-ts';
 
-let ZERO_ADDRESS: Bytes = Bytes.fromHexString('0x0000000000000000000000000000000000000000') as Bytes;
-let ZERO = BigInt.fromI32(0);
-let ONE = BigInt.fromI32(1);
-
-function toEventId(event: ethereum.Event): string {
-  return event.block.number.toString().concat('-').concat(event.logIndex.toString());
-}
-
-function handleOwnerViaId(id: string): Owner {
-  let entity = Owner.load(id);
-  if (entity) {
-    return entity as Owner;
-  }
-  entity = new Owner(id);
-  entity.numBleeps = ZERO;
-  entity.numBleepsMinted = ZERO;
-  entity.save();
-  return entity as Owner;
-}
-
-function handleAll(): All {
-  let all = All.load('all');
-  if (!all) {
-    all = new All('all');
-    all.numBleeps = ZERO;
-    all.numMinters = ZERO;
-    all.numOwners = ZERO;
-    all.numTransfers = ZERO;
-  }
-  return all as All;
-}
+import {handleAll, handleOwnerViaId, ZERO, ZERO_ADDRESS, ONE, toEventId} from './shared';
 
 function handleBleep(id: BigInt, minter: Address): Bleep {
   let bleepId = id.toString();
@@ -45,21 +15,6 @@ function handleBleep(id: BigInt, minter: Address): Bleep {
     entity.minter = minter.toHexString();
   }
   return entity as Bleep;
-}
-
-function handleTransaction(event: ethereum.Event): string {
-  let transactionId = event.transaction.hash.toHex();
-  let transaction = Transaction.load(transactionId);
-  if (transaction == null) {
-    transaction = new Transaction(transactionId);
-    if (event.transaction.to) {
-      transaction.to = (event.transaction.to as Address).toHexString();
-    }
-    transaction.from = event.transaction.from.toHexString();
-    transaction.save();
-  }
-
-  return transactionId;
 }
 
 export function handleTransfer(event: Transfer): void {
@@ -122,20 +77,6 @@ export function handleTransfer(event: Transfer): void {
       all.numOwners = all.numOwners.minus(ONE);
     }
   }
-
-  let transactionId = handleTransaction(event);
-  let transferEvent = new TransferEvent(toEventId(event));
-  transferEvent.blockNumber = event.block.number.toI32();
-  transferEvent.timestamp = event.block.timestamp;
-  transferEvent.transaction = transactionId;
-  transferEvent.bleep = bleep.id;
-  if (ownerFrom) {
-    transferEvent.from = ownerFrom.id;
-  }
-  if (ownerTo) {
-    transferEvent.to = ownerTo.id;
-  }
-  transferEvent.save();
 
   bleep.save();
   all.save();

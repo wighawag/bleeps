@@ -49,7 +49,7 @@ dataSources:
           file: ./abis/MeloBleeps.json
       eventHandlers:
         - event: Transfer(indexed address,indexed address,indexed uint256)
-          handler: handleTransfer
+          handler: handleMeloBleepsTransfer
       file: ./src/melobleeps.ts
   # MeloBleeps Auctions
   - kind: ethereum/contract
@@ -72,6 +72,6 @@ dataSources:
         - name: MeloBleepsAuctionsContract
           file: ./abis/MeloBleepsAuctions.json
       eventHandlers:
-        - event: AuctionSetup(indexed address,indexed address,indexed uint256)
+        - event: AuctionSetup(indexed address,uint256,uint256)
           handler: handleAuctionSetup
       file: ./src/melobleepsauctions.ts
