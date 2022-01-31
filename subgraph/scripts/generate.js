@@ -55,7 +55,10 @@ const contracts = contractsInfo.contracts;
 fs.emptyDirSync('./abis');
 for (const contractName of Object.keys(contracts)) {
   const contractInfo = contracts[contractName];
-  fs.writeFileSync(path.join('abis', contractName + '.json'), JSON.stringify(contractInfo.abi));
+  fs.writeFileSync(
+    path.join('abis', contractName + '.json'),
+    JSON.stringify(contractInfo.abi.filter((v) => v.type !== 'error')) // filter out error due to issue with graph-node: https://github.com/graphprotocol/graph-node/issues/2577
+  );
 }
 
 const template = Handlebars.compile(fs.readFileSync('./templates/subgraph.yaml').toString());
