@@ -1,9 +1,9 @@
 /* eslint-disable */
 import {Transfer} from '../generated/MeloBleeps/MeloBleepsContract';
-import {handleAllMelodies} from './shared';
+import {handleMelodiesSummary} from './shared';
 
 export function handleTransfer(event: Transfer): void {
-  let allMelodies = handleAllMelodies();
+  let melodiesSummary = handleMelodiesSummary();
 
-  allMelodies.save();
+  melodiesSummary.save();
 }

@@ -1,9 +1,9 @@
 /* eslint-disable */
 import {AuctionSetup} from '../generated/MeloBleepsAuctions/MeloBleepsAuctionsContract';
-import {handleAllMelodies} from './shared';
+import {handleMelodiesSummary} from './shared';
 
 export function handleAuctionSetup(event: AuctionSetup): void {
-  let allMelodies = handleAllMelodies();
+  let melodiesSummary = handleMelodiesSummary();
 
-  allMelodies.save();
+  melodiesSummary.save();
 }
