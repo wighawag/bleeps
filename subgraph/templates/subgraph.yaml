@@ -16,9 +16,9 @@ dataSources:
       apiVersion: 0.0.5
       language: wasm/assemblyscript
       entities:
-        - Owner
+        - Account
         - Bleep
-        - All
+        - AllBleeps
       abis:
         - name: BleepsContract
           file: ./abis/Bleeps.json
@@ -26,7 +26,7 @@ dataSources:
         - event: Transfer(indexed address,indexed address,indexed uint256)
           handler: handleTransfer
       file: ./src/bleeps.ts
-
+{{#if contracts.MeloBleeps}}
   # MeloBleeps
   - kind: ethereum/contract
     name: MeloBleeps
@@ -40,17 +40,18 @@ dataSources:
       apiVersion: 0.0.5
       language: wasm/assemblyscript
       entities:
-        - Owner
+        - Account
         - Bleep
         - Melody
-        - All
+        - AllMelodies
       abis:
         - name: MeloBleepsContract
           file: ./abis/MeloBleeps.json
       eventHandlers:
         - event: Transfer(indexed address,indexed address,indexed uint256)
-          handler: handleMeloBleepsTransfer
+          handler: handleTransfer
       file: ./src/melobleeps.ts
+
   # MeloBleeps Auctions
   - kind: ethereum/contract
     name: MeloBleepsAuctions
@@ -64,10 +65,10 @@ dataSources:
       apiVersion: 0.0.5
       language: wasm/assemblyscript
       entities:
-        - Owner
+        - Account
         - Bleep
         - Melody
-        - All
+        - AllMelodies
       abis:
         - name: MeloBleepsAuctionsContract
           file: ./abis/MeloBleepsAuctions.json
@@ -75,3 +76,4 @@ dataSources:
         - event: AuctionSetup(indexed address,uint256,uint256)
           handler: handleAuctionSetup
       file: ./src/melobleepsauctions.ts
+{{/if}}

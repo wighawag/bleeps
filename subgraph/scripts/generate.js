@@ -27,7 +27,7 @@ const chainNames = {
 const stat = fs.statSync(pathArg);
 let contractsInfo;
 if (stat.isDirectory()) {
-  const chainId = fs.readFileSync(path.join(pathArg, '.chainId').toString());
+  const chainId = fs.readFileSync(path.join(pathArg, '.chainId').toString()).toString().trim();
   const chainName = chainNames[chainId];
   if (!chainName) {
     throw new Error(`chainId ${chainId} not know`);

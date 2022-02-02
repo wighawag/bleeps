@@ -1,27 +1,49 @@
-type Owner @entity {
+type Account @entity {
   id: ID!
   numBleeps: BigInt!
-  numBleepsMinted: BigInt!
-  bleepsMinted: [Bleep!]! @derivedFrom(field: "minter")
   bleeps: [Bleep!]! @derivedFrom(field: "owner")
 }
 
 type Bleep @entity {
   id: ID!
-  owner: Owner
-  minter: Owner!
+  owner: Account
 }
 
 type Melody @entity {
   id: ID!
-  owner: Owner
-  minter: Owner!
+  owner: Account
+  creator: Account!
+  auction: MelodyAuction!
+  # bleeps
+  # name
 }
 
-type All @entity {
+type MelodyAuction @entity {
+  id: ID!
+  melody: Melody!
+  price: BigInt!
+  bidder: Account!
+  numBidders: BigInt!
+}
+
+type BleepsSummary @entity {
   id: ID!
   numOwners: BigInt!
-  numMinters: BigInt!
-  numBleeps: BigInt!
+  numTokens: BigInt!
   numTransfers: BigInt!
 }
+
+type MelodiesSummary @entity {
+  id: ID!
+  numOwners: BigInt!
+  numCreators: BigInt!
+  numTokens: BigInt!
+  numTransfers: BigInt!
+  # numBidders: BigInt!
+}
+
+# type All @entity {
+#   id: ID!
+#   numOwners: BigInt!
+#   numTokens: BigInt!
+# }
