@@ -28,7 +28,12 @@
   let prom: Promise<{image: string; animation_url: string}>;
   let lastTime: number;
 
-  function fetchURI(data1: string, data2: string, speed: number): Promise<{image: string; animation_url: string}> {
+  function fetchURI(
+    data1: string,
+    data2: string,
+    speed: number,
+    name: string
+  ): Promise<{image: string; animation_url: string}> {
     const contracts = wallet.contracts || fallback.contracts;
     if (!contracts) {
       return Promise.reject('no contract');
@@ -39,7 +44,7 @@
       return Promise.reject('waiting...');
     } else {
       lastTime = Date.now();
-      prom = contracts.MeloBleepsTokenURI.wav(data1, data2, speed).then((v) => {
+      prom = contracts.MeloBleepsTokenURI.tokenURI(data1, data2, speed, name).then((v) => {
         return JSON.parse(v.substr('data:application/json,'.length));
       });
     }
@@ -73,13 +78,13 @@
         const startPrice = '2000000000000000000';
         const endPrice = '200000000000000000';
         const duration = 7 * 24 * 3600;
-        const tx = await contracts.MeloBleepsAuctions.mint(
-          wallet.address,
+        const tx = await contracts.MeloBleeps.reserveAndMint(
+          //await contracts.MeloBleepsAuctions.reserve(
+          $currentMelody.name,
+          $currentMelody.speed,
           data1,
           data2,
-          startPrice,
-          endPrice,
-          duration
+          $wallet.address // TODO
         );
         step = 'TX_SUBMITTED';
         await tx.wait();
@@ -158,7 +163,7 @@
   function fetchSound() {
     dispatch('tosave', $currentMelody);
     // console.log({speed: $currentMelody.speed});
-    sound = fetchURI(data1, data2, $currentMelody.speed);
+    sound = fetchURI(data1, data2, $currentMelody.speed, $currentMelody.name);
     sound.then((s) => console.log(s.animation_url));
   }
 

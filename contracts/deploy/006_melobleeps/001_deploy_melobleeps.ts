@@ -1,9 +1,12 @@
 import {HardhatRuntimeEnvironment} from 'hardhat/types';
 import {DeployFunction} from 'hardhat-deploy/types';
+import {network} from 'hardhat';
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, getNamedAccounts} = hre;
   const {deploy, execute, read} = deployments;
+
+  const devMode = !network.live;
 
   const {
     deployer,
@@ -20,28 +23,21 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     autoMine: true,
   });
 
-  const existingBleeps = await deployments.getOrNull('MeloBleeps');
+  const existingMeloBleeps = await deployments.getOrNull('MeloBleeps');
 
   // TODO
   // const openseaProxyRegistry =
   //   (await deployments.getOrNull('WyvernProxyRegistry'))?.address || '0x0000000000000000000000000000000000000000';
 
-  let needUpdate = false;
-  if (existingBleeps) {
+  let needTokenURIUpdate = false;
+  if (existingMeloBleeps) {
     const currentTokenURIContract = await read('MeloBleeps', 'tokenURIContract');
     if (currentTokenURIContract?.toLowerCase() !== tokenURIContract.address.toLowerCase()) {
-      needUpdate = true;
+      needTokenURIUpdate = true;
     }
   }
 
-  if (needUpdate) {
-    await execute(
-      'MeloBleeps',
-      {from: initialMeloBleepsTokenURIAdmin, log: true, autoMine: true},
-      'setTokenURIContract',
-      tokenURIContract.address
-    );
-  } else {
+  if (!existingMeloBleeps || devMode) {
     await deploy('MeloBleeps', {
       from: deployer,
       args: [
@@ -52,10 +48,21 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         melobleepsGuardian,
         tokenURIContract.address,
       ],
-      skipIfAlreadyDeployed: true,
+      // proxy: devMode,
+      skipIfAlreadyDeployed: !devMode,
       log: true,
       autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
     });
+    needTokenURIUpdate = false;
+  }
+
+  if (needTokenURIUpdate) {
+    await execute(
+      'MeloBleeps',
+      {from: initialMeloBleepsTokenURIAdmin, log: true, autoMine: true},
+      'setTokenURIContract',
+      tokenURIContract.address
+    );
   }
 };
 export default func;

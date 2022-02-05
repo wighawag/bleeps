@@ -83,6 +83,34 @@ contract MeloBleeps is ERC721Base, MeloBleepsRoles {
         emit TokenURIContractSet(newTokenURIContract);
     }
 
+    // TODO remove
+    function reserveAndMint(
+        string calldata name,
+        uint8 speed,
+        bytes32 data1,
+        bytes32 data2,
+        address to
+    ) external returns (uint256 id) {
+        id = ++_supply;
+
+        _melodyMetadatas[id].artist = payable(msg.sender);
+        _melodyMetadatas[id].speed = speed;
+
+        if (bytes(name).length > 0) {
+            ShortString shortString = toShortString(name);
+            require(_names[shortString] == 0, "NAME_ALREADY_TAKEN");
+            _names[shortString] = id;
+            _named[id] = shortString;
+        }
+        _melodyDatas[id].data1 = data1;
+        _melodyDatas[id].data2 = data2;
+
+        require(to != address(0), "NOT_TO_ZEROADDRESS");
+        require(to != address(this), "NOT_TO_THIS");
+        // _safeTransferFrom(address(0), to, id, "");
+        _transferFrom(address(0), to, id);
+    }
+
     function reserve(
         address payable artist,
         string calldata name,
