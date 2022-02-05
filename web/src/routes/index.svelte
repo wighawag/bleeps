@@ -126,7 +126,7 @@
     >
   </a>
 
-  <p class="text-green-400 m-8">
+  <!-- <p class="text-green-400 m-8">
     You can also checkout the <a class="underline" href="https://demo.bleeps.art/create/">Melodies Demo</a>
-  </p>
+  </p> -->
 </div>
