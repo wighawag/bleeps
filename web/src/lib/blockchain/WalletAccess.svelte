@@ -1,6 +1,6 @@
 <script lang="ts">
   export let title = '';
-  import {chainId, chainName, fallbackProviderOrUrl, webWalletURL} from '$lib/config';
+  import {blockExplorerBaseURL, chainId, chainName, fallbackProviderOrUrl, webWalletURL} from '$lib/config';
   import NavButton from '$lib/components/styled/navigation/NavButton.svelte';
   import Modal from '$lib/components/styled/Modal.svelte';
   import {base} from '$app/paths';
@@ -43,9 +43,8 @@
 
   async function switchChain() {
     let blockExplorerUrls: string[] | undefined;
-    const explorerTXURL = import.meta.env.VITE_BLOCK_EXPLORER_TRANSACTION as string;
-    if (explorerTXURL) {
-      blockExplorerUrls.push(explorerTXURL.slice(0, explorerTXURL.length - 2));
+    if (blockExplorerBaseURL) {
+      blockExplorerUrls.push(blockExplorerBaseURL);
     }
     const rpcUrls = [];
     if (webWalletURL) {

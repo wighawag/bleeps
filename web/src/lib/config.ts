@@ -142,6 +142,25 @@ if (
   }
 }
 
+let blockExplorerBaseURL: string | undefined;
+if (import.meta.env.VITE_BLOCK_EXPLORER as string) {
+  blockExplorerBaseURL = import.meta.env.VITE_BLOCK_EXPLORER as string;
+}
+
+let blockExplorerBaseURLForTransactions: string | undefined;
+if (import.meta.env.VITE_BLOCK_EXPLORER_TRANSACTION as string) {
+  blockExplorerBaseURLForTransactions = import.meta.env.VITE_BLOCK_EXPLORER_TRANSACTION as string;
+} else if (import.meta.env.VITE_BLOCK_EXPLORER as string) {
+  blockExplorerBaseURLForTransactions = (import.meta.env.VITE_BLOCK_EXPLORER as string) + 'tx/';
+}
+
+let blockExplorerBaseURLForAddresses: string | undefined;
+if (import.meta.env.VITE_BLOCK_EXPLORER_ADDRESS as string) {
+  blockExplorerBaseURLForAddresses = import.meta.env.VITE_BLOCK_EXPLORER_ADDRESS as string;
+} else if (import.meta.env.VITE_BLOCK_EXPLORER as string) {
+  blockExplorerBaseURLForAddresses = (import.meta.env.VITE_BLOCK_EXPLORER as string) + 'address/';
+}
+
 export {
   finality,
   fallbackProviderOrUrl,
@@ -160,6 +179,9 @@ export {
   localDev,
   BOOKING_SERVICE_URL,
   setGetName,
+  blockExplorerBaseURL,
+  blockExplorerBaseURLForTransactions,
+  blockExplorerBaseURLForAddresses,
 };
 
 if (typeof window !== 'undefined') {

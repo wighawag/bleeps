@@ -12,6 +12,7 @@
   import {base} from '$app/paths';
   import contractsInfo from '$lib/contracts.json';
   import {flow, wallet} from '$lib/blockchain/wallet';
+  import {blockExplorerBaseURLForAddresses} from '$lib/config';
 
   const title = 'Bleeps And The Bleeps DAO';
   const description = appDescription;
@@ -137,7 +138,7 @@
           <a href="https://github.com/wighawag/bleeps" target="_blank" class="underline">here</a>
           and the contract address is
           <a
-            href={`https://etherscan.io/address/${contractsInfo.contracts.Bleeps?.address}`}
+            href={`${blockExplorerBaseURLForAddresses}${contractsInfo.contracts.Bleeps?.address}`}
             target="_blank"
             class="underline text-xs sm:text-base">{contractsInfo.contracts.Bleeps?.address}</a
           >
