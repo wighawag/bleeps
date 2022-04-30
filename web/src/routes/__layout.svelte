@@ -44,9 +44,9 @@
 
 <NavBar
   links={[
-    {href: url(''), title: 'Bleeps'},
-    {href: url('mint/'), title: 'Mint'},
-    {href: url('create/'), title: 'Create'},
+    {href: url(''), title: 'Home'},
+    {href: url('bleeps/'), title: 'Bleeps'},
+    {href: url('melodies/'), title: 'Melodies'},
     {href: url('about/'), title: 'About'},
     // {href: url('test/'), title: 'Test'},
   ]}

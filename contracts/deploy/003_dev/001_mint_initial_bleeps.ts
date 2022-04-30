@@ -1,9 +1,10 @@
+import {HardhatRuntimeEnvironment} from 'hardhat/types';
+import {DeployFunction} from 'hardhat-deploy/types';
 import {AddressZero} from '@ethersproject/constants';
-import {parseEther} from 'ethers/lib/utils';
-import {deployments, getNamedAccounts, getUnnamedAccounts} from 'hardhat';
-const {execute, read, log} = deployments;
 
-async function main() {
+const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+  const {deployments, getNamedAccounts, getUnnamedAccounts} = hre;
+  const {execute, read, log} = deployments;
   const unnamedAccounts = await getUnnamedAccounts();
   const bleepers = unnamedAccounts.slice(2); // first 2 user are not bleepers
 
@@ -19,7 +20,7 @@ async function main() {
       await execute('Bleeps', {from: currentMinterAdmin, log: true, autoMine: true}, 'setMinter', deployer);
     }
     // await execute('Bleeps', {from: deployer, log: true}, 'multiMint', users.reduce<number[]>((prev, curr, i) => prev.concat([i]), []) , users)
-    const numBleeps = 448;
+    const numBleeps = 576;
     const numBleepsPerBleepers = Math.floor(numBleeps / bleepers.length);
     const extraBleeps = numBleeps - numBleepsPerBleepers * bleepers.length;
 
@@ -36,13 +37,9 @@ async function main() {
     }
     await execute('Bleeps', {from: deployer, log: true, autoMine: true}, 'multiMint', ids, addresses);
   } else {
-    log(`data seeding not needed, bleeps already distributed`);
+    log(`bleeps already distributed`);
   }
-}
-
-main()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
+};
+export default func;
+func.tags = ['Bleeps', 'Bleeps_setup'];
+func.dependencies = ['Bleeps_deploy'];

@@ -4,10 +4,6 @@
   import {url} from '$lib/utils/url';
   import {onMount} from 'svelte';
   import {time, now} from '$lib/time';
-  import {contracts} from '$lib/contracts.json';
-  import MandalaIcon from '$lib/components/generic/icons/MandalaIcon.svelte';
-  import DiscordIcon from '$lib/components/generic/icons/DiscordIcon.svelte';
-  import {time2text} from '$lib/utils';
   import {chainName} from '$lib/config';
 
   const name = 'Bleeps and The Bleeps DAO';
@@ -72,45 +68,12 @@
 </section>
 
 <div class="w-full mx-auto text-center font-black">
-  {#if soldout}
-    <div class="border-4 border-white w-80 sm:w-96 h-12 pt-2 mx-auto">
-      <span class="text-bleeps">Sold Out</span>
-    </div>
-    <a href="https://opensea.io/collection/bleeps" class="mt-4 underline inline-block">Check on Opensea</a>
-  {:else if currentTime}
-    {#if currentTime < contracts.BleepsInitialSale.linkedData.startTime}
-      <div class="border-4 border-white w-80 sm:w-96 h-24 pt-1 mx-auto">
-        <span class="text-bleeps"
-          >Private Sale for <MandalaIcon class="h-4 w-4 text-bleeps inline" /> and <DiscordIcon
-            class="h-4 w-4 text-bleeps inline"
-          /></span
-        >
-        <div class="mx-auto mt-1">Opens in:</div>
-        <span>{time2text(contracts.BleepsInitialSale.linkedData.startTime - currentTime)}</span>
-      </div>
-    {:else if currentTime < contracts.BleepsInitialSale.linkedData.publicSaleTimestamp}
-      <div class="border-4 border-white w-80 sm:w-96 h-24 pt-1 mx-auto">
-        <span>Ongoing </span>
-        <span class="text-bleeps"
-          >Private Sale for <MandalaIcon class="h-4 w-4 text-bleeps inline" /> and <DiscordIcon
-            class="h-4 w-4 text-bleeps inline"
-          /></span
-        >
-        <div class="mt-1 mx-auto">Time Left:</div>
-        <span>{time2text(contracts.BleepsInitialSale.linkedData.publicSaleTimestamp - currentTime)}</span>
-      </div>
-    {:else}
-      <div class="border-4 border-white w-80 sm:w-96 h-12 pt-2 mx-auto">
-        <span>Ongoing </span> <span class="text-bleeps">Public Sale</span>
-      </div>
-    {/if}
-  {/if}
+  <div class="border-4 border-white w-80 sm:w-96 h-12 pt-2 mx-auto">
+    <span class="text-bleeps">Sold Out</span>
+  </div>
+  <a href="https://opensea.io/collection/bleeps" class="mt-4 underline inline-block">Check on Opensea</a>
 
-  {#if soldout}
-    <NavButton class="w-64 mx-auto mt-4 font-black" label="Mint" href={url('mint/')}>Bleeps</NavButton>
-  {:else}
-    <NavButton class="w-64 mx-auto mt-4 font-black" label="Mint" href={url('mint/')}>Bleeps Sale</NavButton>
-  {/if}
+  <NavButton class="w-64 mx-auto mt-4 font-black" label="Mint" href={url('mint/')}>Bleeps</NavButton>
 
   <a class="block m-8 underline text-bleeps" href={url('about/')}>Learn More</a>
   <p class="mx-8 mt-8">And feel free to join our Discord server!</p>

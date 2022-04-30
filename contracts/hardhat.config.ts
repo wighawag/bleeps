@@ -17,6 +17,7 @@ const devDeploy = [
   'deploy/000_externals',
   'deploy/001_bleeps',
   'deploy/002_bleepsdao',
+  'deploy/003_dev',
   'deploy/004_bleeps_setup',
   'deploy/006_melobleeps',
 ];
