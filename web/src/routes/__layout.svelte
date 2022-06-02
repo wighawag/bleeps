@@ -171,7 +171,7 @@
 
       <p class="mt-4 p-1">
         This project was created by
-        <a href="https://ronan.eth.link" target="_blank" class="underline">Ronan Sandford</a>
+        <a href="https://ronan.eth.limo" target="_blank" class="underline">Ronan Sandford</a>
         (a.k.a
         <a href="https://twitter.com/wighawag" target="_blank" class="underline"
           >wighawag
