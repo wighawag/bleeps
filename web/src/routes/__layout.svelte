@@ -132,11 +132,14 @@
 <footer class="bg-black" aria-labelledby="footerHeading">
   <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8 text-center">
     <div class="mt-8 border-t border-gray-700 pt-8 text-gray-400">
+      <p class="mt-4 p-1">
+        The source code can be found
+        <a href="https://github.com/wighawag/bleeps" target="_blank" class="underline">here</a>
+      </p>
+
       {#if contractsInfo.contracts.Bleeps?.address}
-        <p class="mt-4 p-1">
-          The source code can be found
-          <a href="https://github.com/wighawag/bleeps" target="_blank" class="underline">here</a>
-          and the contract address is
+        <p class="p-1">
+          Bleeps contract's address is
           <a
             href={`${blockExplorerBaseURLForAddresses}${contractsInfo.contracts.Bleeps?.address}`}
             target="_blank"
@@ -145,7 +148,29 @@
         </p>
       {/if}
 
-      <p class="p-1">
+      {#if contractsInfo.contracts.BleepsDAOAccount?.address}
+        <p class="p-1">
+          Bleeps DAO Account's address is
+          <a
+            href={`https://etherscan.io/address/${contractsInfo.contracts.BleepsDAOAccount?.address}`}
+            target="_blank"
+            class="underline text-xs sm:text-base">{contractsInfo.contracts.BleepsDAOAccount?.address}</a
+          >
+        </p>
+      {/if}
+
+      {#if contractsInfo.contracts.BleepsDAOGovernor?.address}
+        <p class="p-1">
+          Bleeps DAO Governance contract's address is
+          <a
+            href={`https://etherscan.io/address/${contractsInfo.contracts.BleepsDAOGovernor?.address}`}
+            target="_blank"
+            class="underline text-xs sm:text-base">{contractsInfo.contracts.BleepsDAOGovernor?.address}</a
+          >
+        </p>
+      {/if}
+
+      <p class="mt-4 p-1">
         This project was created by
         <a href="https://ronan.eth.link" target="_blank" class="underline">Ronan Sandford</a>
         (a.k.a
