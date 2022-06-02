@@ -34,7 +34,7 @@
       Bleeps use the same pioneer concept introduced in
       <a class="underline" href="https://mandalas.eth.limo">Mandalas.eth</a>, where the metadata is fully generated from
       the contract, zero externalities, no backend, no ipfs, nor any client code required. While mandalas generated
-      bitmaps, Bleeps generate sounds!
+      bitmaps, Bleeps generate sounds as wav files!
     </p>
 
     <h2 class="text-3xl mt-16 font-heading text-black dark:text-white">
@@ -76,7 +76,15 @@
     </h2>
     <p class="mt-6 text-gray-500 dark:text-gray-200 text-xl">
       Like <a class="underline" href="https://nouns.wtf">Nouns DAO</a>, <span class="text-bleeps">Bleeps DAO</span>
-      utilizes a fork of Compound Governance and its main governing body. The Bleep DAO treasury receives a share
+      utilizes a fork of Compound Governance and its main governing body. The
+      {#if contractsInfo.contracts.BleepsDAOAccount}
+        <a
+          href={`https://etherscan.io/address/${contractsInfo.contracts.BleepsDAOAccount?.address}`}
+          target="_blank"
+          class="underline">Bleep DAO treasury</a
+        >
+      {:else}Bleep DAO treasury{/if}
+      receives a share
       <span class="text-bleeps">(5%)</span> of the ETH proceeds from Melodies auctions. Each Bleep is an irrevocable member
       of the Bleep DAO and entitled to one vote in all governance matters. The DAO has full power over the future of Bleeps,
       new instruments (up to 16), evolution of Melodies and economic models.
