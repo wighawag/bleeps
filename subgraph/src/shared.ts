@@ -30,6 +30,7 @@ export function handleBleepsSummary(): BleepsSummary {
     summary.numOwners = ZERO;
     summary.numTransfers = ZERO;
   }
+  summary.save();
   return summary as BleepsSummary;
 }
 
@@ -41,6 +42,11 @@ export function handleMelodiesSummary(): MelodiesSummary {
     summary.numCreators = ZERO;
     summary.numOwners = ZERO;
     summary.numTransfers = ZERO;
+    summary.numReserved = ZERO;
+    summary.numRevealed = ZERO;
+    summary.numToReveal = ZERO;
+    summary.numToMint = ZERO;
+    summary.save();
   }
   return summary as MelodiesSummary;
 }

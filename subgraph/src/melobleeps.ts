@@ -1,12 +1,12 @@
 /* eslint-disable */
-import {Transfer} from '../generated/MeloBleeps/MeloBleepsContract';
+import {MelodyReserved, MelodyRevealed, Transfer} from '../generated/MeloBleeps/MeloBleepsContract';
 import {Account, Melody} from '../generated/schema';
-import {handleMelody} from './melodyUtils';
+import {getMelody} from './melodyUtils';
 import {handleAccountViaId, handleMelodiesSummary, ONE, ZERO, ZERO_ADDRESS} from './shared';
 
 export function handleTransfer(event: Transfer): void {
   let melodiesSummary = handleMelodiesSummary();
-  let melody = handleMelody(event.params.tokenId);
+  let melody = getMelody(event.params.tokenId);
   melodiesSummary.numTransfers = melodiesSummary.numTransfers.plus(ONE);
 
   let to = event.params.to.toHexString();
@@ -25,6 +25,7 @@ export function handleTransfer(event: Transfer): void {
     ownerTo.save();
 
     melodiesSummary.numTokens = melodiesSummary.numTokens.plus(ONE);
+    melodiesSummary.numToMint = melodiesSummary.numToMint.minus(ONE);
   } else if (event.params.to == ZERO_ADDRESS) {
     // bleeps CANNOT GO TO ZERO ADDRESSS
     // bleep.owner = null;
@@ -56,6 +57,39 @@ export function handleTransfer(event: Transfer): void {
       melodiesSummary.numOwners = melodiesSummary.numOwners.minus(ONE);
     }
   }
+
+  melody.save();
+  melodiesSummary.save();
+}
+
+export function handleMelodyReserved(event: MelodyReserved): void {
+  let melodiesSummary = handleMelodiesSummary();
+  let melody = getMelody(event.params.id);
+
+  melodiesSummary.numReserved = melodiesSummary.numReserved.plus(ONE);
+  melodiesSummary.numToReveal = melodiesSummary.numToReveal.plus(ONE);
+
+  let artistAddress = event.params.artist.toHexString();
+  handleAccountViaId(artistAddress);
+  melody.creator = artistAddress;
+  melody.nameHash = event.params.nameHash;
+  melody.melodyHash = event.params.melodyHash;
+
+  melody.save();
+  melodiesSummary.save();
+}
+
+export function handleMelodyRevealed(event: MelodyRevealed): void {
+  let melodiesSummary = handleMelodiesSummary();
+  let melody = getMelody(event.params.id);
+  melody.name = event.params.name;
+  melody.data1 = event.params.data1;
+  melody.data2 = event.params.data2;
+  melody.speed = event.params.speed;
+
+  melodiesSummary.numRevealed = melodiesSummary.numRevealed.plus(ONE);
+  melodiesSummary.numToReveal = melodiesSummary.numToReveal.minus(ONE);
+  melodiesSummary.numToMint = melodiesSummary.numToMint.plus(ONE);
 
   melody.save();
   melodiesSummary.save();

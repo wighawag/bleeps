@@ -13,9 +13,17 @@ type Melody @entity {
   id: ID!
   owner: Account
   creator: Account!
-  auction: MelodyAuction!
+  nameHash: Bytes!
+  melodyHash: Bytes!
+  auction: MelodyAuction
+
+  name: String
+  data1: Bytes
+  data2: Bytes
+  speed: Int
+
+  # // TODO
   # bleeps
-  # name
 }
 
 type MelodyAuction @entity {
@@ -39,6 +47,10 @@ type MelodiesSummary @entity {
   numCreators: BigInt!
   numTokens: BigInt!
   numTransfers: BigInt!
+  numReserved: BigInt!
+  numRevealed: BigInt!
+  numToReveal: BigInt!
+  numToMint: BigInt!
   # numBidders: BigInt!
 }
 

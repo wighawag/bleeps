@@ -50,6 +50,12 @@ dataSources:
       eventHandlers:
         - event: Transfer(indexed address,indexed address,indexed uint256)
           handler: handleTransfer
+        # event MelodyReserved(address indexed artist, uint256 id, bytes32 nameHash, bytes32 melodyHash);
+        - event: MelodyReserved(indexed address,uint256,bytes32,bytes32)
+          handler: handleMelodyReserved
+        # event MelodyRevealed(address indexed artist,uint256 indexed id,string name,bytes32 data1,bytes32 data2,uint8 speed);
+        - event: MelodyRevealed(indexed address,indexed uint256,string,bytes32,bytes32,uint8)
+          handler: handleMelodyRevealed
       file: ./src/melobleeps.ts
 
   # MeloBleeps Auctions

@@ -7,7 +7,7 @@ export let ZERO_ADDRESS: Bytes = Bytes.fromHexString('0x000000000000000000000000
 export let ZERO = BigInt.fromI32(0);
 export let ONE = BigInt.fromI32(1);
 
-export function handleMelody(id: BigInt): Melody {
+export function getMelody(id: BigInt): Melody {
   let melodyID = id.toString();
   let entity = Melody.load(melodyID);
 
