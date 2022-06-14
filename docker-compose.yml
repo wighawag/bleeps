@@ -48,19 +48,20 @@ services:
       - POSTGRES_PASSWORD=let-me-in
       - PGDATA=/tmp
 
-  blockscout:
-    image: wighawag/blockscout:v0.0.1
-    depends_on:
-      postgres:
-        condition: service_healthy
-    ports:
-      - '4000:4000'
-    extra_hosts:
-      - host.docker.internal:host-gateway
-    environment:
-      ETHEREUM_JSONRPC_HTTP_URL: http://host.docker.internal:8545
-      ETHEREUM_JSONRPC_TRACE_URL: http://host.docker.internal:8545
-      #ETHEREUM_JSONRPC_WS_URL: ws://host.docker.internal:8545
-      ETHEREUM_JSONRPC_VARIANT: ganache
-      DATABASE_URL: postgresql://dbowner:let-me-in@postgres:5432/explorer?ssl=false
-    entrypoint: '/bin/sh -c "mix do ecto.create, ecto.migrate; mix phx.server"'
+  # Disabled because blockscout keep calling tokenURI which slow the hardhat node to death (because of bleeps tokenURI)
+  # blockscout:
+  #   image: wighawag/blockscout:v0.0.1
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   ports:
+  #     - '4000:4000'
+  #   extra_hosts:
+  #     - host.docker.internal:host-gateway
+  #   environment:
+  #     ETHEREUM_JSONRPC_HTTP_URL: http://host.docker.internal:8545
+  #     ETHEREUM_JSONRPC_TRACE_URL: http://host.docker.internal:8545
+  #     #ETHEREUM_JSONRPC_WS_URL: ws://host.docker.internal:8545
+  #     ETHEREUM_JSONRPC_VARIANT: ganache
+  #     DATABASE_URL: postgresql://dbowner:let-me-in@postgres:5432/explorer?ssl=false
+  #   entrypoint: '/bin/sh -c "mix do ecto.create, ecto.migrate; mix phx.server"'
