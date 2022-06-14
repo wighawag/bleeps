@@ -3,23 +3,22 @@
   import TabList from '$lib/components/tabs/TabList.svelte';
   import TabPanel from '$lib/components/tabs/TabPanel.svelte';
   import Tab from '$lib/components/tabs/Tab.svelte';
-  import Editor from '$lib/melodies/Editor.svelte';
   import MelodyListPage from '$lib/components/MelodyListPage.svelte';
 </script>
 
 <Tabs>
   <TabList>
-    <Tab>Editor</Tab>
     <Tab>Minted</Tab>
+    <Tab>For Tomorrow</Tab>
     <Tab>Your</Tab>
   </TabList>
 
   <TabPanel>
-    <Editor />
+    <MelodyListPage />
   </TabPanel>
 
   <TabPanel>
-    <MelodyListPage />
+    <h2>TODO</h2>
   </TabPanel>
 
   <TabPanel>

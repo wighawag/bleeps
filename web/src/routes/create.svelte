@@ -2,6 +2,6 @@
   import {onMount} from 'svelte';
 
   onMount(() => {
-    window.location.replace(location.href.replace('/create', '/melodies'));
+    window.location.replace(location.href.replace('/create', '/editor'));
   });
 </script>
