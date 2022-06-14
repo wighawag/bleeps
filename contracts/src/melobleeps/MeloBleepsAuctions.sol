@@ -43,12 +43,18 @@ contract MeloBleepsAuctions {
         _bleepsDAOAccount = bleepsDAOAccount;
     }
 
+    // with frontrunning protection :
+    // function submit(bytes32 nameHash, bytes32 melodyHash) external payable {
+    // uint256 id = _meloBleeps.reserve(payable(msg.sender), nameHash, melodyHash);
+
+    // without:
     function submit(
         string calldata name,
-        bytes32 melobleepHash,
+        bytes32 data1,
+        bytes32 data2,
         uint8 speed
     ) external payable {
-        uint256 id = _meloBleeps.reserve(payable(msg.sender), name, melobleepHash, speed);
+        uint256 id = _meloBleeps.reserveAndReveal(payable(msg.sender), name, data1, data2, speed);
         uint32 timestamp = uint32(block.timestamp);
         // numDays = 1, 8 hours = num seconds before midnight, 4pm UTC is the switch time
         uint32 startTime = ((((timestamp + 8 hours) / 1 days) + 1) * 1 days) - 8 hours; // 1 days = numDays
@@ -122,7 +128,7 @@ contract MeloBleepsAuctions {
         require(block.timestamp >= endTime, "AUCTION_NOT_ENDED");
 
         _auctions[id].startTime = 0;
-        _meloBleeps.mint(id, data1, data2, auction.lastBidder);
+        _meloBleeps.mint(id, auction.lastBidder);
 
         // TODO pay back
         // _safeTransferETHWithFallback(owner(), _auction.amount);
