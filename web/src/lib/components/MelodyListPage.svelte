@@ -70,6 +70,8 @@
         Loading
       {:else if $melodies.step === 'IDLE'}
         Idle
+      {:else if !$melodies.data}
+        No Data
       {:else}
         <div class="max-w-2xl mx-auto py-2 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
           <div>

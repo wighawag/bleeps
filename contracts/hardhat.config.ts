@@ -22,6 +22,14 @@ const devDeploy = [
   'deploy/006_melobleeps',
 ];
 
+const productionDeploy = [
+  // 'deploy/000_externals',
+  'deploy/001_bleeps',
+  'deploy/002_bleepsdao',
+  // 'deploy/004_bleeps_setup',
+  'deploy/006_melobleeps',
+];
+
 const config: HardhatUserConfig = {
   solidity: {
     compilers: [
@@ -168,21 +176,19 @@ const config: HardhatUserConfig = {
     demo: {
       url: node_url('goerli'),
       accounts: accounts('goerli'),
-      deploy: devDeploy,
     },
     mainnet: {
       url: node_url('mainnet'),
       accounts: accounts('mainnet'),
-      deploy: ['deploy/001_bleeps', 'deploy/002_bleepsdao', 'deploy/004_bleeps_setup'],
     },
     rinkeby: {
       url: node_url('rinkeby'),
       accounts: accounts('rinkeby'),
-      deploy: ['deploy/001_bleeps', 'deploy/002_bleepsdao', 'deploy/004_bleeps_setup'],
     },
   }),
   paths: {
     sources: 'src',
+    deploy: productionDeploy,
   },
   gasReporter: {
     currency: 'USD',
