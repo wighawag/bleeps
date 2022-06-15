@@ -223,6 +223,7 @@ importers:
       '@sveltejs/adapter-node': 1.0.0-next.54
       '@sveltejs/adapter-static': 1.0.0-next.21
       '@sveltejs/kit': 1.0.0-next.182
+      '@tailwindcss/aspect-ratio': ^0.4.0
       '@typescript-eslint/eslint-plugin': ^5.8.0
       '@typescript-eslint/parser': ^5.8.0
       '@urql/core': 2.3.6
@@ -285,6 +286,7 @@ importers:
       '@sveltejs/adapter-node': 1.0.0-next.54
       '@sveltejs/adapter-static': 1.0.0-next.21
       '@sveltejs/kit': 1.0.0-next.182_svelte@3.44.3
+      '@tailwindcss/aspect-ratio': 0.4.0_tailwindcss@3.0.7
       '@typescript-eslint/eslint-plugin': 5.8.1_3a47348159e115370aa4cba56aba33b6
       '@typescript-eslint/parser': 5.8.1_eslint@8.5.0+typescript@4.5.4
       autoprefixer: 10.4.0_postcss@8.4.5
@@ -2297,6 +2299,14 @@ packages:
     engines: {node: '>=10'}
     dependencies:
       defer-to-connect: 2.0.1
+    dev: true
+
+  /@tailwindcss/aspect-ratio/0.4.0_tailwindcss@3.0.7:
+    resolution: {integrity: sha512-WJu0I4PpqNPuutpaA9zDUq2JXR+lorZ7PbLcKNLmb6GL9/HLfC7w3CRsMhJF4BbYd/lkY6CfXOvkYpuGnZfkpQ==}
+    peerDependencies:
+      tailwindcss: '>=2.0.0 || >=3.0.0 || >=3.0.0-alpha.1'
+    dependencies:
+      tailwindcss: 3.0.7_16a290f6d0e3717bf6d2667234aebd30
     dev: true
 
   /@tootallnate/once/1.1.2:
@@ -8654,7 +8664,7 @@ packages:
       merge-options: 3.0.4
       nanoid: 3.1.30
       native-abort-controller: 1.0.3_abort-controller@3.0.0
-      native-fetch: 3.0.0_node-fetch@2.6.7
+      native-fetch: 3.0.0_@achingbrain+node-fetch@2.6.7
       node-fetch: /@achingbrain/node-fetch/2.6.7
       react-native-fetch-api: 2.0.0
       stream-to-it: 0.2.4
@@ -10981,7 +10991,7 @@ packages:
       node-fetch: '*'
     dev: true
 
-  /native-fetch/3.0.0_node-fetch@2.6.7:
+  /native-fetch/3.0.0_@achingbrain+node-fetch@2.6.7:
     resolution: {integrity: sha512-G3Z7vx0IFb/FQ4JxvtqGABsOTIqRWvgQz6e+erkB+JJD6LrszQtMozEHI4EkmgZQvnGHrpLVzUWk7t4sJCIkVw==}
     peerDependencies:
       node-fetch: '*'

@@ -17,6 +17,12 @@ type Melody @entity {
   melodyHash: Bytes!
   auction: MelodyAuction
 
+  reserveTimestamp: BigInt!
+  revealTimestamp: BigInt
+  mintTimestamp: BigInt
+  revealed: Boolean!
+  minted: Boolean!
+
   name: String
   data1: Bytes
   data2: Bytes

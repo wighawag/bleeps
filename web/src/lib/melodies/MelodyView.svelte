@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {currentMelody, MelodyInfo, Slot} from './currentMelody';
+  import type {MelodyInfo, Slot} from './currentMelody';
   import {
     hertz,
     noteName,
@@ -15,14 +15,29 @@
   import GreenNavButton from '$lib/components/styled/navigation/GreenNavButton.svelte';
   import Modal from '$lib/components/styled/Modal.svelte';
   import {importMelodiesFromPico8String} from '$lib/utils/importer';
+  import type {Writable} from 'svelte/store';
+  import {createEventDispatcher} from 'svelte';
 
   export let editable = false;
+  export let melody: Writable<MelodyInfo>;
 
-  const volumeHeight = 64;
-  const middleGap = 64;
-  const slotHeight = 512;
-  const height = slotHeight + middleGap + volumeHeight;
-  const width = height;
+  export let nameFontSize = 28;
+  export let creatorFontSize = 16;
+
+  export let volumeHeight = 64;
+  export let middleGap = 64;
+  export let slotHeight = 512;
+
+  const dispatch = createEventDispatcher();
+
+  function forward(event) {
+    // if (!disabled) {
+    dispatch('click', event);
+    // }
+  }
+
+  let height = slotHeight + middleGap + volumeHeight;
+  let width = height;
 
   const margin = 0;
   const gap = 4;
@@ -44,6 +59,9 @@
 
   let element: SVGSVGElement;
   function click(event: MouseEvent) {
+    if (!editable) {
+      return;
+    }
     // console.log(event.target);
     // console.log(event.offsetX, event.offsetY);
     // console.log(event);
@@ -55,6 +73,9 @@
   }
 
   function mousedown(event: MouseEvent) {
+    if (!editable) {
+      return;
+    }
     // mouseIsDown = true;
     const x = width * (event.offsetX / element.clientWidth);
     const y = height * (1 - event.offsetY / element.clientHeight);
@@ -63,14 +84,23 @@
   }
 
   function mouseup(event: MouseEvent) {
+    if (!editable) {
+      return;
+    }
     // mouseIsDown = false;
   }
 
   function globalmousedown(event: MouseEvent) {
+    if (!editable) {
+      return;
+    }
     mouseIsDown = true;
   }
 
   function globalmousemove(event: MouseEvent) {
+    if (!editable) {
+      return;
+    }
     if (!element) {
       return;
     }
@@ -95,18 +125,31 @@
     }
   }
 
-  function globalclick(event: MouseEvent) {}
+  function globalclick(event: MouseEvent) {
+    if (!editable) {
+      return;
+    }
+  }
 
   function globalmouseup(event: MouseEvent) {
+    if (!editable) {
+      return;
+    }
     startedDrawing = undefined;
     mouseIsDown = false;
   }
 
   function mouseleave(event: MouseEvent) {
+    if (!editable) {
+      return;
+    }
     // mouseIsDown = false;
   }
 
   function mouseenter(event: MouseEvent) {
+    if (!editable) {
+      return;
+    }
     clearSelection();
     // console.log(event.button);
     // console.log(event);
@@ -141,8 +184,8 @@
 
       const actualY = Math.max(0, volumeHeight - y);
       const volume = Math.floor(actualY / (volumeHeight / 8));
-      if (volume !== $currentMelody.slots[slot].volume) {
-        $currentMelody.slots[slot].volume = volume;
+      if (volume !== $melody.slots[slot].volume) {
+        $melody.slots[slot].volume = volume;
       }
 
       // TODO volume == 0 => note = 0 ?
@@ -152,18 +195,18 @@
       const actualY = Math.max(0, y - (volumeHeight + middleGap));
       const note = Math.floor((actualY - margin / 2) / (slotHeight / 64));
       if (
-        note !== $currentMelody.slots[slot].note ||
-        selectedInstrument != $currentMelody.slots[slot].instrument ||
-        $currentMelody.slots[slot].volume === 0
+        note !== $melody.slots[slot].note ||
+        selectedInstrument != $melody.slots[slot].instrument ||
+        $melody.slots[slot].volume === 0
       ) {
-        if ($currentMelody.slots[slot].volume === 0) {
-          $currentMelody.slots[slot].volume = 5;
+        if ($melody.slots[slot].volume === 0) {
+          $melody.slots[slot].volume = 5;
         }
         if (setNote) {
-          $currentMelody.slots[slot].note = note;
+          $melody.slots[slot].note = note;
         }
 
-        $currentMelody.slots[slot].instrument = selectedInstrument;
+        $melody.slots[slot].instrument = selectedInstrument;
       }
     }
   }
@@ -194,7 +237,7 @@
 
   const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!?£$%&*()[]{}@#><+=;,/:"\' -.';
   function editname(event: MouseEvent) {
-    let name = $currentMelody.name;
+    let name = $melody.name;
     drawingEmabled = false;
     const svgtext = event.target as SVGTextElement;
 
@@ -221,7 +264,7 @@
       }
     };
     input.onblur = function (e) {
-      $currentMelody.name = name;
+      $melody.name = name;
       myforeign.remove();
       drawingEmabled = true;
     };
@@ -271,7 +314,7 @@
   let choices: undefined | MelodyInfo[];
   let sfxSelected = 0;
   function selectFromP8(index: number) {
-    $currentMelody = choices[index];
+    $melody = choices[index];
     choices = undefined;
   }
 
@@ -334,11 +377,10 @@
     }
 
     noteInputElement.value =
-      noteName($currentMelody.slots[index].note).slice(0, 1) +
-      (noteSharp($currentMelody.slots[index].note) ? '#' : ' ');
-    octaveInputElement.value = '' + noteOctave($currentMelody.slots[index].note);
-    instrumentInputElement.value = '' + $currentMelody.slots[index].instrument;
-    volumeInputElement.value = '' + $currentMelody.slots[index].volume;
+      noteName($melody.slots[index].note).slice(0, 1) + (noteSharp($melody.slots[index].note) ? '#' : ' ');
+    octaveInputElement.value = '' + noteOctave($melody.slots[index].note);
+    instrumentInputElement.value = '' + $melody.slots[index].instrument;
+    volumeInputElement.value = '' + $melody.slots[index].volume;
   }
 
   function setValue(index: number, forceVolume: boolean = false) {
@@ -365,9 +407,9 @@
       volume = 5;
     }
 
-    $currentMelody.slots[index].note = octave * 12 + noteIndex;
-    $currentMelody.slots[index].instrument = instrument;
-    $currentMelody.slots[index].volume = volume;
+    $melody.slots[index].note = octave * 12 + noteIndex;
+    $melody.slots[index].instrument = instrument;
+    $melody.slots[index].volume = volume;
   }
 
   function keyCodeToNumber(key: string): number | undefined {
@@ -507,7 +549,7 @@
   }
 
   $: {
-    for (let i = 0; i < $currentMelody.slots.length; i++) {
+    for (let i = 0; i < $melody.slots.length; i++) {
       applyValue(i);
     }
   }
@@ -546,13 +588,13 @@
   </div>
 </div> -->
 
-<div class="text-center" on:drop|capture={drop} on:dragenter|capture={dragover}>
+<div class="text-center" on:drop|capture={drop} on:dragenter|capture={dragover} on:click={forward}>
   {#if graphView}
     <svg
       class="inline-block"
       xmlns="http://www.w3.org/2000/svg"
       viewBox={`0 0 ${width} ${height}`}
-      style="width:512px;user-drag: none;-webkit-user-drag: none;"
+      style={`width:${width}px;user-drag: none;-webkit-user-drag: none;`}
       on:click={click}
       on:mousedown={mousedown}
       on:mousemove={mousemove}
@@ -563,7 +605,7 @@
     >
       <style></style>
       <rect x={margin / 2} y={margin / 2} width={width - margin} height={height - margin} style={`fill:#111;`} />
-      {#each $currentMelody.slots as slot, index}
+      {#each $melody.slots as slot, index}
         <rect
           x={index * slotWidth + gap / 2 + margin / 2}
           y={slotHeight - (heightOfNote(slot) / 64) * (slotHeight - margin) - margin / 2}
@@ -573,18 +615,19 @@
         />
       {/each}
 
+      <!-- {#if editable} -->
       <text
         x={width / 2}
         y={slotHeight + middleGap / 8}
         on:click={editname}
         dominant-baseline="hanging"
         text-anchor="middle"
-        style={`fill: #dab894; font-size: 28px;user-drag: none;-webkit-user-drag: none;
+        style={`fill: #dab894; font-size: ${nameFontSize}px;user-drag: none;-webkit-user-drag: none;
         ${
           editable
             ? '-webkit-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none; -webkit-tap-highlight-color:  rgba(255, 255, 255, 0); '
             : ''
-        }`}>{$currentMelody.name}</text
+        }`}>{$melody.name}</text
       >
 
       <text
@@ -592,15 +635,16 @@
         y={slotHeight + (middleGap * 7) / 8}
         dominant-baseline="bottom"
         text-anchor="middle"
-        style={`fill: #dab894; font-size: 16px;user-drag: none;-webkit-user-drag: none;${
+        style={`fill: #dab894; font-size: ${creatorFontSize}px;user-drag: none;-webkit-user-drag: none;${
           editable
             ? 'pointer-events: none;-webkit-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none; -webkit-tap-highlight-color:  rgba(255, 255, 255, 0); '
             : ''
         }`}
         >{#if $wallet.address}Created by {$wallet.address}{:else}To be created....{/if}</text
       >
+      <!-- {/if} -->
 
-      {#each $currentMelody.slots as slot, index}
+      {#each $melody.slots as slot, index}
         <rect
           x={index * slotWidth + gap / 2 + margin / 2}
           y={middleGap + slotHeight + margin / 2}
@@ -620,7 +664,7 @@
                 <input
                   id={`input_note_${index}`}
                   tabindex={index + 100}
-                  value={noteNameWithoutOctave($currentMelody.slots[index].note)}
+                  value={noteNameWithoutOctave($melody.slots[index].note)}
                   class="inline bg-black text-white w-6 m-1 my-4"
                   maxlength="2"
                   on:focus={selectOnEvent}
@@ -629,7 +673,7 @@
                 <input
                   id={`input_octave_${index}`}
                   tabindex={index + 200}
-                  value={noteOctave($currentMelody.slots[index].note)}
+                  value={noteOctave($melody.slots[index].note)}
                   class="inline bg-black text-white w-3 m-1 my-4"
                   maxlength="1"
                   on:focus={selectOnEvent}
@@ -639,9 +683,9 @@
                 <input
                   id={`input_instrument_${index}`}
                   tabindex={index + 300}
-                  value={$currentMelody.slots[index].instrument}
+                  value={$melody.slots[index].instrument}
                   class="inline bg-black text-white w-3 m-1 my-4"
-                  style={`color:#${colorFromId($currentMelody.slots[index].instrument << 6)};`}
+                  style={`color:#${colorFromId($melody.slots[index].instrument << 6)};`}
                   maxlength="1"
                   on:focus={selectOnEvent}
                   on:keydown={onInstrumentEntered}
@@ -650,9 +694,9 @@
                 <input
                   id={`input_volume_${index}`}
                   tabindex={index + 400}
-                  value={$currentMelody.slots[index].volume}
+                  value={$melody.slots[index].volume}
                   class="inline bg-black text-white w-3 m-1 my-4"
-                  style={`color:#${volumeColor($currentMelody.slots[index].volume)};`}
+                  style={`color:#${volumeColor($melody.slots[index].volume)};`}
                   maxlength="1"
                   on:focus={selectOnEvent}
                   on:keydown={onVolumeEntered}
@@ -670,27 +714,29 @@
   class="m-3"
   style="-webkit-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none; -webkit-tap-highlight-color:  rgba(255, 255, 255, 0);"
 >
-  <label class="block" for="speed"
-    >Length: {$currentMelody.speed} ({Math.floor($currentMelody.speed * ((61 / 7350) * 32) * 100) / 100} seconds)
-    {#if $currentMelody.speed > 16}<span class="text-yellow-600">(too long)</span>{/if}</label
-  >
-  <input
-    class={`inline-block range ${$currentMelody.speed > 16 ? 'bg-red-500 sl-red-500' : 'bg-blue-500'}`}
-    id="speed"
-    type="range"
-    style="width:24em;"
-    bind:value={$currentMelody.speed}
-    max="32"
-    min="1"
-  />
-  <!-- {#if $currentMelody.speed >= 16}
+  {#if editable}
+    <label class="block" for="speed"
+      >Length: {$melody.speed} ({Math.floor($melody.speed * ((61 / 7350) * 32) * 100) / 100} seconds)
+      {#if $melody.speed > 16}<span class="text-yellow-600">(too long)</span>{/if}</label
+    >
+    <input
+      class={`inline-block range ${$melody.speed > 16 ? 'bg-red-500 sl-red-500' : 'bg-blue-500'}`}
+      id="speed"
+      type="range"
+      style="width:24em;"
+      bind:value={$melody.speed}
+      max="32"
+      min="1"
+    />
+  {/if}
+  <!-- {#if $melody.speed >= 16}
     <br />
     <input
       class="inline-block bg-red-500"
       id="extra_speed"
       type="range"
-      value={$currentMelody.speed - 16}
-      on:input={(event) => ($currentMelody.speed = 16 + parseInt(event.target.value))}
+      value={$melody.speed - 16}
+      on:input={(event) => ($melody.speed = 16 + parseInt(event.target.value))}
       max="16"
       min="0"
     />

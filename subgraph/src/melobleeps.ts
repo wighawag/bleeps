@@ -17,6 +17,8 @@ export function handleTransfer(event: Transfer): void {
   if (event.params.from == ZERO_ADDRESS) {
     ownerTo = handleAccountViaId(to);
     melody.owner = ownerTo.id;
+    melody.mintTimestamp = event.block.timestamp;
+    melody.minted = true;
     if (ownerTo.numBleeps.equals(ZERO)) {
       melodiesSummary.numOwners = melodiesSummary.numOwners.plus(ONE);
     }
@@ -74,6 +76,9 @@ export function handleMelodyReserved(event: MelodyReserved): void {
   melody.creator = artistAddress;
   melody.nameHash = event.params.nameHash;
   melody.melodyHash = event.params.melodyHash;
+  melody.reserveTimestamp = event.block.timestamp;
+  melody.revealed = false;
+  melody.minted = false;
 
   melody.save();
   melodiesSummary.save();
@@ -86,6 +91,8 @@ export function handleMelodyRevealed(event: MelodyRevealed): void {
   melody.data1 = event.params.data1;
   melody.data2 = event.params.data2;
   melody.speed = event.params.speed;
+  melody.revealTimestamp = event.block.timestamp;
+  melody.revealed = true;
 
   melodiesSummary.numRevealed = melodiesSummary.numRevealed.plus(ONE);
   melodiesSummary.numToReveal = melodiesSummary.numToReveal.minus(ONE);

@@ -1,15 +1,13 @@
 <script lang="ts">
-  import {hashParams} from '$lib/config';
   import {currentMelody, MelodyInfo, Slots} from '$lib/melodies/currentMelody';
-  import Melody from '$lib/melodies/Melody.svelte';
   import {createEventDispatcher} from 'svelte';
 
   import {fallback, flow, wallet} from '$lib/blockchain/wallet';
   import {BigNumber} from '@ethersproject/bignumber';
-  import {onMount} from 'svelte';
   import Modal from '$lib/components/styled/Modal.svelte';
   import GreenNavButton from '$lib/components/styled/navigation/GreenNavButton.svelte';
   import {encodeNote} from '$lib/utils/notes';
+  import MelodyView from '$lib/melodies/MelodyView.svelte';
 
   const dispatch = createEventDispatcher<{tosave: MelodyInfo}>();
 
@@ -170,7 +168,7 @@
   let graphView = true;
 </script>
 
-<Melody editable={true} {graphView} />
+<MelodyView editable={true} {graphView} melody={currentMelody} />
 
 <div class="absolute top-16 right-2">
   <div

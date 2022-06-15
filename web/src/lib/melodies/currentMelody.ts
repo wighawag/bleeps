@@ -3,6 +3,7 @@ import * as base64 from '@ethersproject/base64';
 import {hexlify} from '@ethersproject/bytes';
 import {decodeNote, encodeNote} from '$lib/utils/notes';
 import {BigNumber} from '@ethersproject/bignumber';
+import type {Melody} from '$lib/stores/melodies';
 export type Slot = {volume: number; note: number; instrument: number};
 
 export type Slots = [
@@ -210,6 +211,46 @@ export function decodeMelodyFromString(melodyString: string): MelodyInfo {
     }
     const num = nums[dataIndex];
     const valueas13Bits = num.shr(shift).and('0x1fff').toNumber();
+    const note = valueas13Bits % 64;
+    const instrument = (valueas13Bits >> 6) % 16;
+    const volume = (valueas13Bits >> 10) % 8;
+    slots.push({note, volume, instrument});
+  }
+
+  return {slots: slots as Slots, speed, name};
+}
+
+/*
+$: data1 =
+    '0x' +
+    $currentMelody.slots
+      .slice(0, 16)
+      .reduce((prev, curr, index) => encodeNote(prev, {...curr, index}), BigNumber.from(0))
+      .toHexString()
+      .slice(2)
+      .padStart(64, '0');
+  $: data2 =
+    '0x' +
+    $currentMelody.slots
+      .slice(16)
+      .reduce((prev, curr, index) => encodeNote(prev, {...curr, index}), BigNumber.from(0))
+      .toHexString()
+      .slice(2)
+      .padStart(64, '0');
+
+*/
+export function decodeMelodyFromData(melody: Melody): MelodyInfo {
+  const speed = melody.speed;
+  const name = melody.name;
+  const bytes = melody.data1 + melody.data2.slice(2);
+
+  const slots: Slot[] = [];
+
+  for (let i = 0; i < 32; i++) {
+    const noteDataString = bytes.slice(2 + i * 4, 2 + i * 4 + 4);
+    const valueas13Bits = BigNumber.from('0x' + noteDataString)
+      .and('0x1fff')
+      .toNumber();
     const note = valueas13Bits % 64;
     const instrument = (valueas13Bits >> 6) % 16;
     const volume = (valueas13Bits >> 10) % 8;
