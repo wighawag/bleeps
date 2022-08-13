@@ -73,17 +73,21 @@
         uint256 endPrice,
         uint256 duration
         */
-        const startPrice = '2000000000000000000';
-        const endPrice = '200000000000000000';
-        const duration = 7 * 24 * 3600;
-        const tx = await contracts.MeloBleeps.reserveAndMint(
-          //await contracts.MeloBleepsAuctions.reserve(
-          $currentMelody.name,
-          $currentMelody.speed,
-          data1,
-          data2,
-          $wallet.address // TODO
-        );
+        // TODO allow artist to provide a minimal price
+        // const startPrice = '2000000000000000000';
+
+        // const tx = await contracts.MeloBleeps.reserveAndMint(
+        //   //await contracts.MeloBleepsAuctions.reserve(
+        //   $currentMelody.name,
+        //   $currentMelody.speed,
+        //   data1,
+        //   data2,
+        //   $wallet.address
+        // );
+
+        const tx = await contracts.MeloBleepsAuctions.submit($currentMelody.name, data1, data2, $currentMelody.speed, {
+          value: 0,
+        });
         step = 'TX_SUBMITTED';
         await tx.wait();
         step = 'IDLE';

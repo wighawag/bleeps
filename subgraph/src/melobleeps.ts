@@ -19,10 +19,10 @@ export function handleTransfer(event: Transfer): void {
     melody.owner = ownerTo.id;
     melody.mintTimestamp = event.block.timestamp;
     melody.minted = true;
-    if (ownerTo.numBleeps.equals(ZERO)) {
+    if (ownerTo.numMelodies.equals(ZERO)) {
       melodiesSummary.numOwners = melodiesSummary.numOwners.plus(ONE);
     }
-    ownerTo.numBleeps = ownerTo.numBleeps.plus(ONE);
+    ownerTo.numMelodies = ownerTo.numMelodies.plus(ONE);
 
     ownerTo.save();
 
@@ -33,8 +33,8 @@ export function handleTransfer(event: Transfer): void {
     // bleep.owner = null;
 
     ownerFrom = handleAccountViaId(from);
-    ownerFrom.numBleeps = ownerFrom.numBleeps.minus(ONE);
-    if (ownerFrom.numBleeps.equals(ZERO)) {
+    ownerFrom.numMelodies = ownerFrom.numMelodies.minus(ONE);
+    if (ownerFrom.numMelodies.equals(ZERO)) {
       melodiesSummary.numOwners = melodiesSummary.numOwners.minus(ONE);
     }
     ownerFrom.save();
@@ -43,19 +43,19 @@ export function handleTransfer(event: Transfer): void {
     ownerTo = handleAccountViaId(to);
     melody.owner = ownerTo.id;
 
-    if (ownerTo.numBleeps.equals(ZERO)) {
+    if (ownerTo.numMelodies.equals(ZERO)) {
       melodiesSummary.numOwners = melodiesSummary.numOwners.plus(ONE);
     }
 
-    ownerTo.numBleeps = ownerTo.numBleeps.plus(ONE);
+    ownerTo.numMelodies = ownerTo.numMelodies.plus(ONE);
     ownerTo.save();
 
     ownerFrom = handleAccountViaId(from);
 
-    ownerFrom.numBleeps = ownerFrom.numBleeps.minus(ONE);
+    ownerFrom.numMelodies = ownerFrom.numMelodies.minus(ONE);
     ownerFrom.save();
 
-    if (ownerFrom.numBleeps.equals(ZERO)) {
+    if (ownerFrom.numMelodies.equals(ZERO)) {
       melodiesSummary.numOwners = melodiesSummary.numOwners.minus(ONE);
     }
   }

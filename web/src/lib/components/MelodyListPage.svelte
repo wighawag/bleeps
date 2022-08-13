@@ -145,7 +145,9 @@
       {/if}
 
       <div class="border-2 border-bleeps p-2 rounded-md">
+        {#if selected.owner}
         Owned by {displayAddress(selected.owner.id, 20)}
+        {/if}
       </div>
     </div>
   </Modal>

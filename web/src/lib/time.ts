@@ -3,7 +3,7 @@ import {readable} from 'svelte/store';
 
 const performanceAvailable = typeof performance !== 'undefined'; // server
 
-export let startTime = performanceAvailable ? (Date.now() - performance.now()) / 1000 : Date.now() / 1000;
+export let startTime = Math.floor(performanceAvailable ? (Date.now() - performance.now()) / 1000 : Date.now() / 1000);
 
 export function now(): number {
   if (performanceAvailable) {

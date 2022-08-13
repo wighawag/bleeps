@@ -13,7 +13,7 @@ contract MeloBleepsAuctions {
     uint8 internal constant MIN_BID_INCREMENT_PERCENTAGE = 2;
     uint256 internal constant DURATION = 1 days;
 
-    event AuctionSetup(address indexed artist, uint256 id, uint256 startTime);
+    event AuctionSetup(address indexed artist, uint256 id, uint256 startTime, uint256 endTime);
     event AuctionBid(uint256 indexed id, address indexed bidder, uint256 amount, bool extended);
     event AuctionExtended(uint256 indexed id, uint256 endTime);
     event AuctionSettled(uint256 indexed id, address indexed bidder, uint256 amount);
@@ -21,7 +21,7 @@ contract MeloBleepsAuctions {
     Bleeps internal immutable _bleeps;
     MeloBleeps internal immutable _meloBleeps;
     address payable internal immutable _bleepsDAOAccount;
-    IWETH internal _weth;
+    IWETH internal immutable _weth;
 
     struct Auction {
         address payable lastBidder;
@@ -60,7 +60,7 @@ contract MeloBleepsAuctions {
         uint32 startTime = ((((timestamp + 8 hours) / 1 days) + 1) * 1 days) - 8 hours; // 1 days = numDays
         _auctions[id].startTime = startTime; // next day
 
-        emit AuctionSetup(msg.sender, id, startTime);
+        emit AuctionSetup(msg.sender, id, startTime, startTime + DURATION);
 
         if (msg.value > 0) {
             uint256 valueInGwei = msg.value / GWEI;
@@ -87,7 +87,11 @@ contract MeloBleepsAuctions {
         address lastBidder = auction.lastBidder;
 
         uint256 valueInGwei = msg.value / GWEI;
-        require(valueInGwei >= auction.amount + ((auction.amount * MIN_BID_INCREMENT_PERCENTAGE) / 100), "NOT_ENOUGH");
+
+        require(
+            valueInGwei * GWEI >= auction.amount + ((auction.amount * MIN_BID_INCREMENT_PERCENTAGE) / 100),
+            "NOT_ENOUGH"
+        );
         if (valueInGwei * GWEI != msg.value) {
             payable(msg.sender).transfer(msg.value - valueInGwei * GWEI);
         }

@@ -1,5 +1,5 @@
 /* eslint-disable */
-import {Bytes, BigInt, ethereum} from '@graphprotocol/graph-ts';
+import {Bytes, BigInt, ethereum, Address} from '@graphprotocol/graph-ts';
 import {BleepsSummary, Account, MelodiesSummary} from '../generated/schema';
 // import {log} from '@graphprotocol/graph-ts';
 
@@ -9,6 +9,11 @@ export let ONE = BigInt.fromI32(1);
 
 export function toEventId(event: ethereum.Event): string {
   return event.block.number.toString().concat('-').concat(event.logIndex.toString());
+}
+
+export function handleAccountViaAddress(addr: Address): Account {
+  let id = addr.toHexString();
+  return handleAccountViaId(id);
 }
 
 export function handleAccountViaId(id: string): Account {

@@ -79,7 +79,18 @@ dataSources:
         - name: MeloBleepsAuctionsContract
           file: ./abis/MeloBleepsAuctions.json
       eventHandlers:
-        - event: AuctionSetup(indexed address,uint256,uint256)
+        # event AuctionSetup(address indexed artist, uint256 id, uint256 startTime, uint256 endTime);
+        - event: AuctionSetup(indexed address,uint256,uint256,uint256)
           handler: handleAuctionSetup
+        # event AuctionBid(uint256 indexed id, address indexed bidder, uint256 amount, bool extended);
+        - event: AuctionBid(indexed uint256,indexed address,uint256,bool)
+          handler: handleAuctionBid
+        # event AuctionExtended(uint256 indexed id, uint256 endTime);
+        - event: AuctionExtended(indexed uint256,uint256)
+          handler: handleAuctionExtended
+        # event AuctionSettled(uint256 indexed id, address indexed bidder, uint256 amount);
+        - event: AuctionSettled(indexed uint256,indexed address,uint256)
+          handler: handleAuctionSettled
+
       file: ./src/melobleepsauctions.ts
 {{/if}}

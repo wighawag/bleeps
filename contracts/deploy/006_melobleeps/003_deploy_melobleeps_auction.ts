@@ -1,5 +1,6 @@
 import {HardhatRuntimeEnvironment} from 'hardhat/types';
 import {DeployFunction} from 'hardhat-deploy/types';
+import { getChainId } from 'hardhat';
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, getNamedAccounts} = hre;
@@ -12,10 +13,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const BleepsDAOAccount = await deployments.get('BleepsDAOAccount');
   const WETH = await deployments.get('WETH');
 
+  const chainId = await getChainId();
+  const mainnet = chainId == '1';
+
   const MeloBleepsAuctions = await deploy('MeloBleepsAuctions', {
     from: deployer,
     args: [WETH.address, Bleeps.address, MeloBleeps.address, BleepsDAOAccount.address],
-    skipIfAlreadyDeployed: true,
+    proxy: !mainnet,
+    skipIfAlreadyDeployed: mainnet,
     log: true,
     autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
   });
