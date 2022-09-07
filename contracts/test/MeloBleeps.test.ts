@@ -181,13 +181,18 @@ describe('MeloBleeps tokenURI', function () {
     const artist = users[1].address;
     await ensureIsMeloBleepsMinter(artist);
     const melobleepHash = solidityKeccak256(['bytes32', 'bytes32'], [data1, data2]);
-    await expect(users[1].MeloBleeps.reserve(artist, 'test', melobleepHash, 16))
-      .to.emit(MeloBleeps, 'ReservationSubmitted')
-      .withArgs(artist, tokenID, melobleepHash, 'test', 16);
 
-    await expect(users[1].MeloBleeps.mint(tokenID, data1, data2, users[1].address))
-      .to.emit(MeloBleeps, 'Transfer')
-      .withArgs(AddressZero, users[1].address, tokenID);
+    // -------------------------------------------------------------------------------------------
+    // TODO
+    // -------------------------------------------------------------------------------------------
+    // await expect(users[1].MeloBleeps.reserve(artist, 'test', melobleepHash, 16))
+    //   .to.emit(MeloBleeps, 'ReservationSubmitted')
+    //   .withArgs(artist, tokenID, melobleepHash, 'test', 16);
+
+    // await expect(users[1].MeloBleeps.mint(tokenID, data1, data2, users[1].address))
+    //   .to.emit(MeloBleeps, 'Transfer')
+    //   .withArgs(AddressZero, users[1].address, tokenID);
+    // -------------------------------------------------------------------------------------------
 
     const tokenURI = await MeloBleeps.tokenURI(tokenID);
     // console.log(tokenURI);
