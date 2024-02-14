@@ -1,0 +1,9 @@
+@import 'css/reset.css'; /* reset elements */
+
+@import 'css/utilities.css'; /* add utilties classes like sr-only */
+
+@import 'css/palette.css'; /* define colors */
+
+@import 'css/base.css'; /* set some base style for elements*/
+
+@import 'css/globals.css'; /* classes to use across components */

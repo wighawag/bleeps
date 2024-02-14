@@ -1,18 +1,19 @@
-import {HardhatRuntimeEnvironment} from 'hardhat/types';
-import {DeployFunction} from 'hardhat-deploy/types';
-const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-  const {deployments, getNamedAccounts} = hre;
-  const {deploy} = deployments;
+import {execute} from 'rocketh';
+import 'rocketh-deploy';
+import {context} from '../_context';
 
-  const {deployer} = await getNamedAccounts();
-
-  await deploy('WETH', {
-    contract: 'WETH9',
-    from: deployer,
-    skipIfAlreadyDeployed: true,
-    log: true,
-    autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
-  });
-};
-export default func;
-func.tags = ['WETH'];
+export default execute(
+	context,
+	async ({deploy, accounts, artifacts}) => {
+		await deploy(
+			'WETH',
+			{
+				account: accounts.deployer,
+				artifact: artifacts.WETH9,
+			}, {
+        skipIfAlreadyDeployed: true
+      }
+		);
+	},
+	{tags: ['WETH']},
+);

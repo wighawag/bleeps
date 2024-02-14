@@ -1,0 +1,15 @@
+# ###########################################
+# .gitignore
+#############################################
+.env*.local
+node_modules
+
+# data generated
+/dist
+/ethereum-indexer-data
+/src/contracts.ts
+/indexed/
+
+#############################################
+package.json
+pnpm-lock.yaml

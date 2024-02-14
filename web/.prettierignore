@@ -1,9 +1,34 @@
-.svelte/**
-.svelte-kit/**
-static/**
-build/**
-node_modules/**
-.vscode/**
-.yalc/**
-src/app.html
-src/lib/contracts.json
+# ###########################################
+# .gitignore
+#############################################
+# environment variables
+.env*.local
+
+# node modules
+node_modules
+
+# vscode
+.vscode/*
+!.vscode/settings.json.default
+!.vscode/launch.json.default
+!.vscode/extensions.json.default
+
+# data generated
+/build
+/.svelte-kit
+/package
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# pwag
+static/pwa
+static/robots.txt
+
+# generated from contracts
+src/data/contracts.ts
+static/indexed-state-*.json
+
+#############################################
+package.json
+pnpm-lock.yaml
+static/

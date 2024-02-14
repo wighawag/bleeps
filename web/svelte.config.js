@@ -1,62 +1,43 @@
-import preprocess from 'svelte-preprocess';
-import adapter_ipfs from 'sveltejs-adapter-ipfs';
+import adapter from '@sveltejs/adapter-static';
+import {vitePreprocess} from '@sveltejs/vite-plugin-svelte';
 import {execSync} from 'child_process';
-import fs from 'fs';
 
-function loadJSON(filepath) {
-  try {
-    return JSON.parse(fs.readFileSync(filepath).toString());
-  } catch (e) {
-    return {};
-  }
+export function getVersion() {
+	try {
+		return execSync('git rev-parse --short HEAD').toString().trim();
+	} catch {
+		const timestamp = Date.now().toString();
+		console.error(`could not get commit-hash to set a version id, falling back on timestamp ${timestamp}`);
+		return timestamp;
+	}
 }
-const pkg = loadJSON('./package.json');
-
-const VERSION = execSync('git rev-parse --short HEAD').toString().trim();
-
-if (!process.env.VITE_CHAIN_ID) {
-  try {
-    const contractsInfo = JSON.parse(fs.readFileSync('./src/lib/contracts.json'));
-    process.env.VITE_CHAIN_ID = contractsInfo.chainId;
-  } catch (e) {
-    console.error(e);
-  }
-}
-
-let outputFolder = './build';
-
-if (process.env.VERCEL) {
-  // allow no config when creating a vercel project
-  outputFolder = '../public';
-  console.log('building on VERCEL...');
-}
+const VERSION = getVersion();
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
-  preprocess: preprocess({
-    sourceMap: true,
-  }),
+	preprocess: [vitePreprocess()],
 
-  kit: {
-    adapter: adapter_ipfs({
-      assets: outputFolder,
-      pages: outputFolder,
-      removeSourceMap: false,
-      removeBuiltInServiceWorkerRegistration: true,
-      injectPagesInServiceWorker: true,
-      injectDebugConsole: true,
-    }),
-    target: '#svelte',
-    trailingSlash: 'ignore',
-    vite: {
-      build: {
-        sourcemap: true,
-      },
-      define: {
-        __VERSION__: JSON.stringify(VERSION),
-      },
-    },
-  },
+	kit: {
+		adapter: adapter(),
+		version: {
+			// we create a dertemrinistic building using a derterministic version (via git commit, see above)
+			name: VERSION,
+		},
+		alias: {
+			// alias for web-config
+			'web-config': './src/web-config.json',
+			$data: './src/data',
+			$external: './src/external',
+		},
+		serviceWorker: {
+			// we handle it ourselves here : src/service-worker-handler.ts
+			register: false,
+		},
+		paths: {
+			// this is to make it work on ipfs (on an unknown path)
+			relative: true,
+		},
+	},
 };
 
 export default config;

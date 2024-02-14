@@ -1,0 +1,18 @@
+[
+	{
+		"action": "remove",
+		"files": [
+			"transform.js",
+			"transform.json",
+			"reset.sh",
+			"LICENSE",
+			".github",
+			"TODO.md",
+			"publish.sh",
+			"web/TODO.md",
+			"web/src/lib/components/bleeps",
+			"web/src/lib/components/structure/Footer.svelte",
+			"web/static/images/featured"
+		]
+	}
+]

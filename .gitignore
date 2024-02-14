@@ -1,5 +1,7 @@
-.env*
-!.env*.default
-.newsh.json
-node_modules
-bleeps.code-workspace
+# environment variables
+.env*.local
+
+# node modules
+node_modules/
+
+.dev.vars

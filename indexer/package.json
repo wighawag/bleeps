@@ -1,0 +1,33 @@
+{
+  "name": "bleeps-indexer",
+  "version": "0.1.0",
+  "description": "bleeps indexer function to generate the state of all the registry messages",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "dependencies": {
+    "bleeps-common": "workspace:*",
+    "ethereum-indexer-js-processor": "^0.6.28",
+    "named-logs": "^0.2.2"
+  },
+  "devDependencies": {
+    "ethereum-indexer-cli": "^0.6.27",
+    "ethereum-indexer-server": "^0.6.29",
+    "ldenv": "^0.3.9",
+    "prettier": "^3.2.5",
+    "tsup": "^8.0.2",
+    "typescript": "^5.3.3",
+    "wait-on": "^7.2.0"
+  },
+  "scripts": {
+    "eis": "eis",
+    "serve": "ldenv eis run -n @@ETH_NODE_URI_:MODE,ETH_NODE_URI -p ./dist/index.cjs --disable-cache --deployments ../contracts/deployments/@@MODE @@",
+    "index": "ldenv ei -n @@ETH_NODE_URI_:MODE,ETH_NODE_URI -p ./dist/index.cjs -d src/contracts.ts -f indexed/@@MODE@:.json @@",
+    "index-to-file": "ei -p ./dist/index.cjs",
+    "build": "tsup src/index.ts --dts --format esm,cjs",
+    "dev": "echo 'waiting for src/contracts.ts...'; wait-on src/contracts.ts && tsup src/index.ts --dts --format esm,cjs --watch",
+    "format:check": "prettier --check .",
+    "format": "prettier --write ."
+  }
+}

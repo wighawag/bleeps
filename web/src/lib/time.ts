@@ -1,50 +1,106 @@
-import {blockTime} from '$lib/config';
-import {readable} from 'svelte/store';
+import {writable} from 'svelte/store';
+import {connection, devProvider} from './web3';
 
-const performanceAvailable = typeof performance !== 'undefined'; // server
+let timestamp = Math.floor(Date.now() / 1000);
+let lastFetchLocalTime = performance.now();
 
-export let startTime = Math.floor(performanceAvailable ? (Date.now() - performance.now()) / 1000 : Date.now() / 1000);
+let maxRead = 0;
+let synced = false;
+let contract: `0x${string}` | undefined;
 
-export function now(): number {
-  if (performanceAvailable) {
-    return Math.floor(performance.now() / 1000) + startTime;
-  } else {
-    return Math.floor(Date.now() / 1000) + startTime;
-  }
+async function getTime() {
+	if (typeof window !== 'undefined' && devProvider) {
+		if (connection.$state.provider) {
+			if (contract) {
+				const rawTimestamp = await devProvider.request({
+					method: 'eth_call',
+					params: [{data: '0xb80777ea', to: contract}],
+				});
+				const parsedTimestamp = parseInt(rawTimestamp.slice(2), 16);
+				timestamp = await connection.$state.provider?.syncTime(parsedTimestamp);
+				lastFetchLocalTime = performance.now();
+			} else {
+				const block = await devProvider.request({
+					method: 'eth_getBlockByNumber',
+					params: ['latest', false],
+				});
+				timestamp = await connection.$state.provider?.syncTime(block);
+				lastFetchLocalTime = performance.now();
+			}
+			synced = true;
+		} else {
+			synced = false;
+			timestamp = Math.floor(Date.now() / 1000);
+			lastFetchLocalTime = performance.now();
+		}
+	} else {
+		if (connection.$state.provider) {
+			if (contract) {
+				const rawTimestamp = await connection.$state.provider?.request({
+					method: 'eth_call',
+					params: [{data: '0xb80777ea', to: contract}],
+				});
+				timestamp = parseInt(rawTimestamp.slice(2), 16);
+				lastFetchLocalTime = performance.now();
+			} else {
+				timestamp = connection.$state.provider.currentTime();
+				lastFetchLocalTime = performance.now();
+			}
+			synced = true;
+		} else {
+			synced = false;
+			timestamp = Math.floor(Date.now() / 1000);
+			lastFetchLocalTime = performance.now();
+		}
+	}
+	return timestamp;
 }
 
-let _corrected = false;
-export function correctTime(actualTime: number): void {
-  const currentTime = now();
-  const diff = actualTime - currentTime;
-  if (Math.abs(diff) > blockTime) {
-    // only adapt if difference is significant
-    startTime += diff;
-  }
-  _corrected = true;
-}
+const _time = writable({timestamp, synced}, (set) => {
+	let timeout: NodeJS.Timeout | undefined;
 
-export function isCorrected(): boolean {
-  return _corrected;
-}
+	async function fetchTime() {
+		const lastTimestamp = timestamp;
+		const lastSynced = synced;
+		try {
+			const timestamp = await getTime();
+			if (timestamp && !isNaN(timestamp)) {
+				if (lastTimestamp != timestamp || lastSynced != synced) {
+					set({timestamp, synced});
+				}
+			}
+		} finally {
+			if (timeout) {
+				timeout = setTimeout(fetchTime, 3000);
+			}
+		}
+	}
 
-export const time = readable(now(), function start(set) {
-  const interval = setInterval(() => {
-    set(now());
-  }, 1000);
-
-  return function stop() {
-    clearInterval(interval);
-  };
+	timeout = setTimeout(fetchTime, 3000);
+	return () => {
+		clearTimeout(timeout);
+		timeout = undefined;
+	};
 });
 
+export const time = {
+	subscribe: _time.subscribe,
+	get now() {
+		let n = performance.now();
+		const v = timestamp + Math.floor((n - lastFetchLocalTime) / 1000);
+		if (v < maxRead) {
+			return maxRead;
+		}
+		if (synced) {
+			maxRead = v;
+		}
+		return v;
+	},
+	setTimeKeeperContract(contractAddress: `0x${string}`) {
+		contract = contractAddress;
+	},
+};
+
 if (typeof window !== 'undefined') {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (window as unknown as any).time = {
-    now,
-    startTime,
-    correctTime,
-    isCorrected,
-    time,
-  };
+	(window as any).time = time;
 }

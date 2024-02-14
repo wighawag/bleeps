@@ -1,6 +1,5 @@
 packages:
+  - 'common'
   - 'contracts'
+  - 'indexer'
   - 'web'
-  - 'subgraph'
-  - 'common-lib'
-  - 'booking-service'

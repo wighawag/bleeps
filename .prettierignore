@@ -1,15 +1,16 @@
-contracts/deployments
-contracts/artifacts
-contracts/cache
-contracts/coverage
-node_modules
-subgraph/abis
-subgraph/build
-subgraph/generated
-common-lib/lib
+# ###########################################
+# .gitignore
+#############################################
+# environment variables
+.env*.local
+
+# node modules
+node_modules/
+#############################################
+
+# Ignore npm files
+pnpm-lock.yaml
 package.json
-web/.svelte/**
-web/static/**
-web/build/**
-.vscode/**
-.yalc/**
+
+# ignore folders
+**/

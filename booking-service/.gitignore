@@ -1,5 +1,0 @@
-dist/
-node_modules/
-.env
-src/contracts.json
-wrangler.toml

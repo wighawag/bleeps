@@ -1,10 +1,10 @@
-import {HardhatRuntimeEnvironment} from 'hardhat/types';
-import {DeployFunction} from 'hardhat-deploy/types';
+import {execute} from 'rocketh';
+import 'rocketh-deploy';
+import {context} from '../_context';
 
-const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-  const {deployments, getNamedAccounts} = hre;
-  const {deploy, execute, read} = deployments;
-  const networkName = deployments.getNetworkName();
+export default execute(
+	context,
+	async ({deploy, accounts, artifacts, deployments, network, execute, read}) => {
 
   const {
     deployer,
@@ -14,29 +14,28 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     initialBleepsRoyaltyRecipient,
     bleepsGuardian,
     initialCheckpointingDisabler,
-  } = await getNamedAccounts();
-
-  const ENS = await deployments.getOrNull('ENS');
-  if (networkName === 'mainnet' || networkName === 'production') {
+  } = accounts;
+	
+  const ENS = deployments['ENS'];
+  if (network.name === 'mainnet' || network.name === 'production') {
     if (!ENS) {
       throw new Error(`no ENS setup`);
     }
   }
 
   const tokenURIContract = await deploy('BleepsTokenURI', {
-    from: deployer,
-    log: true,
-    autoMine: true,
+    account: deployer,
+    artifact: artifacts.BleepsTokenURI
   });
 
-  const existingBleeps = await deployments.getOrNull('Bleeps');
+  const existingBleeps = deployments['Bleeps'];
 
   const openseaProxyRegistry =
-    (await deployments.getOrNull('WyvernProxyRegistry'))?.address || '0x0000000000000000000000000000000000000000';
+    (deployments['WyvernProxyRegistry'])?.address || '0x0000000000000000000000000000000000000000';
 
   let needUpdate = false;
   if (existingBleeps) {
-    const currentTokenURIContract = await read('Bleeps', 'tokenURIContract');
+    const currentTokenURIContract = await read<typeof artifacts.Bleeps.abi, 'tokenURIContract'>('Bleeps', {functionName: 'tokenURIContract'});
     if (currentTokenURIContract?.toLowerCase() !== tokenURIContract.address.toLowerCase()) {
       needUpdate = true;
     }
@@ -45,13 +44,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   if (needUpdate) {
     await execute(
       'Bleeps',
-      {from: initialBleepsTokenURIAdmin, log: true, autoMine: true},
-      'setTokenURIContract',
-      tokenURIContract.address
+      {account: initialBleepsTokenURIAdmin, functionName: 'setTokenURIContract', args: [tokenURIContract.address]},
     );
   } else {
     await deploy('Bleeps', {
-      from: deployer,
+      artifact: artifacts.Bleeps,
+      account: deployer,
       args: [
         ENS?.address || '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e',
         initialBleepsOwner,
@@ -61,15 +59,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         bleepsGuardian,
         openseaProxyRegistry,
         initialBleepsRoyaltyRecipient,
-        500, // 5%
+        500n, // 5%
         tokenURIContract.address,
         initialCheckpointingDisabler,
       ],
-      skipIfAlreadyDeployed: true,
-      log: true,
-      autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
+    }, {
+      skipIfAlreadyDeployed: true
     });
   }
-};
-export default func;
-func.tags = ['Bleeps', 'Bleeps_deploy'];
+	},
+	{tags: ['Bleeps', 'Bleeps_deploy']},
+);
+
