@@ -366,8 +366,8 @@ importers:
         specifier: 1.0.0-next.24
         version: 1.0.0-next.24
       '@sveltejs/kit':
-        specifier: 1.0.0-next.212
-        version: 1.0.0-next.212(sass@1.83.1)(svelte@3.59.2)
+        specifier: 1.0.0-next.182
+        version: 1.0.0-next.182(sass@1.83.1)(svelte@3.59.2)
       '@tailwindcss/aspect-ratio':
         specifier: ^0.4.0
         version: 0.4.2(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@17.0.45)(typescript@4.9.5)))
@@ -1556,12 +1556,12 @@ packages:
   '@sveltejs/adapter-static@1.0.0-next.24':
     resolution: {integrity: sha512-lMiwZrZumWRrTQxaj9pFs5oW0h/97spyDl1QjmnkNaA006WeqornoETt31WpU0Lz2/2uYNXvUBBcL1LGc9Vylg==}
 
-  '@sveltejs/kit@1.0.0-next.212':
-    resolution: {integrity: sha512-hjpk/Rqrl6hhNf1Qsx6EDvL3Cm9JvmvW/Z1FRYVhGg1xin/JQkPgFzTU27NBSYhtK1t4buLmlO1tqdMvurs9Fg==}
-    engines: {node: '>=14.13'}
+  '@sveltejs/kit@1.0.0-next.182':
+    resolution: {integrity: sha512-XR8SYJTDD84wN89ynRmP/FBwUWY61dAXsveKPI4JcW9njgnDN6mplDqh4lTZ0CvexV/Yv5Fd910Pm3IPV6SEBw==}
+    engines: {node: ^12.20 || >=14.13}
     hasBin: true
     peerDependencies:
-      svelte: ^3.44.0
+      svelte: ^3.43.0
 
   '@sveltejs/vite-plugin-svelte@1.0.0-next.35':
     resolution: {integrity: sha512-PuhI+1L6xqn5gc6jiK4mHmeS8kf3c1E+IaAsJclHbZTNiPQdC5SiTM3cV0FAA4zhwHmXV6pjt8rRHRx8ouFv3g==}
@@ -2667,6 +2667,10 @@ packages:
 
   charenc@0.0.2:
     resolution: {integrity: sha512-yrLQ/yVUFXkzg7EDQsPieE/53+0RlaWTs+wBrvW36cyilJ2SaDWfl4Yj7MtLTXleV9uEKefbAGUPv2/iWSooRA==}
+
+  cheap-watch@1.0.4:
+    resolution: {integrity: sha512-QR/9FrtRL5fjfUJBhAKCdi0lSRQ3rVRRum3GF9wDKp2TJbEIMGhUEr2yU8lORzm9Isdjx7/k9S0DFDx+z5VGtw==}
+    engines: {node: '>=8'}
 
   check-error@1.0.3:
     resolution: {integrity: sha512-iKEoDYaRmd1mxM90a2OEfWhjsjPpYPuQ+lMYsoxB126+t8fw7ySEO48nmDg5COTjxDI65/Y2OWpeEHk3ZOe8zg==}
@@ -9965,9 +9969,10 @@ snapshots:
     dependencies:
       tiny-glob: 0.2.9
 
-  '@sveltejs/kit@1.0.0-next.212(sass@1.83.1)(svelte@3.59.2)':
+  '@sveltejs/kit@1.0.0-next.182(sass@1.83.1)(svelte@3.59.2)':
     dependencies:
       '@sveltejs/vite-plugin-svelte': 1.0.0-next.35(svelte@3.59.2)(vite@2.7.10(sass@1.83.1))
+      cheap-watch: 1.0.4
       sade: 1.8.1
       svelte: 3.59.2
       vite: 2.7.10(sass@1.83.1)
@@ -11473,6 +11478,8 @@ snapshots:
       istextorbinary: 5.15.0
 
   charenc@0.0.2: {}
+
+  cheap-watch@1.0.4: {}
 
   check-error@1.0.3:
     dependencies:
