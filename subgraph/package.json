@@ -4,8 +4,6 @@
   "private": true,
   "version": "0.0.1",
   "devDependencies": {
-    "@graphprotocol/graph-cli": "^0.25.1",
-    "@graphprotocol/graph-ts": "^0.24.1",
     "chokidar": "^3.5.2",
     "cross-var": "^1.1.0",
     "dotenv-cli": "^4.1.1",

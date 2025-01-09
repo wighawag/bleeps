@@ -32,8 +32,8 @@ contract MeloBleepsRoles {
     constructor(
         address initialOwner,
         address initialTokenURIAdmin,
-        address initialMinterAdmin,
         address initialRoyaltyAdmin,
+        address initialMinterAdmin,
         address initialGuardian
     ) {
         owner = initialOwner;

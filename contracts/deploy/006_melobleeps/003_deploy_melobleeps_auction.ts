@@ -20,11 +20,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
   });
 
+  const minterAdmin = await read('MeloBleeps', 'minterAdmin');
+  console.log({minterAdmin});
   const currentMinter = await read('MeloBleeps', 'minter');
   if (currentMinter?.toLowerCase() !== MeloBleepsAuctions.address.toLowerCase()) {
     await execute(
       'MeloBleeps',
-      {from: initialMeloBleepsMinterAdmin, log: true, autoMine: true},
+      {from: minterAdmin, log: true, autoMine: true},
       'setMinter',
       MeloBleepsAuctions.address
     );

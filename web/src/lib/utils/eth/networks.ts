@@ -3,6 +3,7 @@ export const chainNames: {[chainId: string]: string} = {
   '3': 'ropsten',
   '4': 'rinkeby',
   '5': 'goerli',
+  '11155111': 'sepolia',
   '42': 'kovan',
   '1337': 'localhost chain',
   '31337': 'localhost chain',

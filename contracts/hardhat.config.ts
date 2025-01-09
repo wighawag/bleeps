@@ -10,8 +10,8 @@ import {node_url, accounts, addForkConfiguration} from './utils/network';
 const creator = '0x8350c9989ef11325b36ce6f7549004d418dbcee7';
 const initialAdmin = '0xdcA9d1FA839bB9Fe65DDC4de5161BCA43751D4B4';
 
-const demoCreator = '0xcE1AEF3e0A5324F7AB6e21B4dacc10B82666E1e2';
-const demoAdmin = '0xCcFe9B3769473eeBb45a592313583616038f6274';
+const demoCreator = '0xE53cd71271AcAdbeb0f64d9c8C62bBdDc8cA9e66';
+const demoAdmin = '0x61c461EcC993aaDEB7e4b47E96d1B8cC37314B20';
 
 const devDeploy = [
   'deploy/000_externals',
@@ -174,8 +174,8 @@ const config: HardhatUserConfig = {
       deploy: devDeploy,
     },
     demo: {
-      url: node_url('goerli'),
-      accounts: accounts('goerli'),
+      url: node_url('sepolia'),
+      accounts: accounts('sepolia'),
     },
     mainnet: {
       url: node_url('mainnet'),
