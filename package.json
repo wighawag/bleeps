@@ -15,7 +15,8 @@
 	"pnpm": {
 		"onlyBuiltDependencies": [
 			"esbuild",
-			"workerd"
+			"workerd",
+			"sharp"
 		],
 		"overrides": {
 			"utf-8-validate": "-"

@@ -1,0 +1,319 @@
+import {writable, get} from 'svelte/store';
+import type {BalanceStore} from '$lib/core/connection/balance';
+import type {GasFeeStore, GasPrice} from '$lib/core/connection/gasFee';
+import type {
+	Abi,
+	PublicClient,
+	ContractFunctionName,
+	ContractFunctionArgs,
+	WriteContractParameters,
+	SendTransactionParameters,
+} from 'viem';
+import {InsufficientFundsError} from './InsufficientFundsError';
+import type {Chain, Account} from 'viem';
+
+export type BalanceCheckState =
+	| {step: 'idle'}
+	| {step: 'estimating'}
+	| {
+			step: 'insufficient';
+			balanceStore: BalanceStore;
+			estimatedCost: bigint;
+			onContinue: () => void;
+			onDismiss: () => void;
+			// Faucet tracking
+			faucetClaimedAt?: number;
+			preFaucetBalance?: bigint;
+			isWaitingForBalanceUpdate: boolean;
+	  };
+
+export type GasSpeed = 'slow' | 'average' | 'fast';
+
+export interface EnsureCanAffordOptions {
+	gasSpeed?: GasSpeed;
+	forceUpdate?: boolean;
+}
+
+export function createBalanceCheckStore({
+	publicClient,
+	balance,
+	gasFee,
+}: {
+	publicClient: PublicClient;
+	balance: BalanceStore;
+	gasFee: GasFeeStore;
+}) {
+	const {subscribe, set, update} = writable<BalanceCheckState>({step: 'idle'});
+
+	let pollingInterval: NodeJS.Timeout | undefined;
+
+	function stopPolling() {
+		if (pollingInterval) {
+			clearInterval(pollingInterval);
+			pollingInterval = undefined;
+		}
+	}
+
+	function startPolling(balanceStore: BalanceStore, preFaucetBalance: bigint) {
+		stopPolling();
+
+		pollingInterval = setInterval(() => {
+			const currentBalance = get(balanceStore);
+			if (currentBalance.step === 'Loaded') {
+				if (currentBalance.value !== preFaucetBalance) {
+					stopPolling();
+					update((state) => {
+						if (state.step === 'insufficient') {
+							return {
+								...state,
+								isWaitingForBalanceUpdate: false,
+								preFaucetBalance: undefined,
+								faucetClaimedAt: undefined,
+							};
+						}
+						return state;
+					});
+				}
+			}
+		}, 1000);
+
+		setTimeout(() => {
+			stopPolling();
+			update((state) => {
+				if (state.step === 'insufficient') {
+					return {
+						...state,
+						isWaitingForBalanceUpdate: false,
+						preFaucetBalance: undefined,
+						faucetClaimedAt: undefined,
+					};
+				}
+				return state;
+			});
+		}, 30000);
+	}
+
+	const startEstimating = () => set({step: 'estimating'});
+
+	const showInsufficientFunds = (data: {
+		balanceStore: BalanceStore;
+		estimatedCost: bigint;
+		onContinue: () => void;
+		onDismiss: () => void;
+	}) =>
+		set({
+			step: 'insufficient',
+			balanceStore: data.balanceStore,
+			estimatedCost: data.estimatedCost,
+			onContinue: data.onContinue,
+			onDismiss: data.onDismiss,
+			isWaitingForBalanceUpdate: false,
+		});
+
+	const close = () => {
+		stopPolling();
+		set({step: 'idle'});
+	};
+
+	const markFaucetClaimed = (preFaucetBalance: bigint) => {
+		update((state) => {
+			if (state.step === 'insufficient') {
+				startPolling(state.balanceStore, preFaucetBalance);
+				return {
+					...state,
+					faucetClaimedAt: Date.now(),
+					preFaucetBalance,
+					isWaitingForBalanceUpdate: true,
+				};
+			}
+			return state;
+		});
+	};
+
+	// Returns the fee PRICE pair (maxFeePerGas/maxPriorityFeePerGas) for a speed.
+	// Distinct from `gasEstimate` below, which is the gas AMOUNT from eth_call.
+	function getGasPrice(speed: GasSpeed): GasPrice {
+		const gasFeeValue = get(gasFee);
+		if (gasFeeValue.step !== 'Loaded') {
+			throw new Error('Gas fee not loaded');
+		}
+		return gasFeeValue[speed];
+	}
+
+	async function checkBalanceAndShowModal(
+		estimatedCost: bigint,
+	): Promise<void> {
+		const balanceValue = get(balance);
+		if (balanceValue.step !== 'Loaded') {
+			await balance.update();
+		}
+
+		const currentBalance = get(balance);
+		if (currentBalance.step !== 'Loaded') {
+			throw new Error('Could not load balance');
+		}
+
+		if (currentBalance.value >= estimatedCost) {
+			close();
+			return;
+		}
+
+		return new Promise((resolve, reject) => {
+			showInsufficientFunds({
+				balanceStore: balance,
+				estimatedCost,
+				onContinue: () => {
+					close();
+					resolve();
+				},
+				onDismiss: () => {
+					close();
+					const currentBal = get(balance);
+					const balValue = currentBal.step === 'Loaded' ? currentBal.value : 0n;
+					reject(new InsufficientFundsError(balValue, estimatedCost));
+				},
+			});
+		});
+	}
+
+	async function ensureCanAfford<
+		const TAbi extends Abi | readonly unknown[],
+		TFunctionName extends ContractFunctionName<TAbi, 'nonpayable' | 'payable'>,
+		TArgs extends ContractFunctionArgs<
+			TAbi,
+			'nonpayable' | 'payable',
+			TFunctionName
+		>,
+		TChain extends Chain | undefined,
+		TAccount extends Account | undefined,
+		TChainOverride extends Chain | undefined = undefined,
+	>(
+		options: {
+			contract: Omit<
+				WriteContractParameters<
+					TAbi,
+					TFunctionName,
+					TArgs,
+					TChain,
+					TAccount,
+					TChainOverride
+				>,
+				'chain'
+			> & {chain?: TChainOverride | null};
+		},
+		config?: EnsureCanAffordOptions,
+	): Promise<
+		Omit<
+			WriteContractParameters<
+				TAbi,
+				TFunctionName,
+				TArgs,
+				TChain,
+				TAccount,
+				TChainOverride
+			>,
+			'chain'
+		> & {chain?: TChainOverride | null}
+	>;
+
+	async function ensureCanAfford<
+		TChain extends Chain | undefined,
+		TAccount extends Account | undefined,
+		TChainOverride extends Chain | undefined = undefined,
+	>(
+		options: {
+			transaction: Omit<
+				SendTransactionParameters<TChain, TAccount, TChainOverride>,
+				'chain'
+			> & {chain?: TChainOverride | null};
+		},
+		config?: EnsureCanAffordOptions,
+	): Promise<
+		Omit<
+			SendTransactionParameters<TChain, TAccount, TChainOverride>,
+			'chain'
+		> & {chain?: TChainOverride | null}
+	>;
+
+	async function ensureCanAfford(
+		options: any,
+		config: EnsureCanAffordOptions = {},
+	): Promise<any> {
+		const {gasSpeed = 'fast', forceUpdate = false} = config;
+
+		startEstimating();
+
+		try {
+			if (forceUpdate) {
+				await Promise.all([balance.update(), gasFee.update()]);
+			}
+
+			const {maxFeePerGas, maxPriorityFeePerGas} = getGasPrice(gasSpeed);
+
+			let gasEstimate: bigint;
+			let value: bigint = 0n;
+
+			if ('contract' in options) {
+				const contract = options.contract;
+				gasEstimate = await publicClient.estimateContractGas({
+					address: contract.address,
+					abi: contract.abi,
+					functionName: contract.functionName,
+					args: contract.args,
+					account: contract.account,
+					value: contract.value,
+				});
+				value = contract.value ?? 0n;
+			} else {
+				const transaction = options.transaction;
+				gasEstimate = await publicClient.estimateGas({
+					to: transaction.to,
+					data: transaction.data,
+					value: transaction.value,
+					account: transaction.account,
+				});
+				value = transaction.value ?? 0n;
+			}
+
+			// Worst-case cost uses maxFeePerGas (the ceiling actually charged).
+			const gasCost = gasEstimate * maxFeePerGas;
+			const estimatedCost = gasCost + value;
+
+			await checkBalanceAndShowModal(estimatedCost);
+
+			// Set BOTH fee fields: on chains (and fresh local nodes) that enforce a
+			// minimum priority fee, sending only maxFeePerGas lets the node/viem
+			// pick a default maxPriorityFeePerGas that can exceed a low maxFeePerGas
+			// ("maxFeePerGas cannot be less than maxPriorityFeePerGas").
+			if ('contract' in options) {
+				return {
+					...options.contract,
+					gas: gasEstimate,
+					maxFeePerGas,
+					maxPriorityFeePerGas,
+				};
+			} else {
+				return {
+					...options.transaction,
+					gas: gasEstimate,
+					maxFeePerGas,
+					maxPriorityFeePerGas,
+				};
+			}
+		} catch (error) {
+			close();
+			throw error;
+		}
+	}
+
+	return {
+		subscribe,
+		startEstimating,
+		showInsufficientFunds,
+		close,
+		markFaucetClaimed,
+		ensureCanAfford,
+	};
+}
+
+export type BalanceCheckStore = ReturnType<typeof createBalanceCheckStore>;

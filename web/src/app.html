@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en" class="dark" >
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+		<!-- inject named-logs-console -->
+		<!-- prettier-ignore -->
+		<script>
+		"use strict";var noop=function(){},W="undefined"!=typeof window?window:globalThis,oldConsole=W.console,disabledRegexps=[],enabledRegexps=[];function bindCall(e,l,a,o,r){if(l.enabled&&(l.level>=o||factory.level>=o)){if(a>=o||factory.traceLevel>=o){if(factory.labelVisible){var t="string"==typeof factory.labelVisible?"".concat(factory.labelVisible).concat(l.namespace):l.namespace;return l.decoration?oldConsole.trace.bind(oldConsole,"%c".concat(t),l.decoration):oldConsole.trace.bind(oldConsole,t)}return oldConsole.trace.bind(oldConsole)}if(r&&factory.labelVisible){t="string"==typeof factory.labelVisible?"".concat(factory.labelVisible).concat(l.namespace):l.namespace;return l.decoration?e.bind(oldConsole,"%c".concat(t),l.decoration):e.bind(oldConsole,t)}return e.bind(oldConsole)}return noop}var loggers={};function write(e){process.stdout.write(e)}var factory=function(e,l){var a=loggers[e];if(a)return a;var o=factory.level,r=factory.traceLevel;return a=loggers[e]={namespace:e,decoration:null==l?void 0:l.decoration,get assert(){return bindCall(oldConsole.assert,a,r,1,!1)},get error(){return bindCall(oldConsole.error,a,r,1,!0)},get warn(){return bindCall(oldConsole.warn,a,r,2,!0)},get info(){return bindCall(oldConsole.info,a,r,3,!0)},get write(){return"undefined"!=typeof process?bindCall(write,a,r,3,!1):bindCall(oldConsole.info,a,r,3,!1)},get log(){return bindCall(oldConsole.log,a,r,4,!0)},get debug(){return bindCall(oldConsole.debug,a,r,5,!0)},get trace(){return bindCall(oldConsole.trace,a,r,6,!0)},get dir(){return bindCall(oldConsole.dir,a,r,5,!1)},get table(){return bindCall(oldConsole.table||oldConsole.debug,a,r,5,!1)},get time(){return bindCall(oldConsole.time||oldConsole.debug,a,r,5,!1)},get timeEnd(){return bindCall(oldConsole.timeEnd||oldConsole.debug,a,r,5,!1)},get timeLog(){return bindCall(oldConsole.timeLog||oldConsole.debug,a,r,5,!1)},get level(){return o},set level(e){o=e},get traceLevel(){return r},set traceLevel(e){r=e},enabled:enabled(e,{disabledRegexps:disabledRegexps,enabledRegexps:enabledRegexps})}},logLevels={error:1,warn:2,info:3,log:4,debug:5,trace:6};function enabled(e,l){var a,o,r=l.disabledRegexps,t=l.enabledRegexps;if("*"===e[e.length-1])return!0;for(a=0,o=r.length;a<o;a++)if(r[a].test(e))return!1;for(a=0,o=t.length;a<o;a++)if(t[a].test(e))return!0;return!1}function processNamespaces(e,l,a){for(var o=l.disabledRegexps,r=l.enabledRegexps,t=("string"==typeof e?e:"").split(/[\s,]+/),n=t.length,s=0;s<n;s++)t[s]&&("-"===(e=t[s].replace(/\*/g,".*?"))[0]?o.push(new RegExp("^"+e.substr(1)+"$")):r.push(new RegExp("^"+e+"$")));for(var i=0,d=Object.keys(loggers);i<d.length;i++){var c=d[i];a(c,enabled(c,{disabledRegexps:o,enabledRegexps:r}))}}if(factory.level=2,factory.traceLevel=0,factory.setTraceLevelFor=function(e,l){processNamespaces(e||"*",{disabledRegexps:[],enabledRegexps:[]},function(e,a){a&&(loggers[e].traceLevel=l)})},factory.disable=function(){disabledRegexps.splice(0,disabledRegexps.length),enabledRegexps.splice(0,enabledRegexps.length);for(var e=0,l=Object.keys(loggers);e<l.length;e++){var a=l[e];loggers[a].enabled=!1}try{localStorage.removeItem("debug")}catch(e){}},factory.enable=function(e){disabledRegexps.splice(0,disabledRegexps.length),enabledRegexps.splice(0,enabledRegexps.length),processNamespaces(e=""===e?"*":e||"*",{disabledRegexps:disabledRegexps,enabledRegexps:enabledRegexps},function(e,l){return loggers[e].enabled=l});try{localStorage.setItem("debug",e)}catch(e){}},"undefined"!=typeof localStorage)try{var str=localStorage.getItem("debug");str&&""!==str&&factory.enable(str)}catch(e){}else if("undefined"!=typeof process){(val=process.env.NAMED_LOGS)?factory.enable(val):factory.disable(),(val=process.env.NAMED_LOGS_LEVEL)&&(factory.level=logLevels[val]||parseInt(val)||factory.level),(val=process.env.NAMED_LOGS_TRACE_LEVEL)&&(factory.traceLevel=logLevels[val]||parseInt(val)||factory.level),(val=process.env.NAMED_LOGS_LABEL)&&(factory.labelVisible=!0)}for(var vars=W.location?W.location.search.slice(1).split("&"):[],_i=0,vars_1=vars;_i<vars_1.length;_i++){var variable=vars_1[_i];if(variable.startsWith("debug="))""===(val=variable.slice(6))?factory.disable():factory.enable(val);else if(variable.startsWith("debugLevel=")){var val=variable.slice(11);factory.level=logLevels[val]||parseInt(val)||factory.level}else if(variable.startsWith("traceLevel=")){val=variable.slice(11);factory.traceLevel=logLevels[val]||parseInt(val)||factory.level}else if(variable.startsWith("debugLabel")){val=variable.slice(11);factory.labelVisible=val||!0}}globalThis._logFactory=factory;
+		</script>
+
+		<!-- inject eruda loader (use ?eruda or even ?eruda=<plugin package name separated by ",">) -->
+		<!--prettier-ignore -->
+		<script>
+		(function () {
+			let params = new URLSearchParams(window.location.search);
+			const eruda_options = params.get('eruda');
+			if (eruda_options !== "" && !eruda_options && localStorage.getItem('active-eruda') != 'true') return;
+			const _ = '';
+			let add_plugins = '';
+			let load_plugins = '';
+			if (eruda_options.length > 0) {
+				for (const plugin of eruda_options.split(",")) {
+					let [pkg, v] = plugin.split(":");
+					v = v || pkg.split('-').map((split, i) => i > 0 ? split[0].toUpperCase() + split.slice(1): split).join('');
+					load_plugins += `document.write(\`<scr\${_}ipt src="//cdn.jsdelivr.net/npm/${pkg}"></scr\${_}ipt>\`);`;
+					add_plugins += `eruda.add(${v});`;
+				}
+			}
+
+			// you might want to load eruda from from %sveltekit.assets%//debug/eruda.js
+			// document.write(`<scr${_}ipt src="%sveltekit.assets%/debug/eruda.js"></scr${_}ipt>`);
+			// and fallback on cdn.jsdelivr.net
+			document.write(`
+				<scr${_}ipt>
+					const _ = '';
+					if (typeof eruda === "undefined") {
+						document.write(\`<scr\${_}ipt src="//cdn.jsdelivr.net/npm/eruda"></scr\${_}ipt>\`);
+					};
+					${load_plugins}
+					document.write(\`<scr\${_}ipt>eruda.init();${add_plugins}</scr\${_}ipt>\`);
+				</scr${_}ipt>
+			`);
+		})();
+		</script>
+
+		<!-- Pre-JS navigation bar. Rendered before any CSS/JS request resolves,
+		     so it has to be inline. It covers the gap between first paint and
+		     hydration. NavigationProgress.svelte removes it as soon as it mounts
+		     and takes over all navigation feedback. That removal is the only
+		     contract between this file and the app. -->
+		<style>
+			:root {
+				/* One accent for every loading indicator (slate-400 by default -
+				   override to match your brand). Space separated RGB so it
+				   composes with alpha: rgb(var(--nav-accent) / 0.12) */
+				--nav-accent: 148 163 184;
+				--nav-bar-height: 2px;
+			}
+			#app-loader {
+				position: fixed;
+				inset: 0 0 auto 0;
+				height: var(--nav-bar-height);
+				z-index: 9999;
+				pointer-events: none;
+				background: rgb(var(--nav-accent) / 0.12);
+			}
+			/* Hidden until the reveal script below decides the load is slow
+			   enough to be worth showing, so fast loads never flash it. */
+			#app-loader[hidden] {
+				display: none;
+			}
+			#app-loader::before {
+				content: '';
+				display: block;
+				height: 100%;
+				width: 40%;
+				background: rgb(var(--nav-accent));
+				box-shadow: 0 0 8px rgb(var(--nav-accent) / 0.55);
+				animation: app-loader-shuttle 1.1s ease-in-out infinite;
+			}
+			/* NavigationProgress fades this out before removing it. */
+			#app-loader.hide {
+				animation: none;
+				opacity: 0;
+				transition: opacity 0.3s ease-out;
+			}
+			@keyframes app-loader-shuttle {
+				0% {
+					transform: translateX(-100%);
+				}
+				50% {
+					transform: translateX(150%);
+				}
+				100% {
+					transform: translateX(350%);
+				}
+			}
+			@media (prefers-reduced-motion: reduce) {
+				#app-loader::before {
+					animation: none;
+					width: 50%;
+				}
+			}
+		</style>
+		<!-- With no JS nothing would ever remove the bar, so never show it. -->
+		<noscript><style>#app-loader{display:none}</style></noscript>
+
+		%sveltekit.head%
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div id="app-loader" hidden aria-hidden="true"></div>
+		<script>
+			// Reveal only if the app has not taken over quickly. If hydration
+			// wins the race, NavigationProgress removes the element first and
+			// this becomes a no-op.
+			setTimeout(function () {
+				var el = document.getElementById('app-loader');
+				if (el) el.removeAttribute('hidden');
+			}, 150);
+		</script>
+
+		<div style="display: contents">%sveltekit.body%</div>
+	</body>
+</html>

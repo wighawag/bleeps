@@ -1,62 +1,59 @@
-import preprocess from 'svelte-preprocess';
-import adapter_ipfs from 'sveltejs-adapter-ipfs';
-import {execSync} from 'child_process';
-import fs from 'fs';
+import adapter from '@sveltejs/adapter-static';
+import {execSync} from 'node:child_process';
+import {vitePreprocess} from '@sveltejs/vite-plugin-svelte';
 
-function loadJSON(filepath) {
-  try {
-    return JSON.parse(fs.readFileSync(filepath).toString());
-  } catch (e) {
-    return {};
-  }
-}
-const pkg = loadJSON('./package.json');
-
-const VERSION = execSync('git rev-parse --short HEAD').toString().trim();
-
-if (!process.env.VITE_CHAIN_ID) {
-  try {
-    const contractsInfo = JSON.parse(fs.readFileSync('./src/lib/contracts.json'));
-    process.env.VITE_CHAIN_ID = contractsInfo.chainId;
-  } catch (e) {
-    console.error(e);
-  }
-}
-
-let outputFolder = './build';
-
-if (process.env.VERCEL) {
-  // allow no config when creating a vercel project
-  outputFolder = '../public';
-  console.log('building on VERCEL...');
+let VERSION = `timestamp_${Date.now()}`;
+try {
+	VERSION = execSync('git rev-parse --short HEAD', {
+		stdio: ['ignore', 'pipe', 'ignore'],
+	})
+		.toString()
+		.trim();
+	try {
+		// This command returns empty string if no changes
+		const output = execSync('git status --porcelain', {encoding: 'utf8'});
+		if (output.trim().length > 0) {
+			VERSION += '-dirty';
+			console.warn(`[!] repo has some uncommited changes...`);
+		}
+	} catch (error) {
+		console.error('Error checking git status:', error);
+		process.exit(1);
+	}
+} catch (e) {
+	console.error(e);
 }
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
-  preprocess: preprocess({
-    sourceMap: true,
-  }),
+	// Consult https://svelte.dev/docs/kit/integrations
+	// for more information about preprocessors
+	preprocess: vitePreprocess(),
 
-  kit: {
-    adapter: adapter_ipfs({
-      assets: outputFolder,
-      pages: outputFolder,
-      removeSourceMap: false,
-      removeBuiltInServiceWorkerRegistration: true,
-      injectPagesInServiceWorker: true,
-      injectDebugConsole: true,
-    }),
-    target: '#svelte',
-    trailingSlash: 'ignore',
-    vite: {
-      build: {
-        sourcemap: true,
-      },
-      define: {
-        __VERSION__: JSON.stringify(VERSION),
-      },
-    },
-  },
+	kit: {
+		version: {
+			name: VERSION,
+		},
+		adapter: adapter({
+			assets: 'build',
+			pages: 'build',
+			fallback: '404.html', // SPA fallback - serves as 404 page on IPFS/static hosts
+		}),
+		serviceWorker: {
+			// we handle it ourselves here : src/service-worker-handler.ts
+			register: false,
+		},
+		paths: {
+			// this is to make it work on ipfs (on an unknown path)
+			relative: true,
+		},
+		output: {
+			bundleStrategy: 'split', // code-split per route so the initial
+			// bundle is small; a single large file stalls under slow /
+			// throttled connections (and 'single' is not required for IPFS
+			// since paths.relative is already true).
+		},
+	},
 };
 
 export default config;

@@ -1,0 +1,109 @@
+import type {AbiFunction, PublicClient} from 'viem';
+import type {
+	AnyConnectionStore,
+	UnderlyingEthereumProvider,
+} from '@etherplay/connect';
+import {get} from 'svelte/store';
+import type {BalanceCheckStore} from '$lib/core/transaction/balance-check-store';
+import type {ExecutorStore} from '$lib/core/connection/executor';
+import {InsufficientFundsError} from '$lib/core/transaction';
+import {isUserRejectionError} from '$lib/core/transaction/user-rejection';
+import {convertInputValues} from './utils';
+
+/**
+ * Read a view/pure function on an arbitrary contract.
+ *
+ * Converts the raw UI input map to typed args and performs the `readContract`
+ * call. Throws on failure (the caller renders the message).
+ */
+export async function readContractValue(params: {
+	publicClient: PublicClient;
+	abiItem: AbiFunction;
+	contractAddress: string;
+	inputValues: Record<string, string>;
+}): Promise<unknown> {
+	const {publicClient, abiItem, contractAddress, inputValues} = params;
+
+	if (!publicClient) {
+		throw new Error('Public client not available');
+	}
+
+	const args = convertInputValues(abiItem.inputs, inputValues);
+
+	return publicClient.readContract({
+		address: contractAddress as `0x${string}`,
+		abi: [abiItem],
+		functionName: abiItem.name,
+		// Dynamic args from user input - type cannot be inferred at compile time
+		args: args as any,
+	});
+}
+
+export type ExecuteContractWriteResult =
+	| {status: 'submitted'; transactionHash: `0x${string}`}
+	| {status: 'cancelled'}
+	| {status: 'cannot-send'};
+
+/**
+ * Execute a state-changing function on an arbitrary contract.
+ *
+ * Owns the connect + balance-check + write flow. Returns `cancelled` when the
+ * user dismisses the insufficient-funds modal, `cannot-send` when the connected
+ * account cannot send under the configured execution mode; throws on any other
+ * failure.
+ */
+export async function executeContractWrite(params: {
+	connection: AnyConnectionStore<UnderlyingEthereumProvider>;
+	executor: ExecutorStore;
+	balanceCheck: BalanceCheckStore;
+	abiItem: AbiFunction;
+	contractAddress: string;
+	inputValues: Record<string, string>;
+}): Promise<ExecuteContractWriteResult> {
+	const {
+		connection,
+		executor,
+		balanceCheck,
+		abiItem,
+		contractAddress,
+		inputValues,
+	} = params;
+
+	const args = convertInputValues(abiItem.inputs, inputValues);
+
+	try {
+		await connection.ensureConnected();
+	} catch (e) {
+		// Rejecting or dismissing the wallet prompt is a cancellation, not an
+		// error worth surfacing (setGreeting treats it the same way). Before
+		// @etherplay/connect 0.1.0 this call never settled at all, so there was
+		// nothing to catch and the flow just hung here.
+		if (isUserRejectionError(e)) return {status: 'cancelled'};
+		throw e;
+	}
+
+	const $executor = get(executor);
+	if ($executor.status === 'cannot-send') return {status: 'cannot-send'};
+	if ($executor.status !== 'ready') return {status: 'cancelled'};
+
+	try {
+		const contractRequest = await balanceCheck.ensureCanAfford({
+			contract: {
+				address: contractAddress as `0x${string}`,
+				abi: [abiItem],
+				functionName: abiItem.name,
+				args: args as any,
+				account: $executor.account,
+			},
+		});
+
+		const hash = await $executor.client.writeContract(contractRequest);
+		return {status: 'submitted', transactionHash: hash};
+	} catch (e) {
+		if (e instanceof InsufficientFundsError) {
+			// User dismissed the funds modal - silently cancel.
+			return {status: 'cancelled'};
+		}
+		throw e;
+	}
+}

@@ -105,6 +105,22 @@ const config: HardhatUserConfig = {
 						// A reverting transaction must still be mined, otherwise the
 						// app never sees the failed receipt it needs to report the error.
 						throwOnTransactionFailures: false,
+						// Model a real node's RPC gas allowance (geth's default
+						// --rpc.gascap) rather than EIP-7825's per-transaction cap.
+						//
+						// Without this the dev node refuses any eth_call above
+						// 16,777,216 gas, and the melody editor's preview needs about 34M:
+						// MeloBleepsTokenURI.tokenURI renders the WAV on chain. A real node
+						// serves that happily, so capping it here would break the editor
+						// locally while working in production, which is the worst way round.
+						//
+						// EDR applies one limit to both calls and transactions, so this does
+						// also let a >2^24 gas TRANSACTION through on the dev chain, which a
+						// post-Fusaka chain would reject. That fidelity is kept where it
+						// matters instead: the contract tests run against the `default`
+						// network below, which leaves the cap in place. See
+						// docs/adr/0002-melobleeps-tokenuri-gas.md.
+						transactionGasCap: 50_000_000n,
 					},
 				}),
 			),

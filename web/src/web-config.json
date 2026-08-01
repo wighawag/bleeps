@@ -1,0 +1,10 @@
+{
+	"name": "Bleeps",
+	"title": "Bleeps",
+	"description": "576 sounds on chain, owned by their holders and governed by the Bleeps DAO",
+	"canonicalURL": "https://bleeps.art",
+	"ENSName": "bleeps.eth",
+	"themeColor": "#db2777",
+	"appleStatusBarStyle": "black-translucent",
+	"icon": "static/icon.svg"
+}

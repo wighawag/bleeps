@@ -19,6 +19,10 @@ export function setupFixtures(provider: EthereumProvider) {
 		async deployAll() {
 			const env = await loadAndExecuteDeploymentsFromFiles({
 				provider,
+				// Never touch deployments/: a test that persisted its deployment would
+				// be reused by the next run against a different chain, making the suite
+				// depend on whatever was last deployed on this machine.
+				saveDeployments: false,
 				config: {scripts: [...testScripts]},
 			});
 

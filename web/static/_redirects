@@ -1,0 +1,10 @@
+# SPA fallback for dynamic routes on unique origin IPFS gateways
+# Rewrites /explorer/tx/<hash> to the static page that can read the path
+# For path-based IPFS, use hash-based URLs: /explorer/tx/#<hash>
+/explorer/address/* /explorer/address/index.html 200
+/explorer/tx/* /explorer/tx/index.html 200
+
+# Custom 404 page for unknown routes
+# This is evaluated only when the path doesn't exist in the DAG
+# and no previous rules matched
+/* /404.html 404

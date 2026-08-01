@@ -1,5 +1,17 @@
 {
-  "singleQuote": true,
-  "bracketSpacing": false,
-  "printWidth": 120
+	"useTabs": true,
+	"singleQuote": true,
+	"bracketSpacing": false,
+	"printWidth": 80,
+	"plugins": ["prettier-plugin-svelte", "prettier-plugin-tailwindcss"],
+	"tailwindStylesheet": "./src/app.css",
+	"tailwindFunctions": ["clsx"],
+	"overrides": [
+		{
+			"files": "*.svelte",
+			"options": {
+				"parser": "svelte"
+			}
+		}
+	]
 }
