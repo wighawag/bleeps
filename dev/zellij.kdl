@@ -1,3 +1,12 @@
+// `pnpm start` compiles once before this layout opens. `hardhat node` reads
+// artifacts/build-info to build its contract decoder, and `compile:watch` writes
+// those files as it starts; both panes launch at the same moment, so without
+// that up-front compile the node can read a half-written build-info and die with
+//
+//   Error: Failed to parse build info: missing field `contracts`
+//
+// With artifacts already complete, compile:watch's first run is a cache hit that
+// writes nothing, and the node reads a consistent tree.
 layout {
 	pane split_direction="vertical" {
 		

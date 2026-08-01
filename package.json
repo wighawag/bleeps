@@ -80,8 +80,9 @@
 		"zellij-remote-chain": "cross-var zellij-launcher a $npm_package_name-remote-chain-$MODE || cross-var zellij -n dev/zellij-remote-chain.kdl -s $npm_package_name-remote-chain-$MODE",
 		"remote-chain": "ldenv -d localhost pnpm run zellij-remote-chain @@",
 		"---------------------- RUN FULL LOCAL SETUP ----------------------": "",
-		"zellij": "cross-var zellij-launcher a $npm_package_name || cross-var ldenv -d localhost zellij -n dev/zellij.kdl -s $npm_package_name",
+		"zellij": "cross-var zellij-launcher a $npm_package_name || (pnpm contracts:compile && cross-var ldenv -d localhost zellij -n dev/zellij.kdl -s $npm_package_name)",
 		"stop": "cross-var zellij kill-session $npm_package_name",
-		"start": "pnpm zellij"
+		"start": "pnpm zellij",
+		"contracts:compile:clean": "pnpm --filter ./contracts exec rm -rf artifacts cache && pnpm contracts:compile"
 	}
 }
