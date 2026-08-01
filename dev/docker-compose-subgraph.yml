@@ -1,9 +1,19 @@
-version: '3'
+# graph-node and its dependencies, for indexing the local dev chain.
+#
+# Start with `pnpm externals`, tear down with `pnpm externals:down`. The
+# subgraph is deployed into it by `pnpm subgraph:deploy:local:watch`.
+#
+# The network is called `localhost`, which must match the name generate.cjs
+# derives for chain 31337; a mismatch shows up as a subgraph that deploys and
+# then indexes nothing.
+#
+# It points at port 8546, the hardhat node itself, NOT 8545 where purgatory sits
+# in front of it. Purgatory deliberately delays inclusion so the app can be
+# tested against realistic confirmation behaviour, which is not something an
+# indexer should be looking at.
 services:
   graph-node:
-    image: graphprotocol/graph-node:fraction
-    extra_hosts:
-      - 'host.docker.internal:host-gateway'
+    image: graphprotocol/graph-node
     ports:
       - '8000:8000'
       - '8001:8001'
@@ -13,55 +23,45 @@ services:
     depends_on:
       - ipfs
       - postgres
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
     environment:
       postgres_host: postgres
-      postgres_user: dbowner
+      postgres_user: graph-node
       postgres_pass: let-me-in
       postgres_db: graph-node
       ipfs: 'ipfs:5001'
-      ethereum: 'mainnet:http://host.docker.internal:8545'
-      # RUST_LOG: trace
-      # RUST_BACKTRACE: full
+      ethereum: 'localhost:http://host.docker.internal:8546'
+      GRAPH_LOG: info
 
   ipfs:
-    image: ipfs/go-ipfs:v0.4.23
+    image: ipfs/kubo:v0.17.0
     ports:
       - '5001:5001'
-    environment:
-      IPFS_PATH: /tmp
+    volumes:
+      - ipfs-data:/data/ipfs
+    command:
+      ['--offline', 'daemon', '--migrate=true', '--agent-version-suffix=docker']
 
   postgres:
-    image: postgres:9.6.17
+    image: postgres:14
     ports:
       - '5432:5432'
-    command: ['postgres', '-cshared_preload_libraries=pg_stat_statements', '-cmax_connections=200']
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready']
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    volumes:
-      - ./docker-data:/docker-entrypoint-initdb.d
+    command:
+      [
+        'postgres',
+        '-cshared_preload_libraries=pg_stat_statements',
+        '-cmax_connections=200',
+      ]
     environment:
-      - POSTGRES_MULTIPLE_DATABASES="graph-node","explorer"
-      - POSTGRES_USER=dbowner
-      - POSTGRES_PASSWORD=let-me-in
-      - PGDATA=/tmp
+      POSTGRES_USER: graph-node
+      POSTGRES_PASSWORD: let-me-in
+      POSTGRES_DB: graph-node
+      PGDATA: '/var/lib/postgresql/data'
+      POSTGRES_INITDB_ARGS: '-E UTF8 --locale=C'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
 
-  # Disabled because blockscout keep calling tokenURI which slow the hardhat node to death (because of bleeps tokenURI)
-  # blockscout:
-  #   image: wighawag/blockscout:v0.0.1
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #   ports:
-  #     - '4000:4000'
-  #   extra_hosts:
-  #     - host.docker.internal:host-gateway
-  #   environment:
-  #     ETHEREUM_JSONRPC_HTTP_URL: http://host.docker.internal:8545
-  #     ETHEREUM_JSONRPC_TRACE_URL: http://host.docker.internal:8545
-  #     #ETHEREUM_JSONRPC_WS_URL: ws://host.docker.internal:8545
-  #     ETHEREUM_JSONRPC_VARIANT: ganache
-  #     DATABASE_URL: postgresql://dbowner:let-me-in@postgres:5432/explorer?ssl=false
-  #   entrypoint: '/bin/sh -c "mix do ecto.create, ecto.migrate; mix phx.server"'
+volumes:
+  ipfs-data:
+  postgres-data:

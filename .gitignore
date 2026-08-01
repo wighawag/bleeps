@@ -4,8 +4,9 @@
 # node modules
 node_modules/
 
-.vscode/*
-!.vscode/*.default
+# generated from the *.default files by `set-defaults`
+**/.vscode/*
+!**/.vscode/*.default
 
 tmp/
 

@@ -1,4 +1,4 @@
-specVersion: 0.0.3
+specVersion: 0.0.4
 description: Bleeps
 schema:
   file: ./schema.graphql
@@ -13,7 +13,7 @@ dataSources:
       startBlock: {{contracts.Bleeps.receipt.blockNumber}}
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - Account
@@ -37,7 +37,7 @@ dataSources:
       startBlock: {{contracts.MeloBleeps.receipt.blockNumber}}
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - Account
@@ -68,7 +68,7 @@ dataSources:
       startBlock: {{contracts.MeloBleepsAuctions.receipt.blockNumber}}
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - Account
