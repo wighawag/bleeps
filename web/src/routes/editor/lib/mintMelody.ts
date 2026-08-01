@@ -8,7 +8,11 @@ import {
 	txErrorSummary,
 } from '$lib/core/transaction/tx-error-summary';
 import type {Context} from '$lib/context/types';
-import {encodeMelodyToChainData, type MelodyInfo} from '$lib/melodies/melody';
+import {
+	encodeMelodyToChainData,
+	melodyNameProblem,
+	type MelodyInfo,
+} from '$lib/melodies/melody';
 
 export type MintMelodyResult =
 	| {status: 'submitted'}
@@ -42,6 +46,15 @@ export async function mintMelody(
 	const {connection, executor, deployments, balanceCheck} = deps;
 
 	const name = melody.name.trim();
+
+	const nameProblem = melodyNameProblem(name);
+	if (nameProblem) {
+		return {
+			status: 'error',
+			message: 'That name cannot be minted',
+			details: nameProblem,
+		};
+	}
 
 	// A melody with nothing audible in it would mint a silent token, and the name
 	// it claims is then taken for good (`NAME_ALREADY_TAKEN` is permanent).

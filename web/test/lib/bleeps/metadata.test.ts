@@ -39,3 +39,24 @@ describe('parseTokenURI', () => {
 		expect(() => parseTokenURI('')).toThrow();
 	});
 });
+
+describe('parseTokenURI, against what the contracts really emit', () => {
+	// Bleeps percent-encodes; MeloBleeps does not and embeds an SVG with a bare
+	// `%`, so a whole-payload decodeURIComponent throws on it. Both must work.
+	it('decodes a Bleeps name', () => {
+		const parsed = parseTokenURI(
+			uri('{"name":"NOISE%20D2","image":"i","animation_url":"a"}'),
+		);
+		expect(parsed.name).toEqual('NOISE D2');
+	});
+
+	it('leaves a MeloBleeps name alone, SVG percent and all', () => {
+		const svg = "data:image/svg+xml,<svg><text x='50%' y='50%'>hi</text></svg>";
+		const parsed = parseTokenURI(
+			uri(`{"name":"two words","image":"${svg}","animation_url":"a"}`),
+		);
+		// would have thrown if the whole payload were decoded
+		expect(parsed.name).toEqual('two words');
+		expect(parsed.image).toEqual(svg);
+	});
+});

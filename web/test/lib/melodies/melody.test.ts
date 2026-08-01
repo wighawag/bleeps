@@ -7,6 +7,7 @@ import {
 	emptyMelody,
 	encodeMelodyToChainData,
 	encodeMelodyToString,
+	melodyNameProblem,
 	type MelodyInfo,
 	type Slot,
 } from '$lib/melodies/melody';
@@ -157,5 +158,21 @@ describe('share links', () => {
 
 	it('refuses something that is not a melody string', () => {
 		expect(() => decodeMelodyFromString('nope')).toThrow();
+	});
+});
+
+describe('melodyNameProblem', () => {
+	it('allows ordinary names', () => {
+		expect(melodyNameProblem('plain')).toBeUndefined();
+		expect(melodyNameProblem('two words')).toBeUndefined();
+		expect(melodyNameProblem("it's fine!? (really)")).toBeUndefined();
+	});
+
+	it('rejects what would break the contract-built JSON', () => {
+		// MeloBleepsTokenURI splices the name in unescaped, so these produce
+		// metadata nothing can parse, permanently
+		expect(melodyNameProblem('quote"inside')).toBeDefined();
+		expect(melodyNameProblem('back\\slash')).toBeDefined();
+		expect(melodyNameProblem('new\nline')).toBeDefined();
 	});
 });

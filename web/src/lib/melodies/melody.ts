@@ -23,6 +23,31 @@ export const DEFAULT_SPEED = 16;
 
 const SILENCE: Slot = {volume: 0, note: 0, instrument: 0};
 
+/**
+ * Characters a melody name may not contain.
+ *
+ * MeloBleepsTokenURI splices the name straight into its JSON with no escaping:
+ *
+ *     'data:application/json,{"name":"', bytes(name), '","description":...'
+ *
+ * so a name containing a double quote or a backslash produces metadata that no
+ * parser can read, and a control character produces invalid JSON too. Minting is
+ * irreversible and the name is claimed for good, so this is checked before the
+ * transaction rather than discovered afterwards.
+ *
+ * This is a contract limitation, not a display one. The pre-template editor
+ * offered `"` in its on-screen keyboard, so the hazard is not new.
+ */
+// eslint-disable-next-line no-control-regex
+const UNSAFE_IN_NAME = /["\\\u0000-\u001f\u007f]/;
+
+export function melodyNameProblem(name: string): string | undefined {
+	if (UNSAFE_IN_NAME.test(name)) {
+		return 'A melody name cannot contain a double quote, a backslash or a control character: the contract would produce metadata nothing can read.';
+	}
+	return undefined;
+}
+
 export function emptyMelody(): MelodyInfo {
 	return {
 		name: 'untitled',
