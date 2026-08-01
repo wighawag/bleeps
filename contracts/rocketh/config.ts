@@ -45,13 +45,13 @@ export const productionScripts = [
 ];
 
 /**
- * What the contract tests deploy: the production graph plus the dev mocks, but
- * WITHOUT the seeding in `003_dev`.
+ * What most contract tests deploy: the production graph plus the dev mocks, and
+ * neither the sale nor the seeding.
  *
- * The tests need an unminted Bleeps contract, because what most of them are
- * about is minting, transferring and voting from a known starting point. Seed
- * data would not make them more realistic, it would just take the starting
- * point away.
+ * The tests need an unminted Bleeps contract with the minter role still
+ * available, because what most of them are about is minting, transferring and
+ * voting from a known starting point. Seed data would not make them more
+ * realistic, it would take the starting point away.
  */
 export const testScripts = [
 	'deploy/000_externals',
@@ -60,11 +60,26 @@ export const testScripts = [
 	'deploy/006_melobleeps',
 ];
 
+/**
+ * For the sale tests: a deployed sale with nothing bought yet.
+ *
+ * Kept separate from `devScripts` so the sale tests see a virgin sale, with
+ * every pass unused and every Bleep still available.
+ */
+export const saleTestScripts = [
+	'deploy/000_externals',
+	'deploy/001_bleeps',
+	'deploy/002_bleepsdao',
+	'deploy/003_dev_sale',
+	'deploy/006_melobleeps',
+];
+
 export const devScripts = [
 	'deploy/000_externals',
 	'deploy/001_bleeps',
 	'deploy/002_bleepsdao',
-	'deploy/003_dev',
+	'deploy/003_dev_sale',
+	'deploy/004_dev_seed',
 	'deploy/006_melobleeps',
 ];
 
@@ -192,9 +207,9 @@ export const config = {
 				autoMine: true,
 			},
 		},
-		// Sepolia. Bleeps are sold out on mainnet, so `demo` reproduces the sale
-		// and the resulting distribution in order to keep the full experience
-		// reachable. See docs/adr/0001-dev-only-sale-and-distribution.md.
+		// Sepolia. Bleeps are sold out on mainnet, so `demo` runs the sale itself
+		// in order to keep the full experience reachable. See
+		// docs/adr/0001-dev-only-sale-and-distribution.md.
 		demo: {
 			chain: 11155111,
 			scripts: devScripts,

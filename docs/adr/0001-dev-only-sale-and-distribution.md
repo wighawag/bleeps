@@ -14,15 +14,18 @@ The previous arrangement expressed this through hardhat-deploy v1's per-network 
 
 ## Decision
 
-The sale contracts stay in `src/`, compiled and available, but no deploy script deploys one.
+The sale contracts stay in `src/`, and a sale IS deployed, but only where the deploy script list says so.
 
-Which scripts run where is declared in `rocketh/config.ts` as three named lists, and the environment picks one:
+Which scripts run where is declared in `rocketh/config.ts` as four named lists, and the environment picks one:
 
-- `productionScripts`: Bleeps, the DAO, MeloBleeps. This is also the TOP-LEVEL default, so an environment nobody configured gets the safe list rather than the dev one.
-- `devScripts`: the above plus `000_externals` (the WETH and OpenSea proxy mocks) and `003_dev`. Used by `localhost` and by `demo` (Sepolia).
-- `testScripts`: `devScripts` without `003_dev`, because the tests need an unminted contract to mint from.
+- `productionScripts`: Bleeps, the DAO, MeloBleeps. This is also the TOP-LEVEL default, so an environment nobody configured gets the safe list rather than a dev one. No sale.
+- `devScripts`: the above plus `000_externals` (the WETH and OpenSea proxy mocks), `003_dev_sale` and `004_dev_seed`. Used by `localhost` and by `demo` (Sepolia).
+- `saleTestScripts`: the sale, deployed but untouched, for the sale tests.
+- `testScripts`: no sale and no seeding, because most tests need an unminted contract with the minter role still free.
 
-`003_dev` does not simulate the sale. It reproduces its OUTCOME: it mints all 576 Bleeps to the dev accounts and puts 33 ETH in the treasury, which is the state mainnet is actually in. The first two unnamed accounts are deliberately left with nothing, so the "you own no Bleeps" paths stay reachable.
+Crucially the dev chain reaches its state THROUGH the sale rather than by minting into place. `004_dev_seed` has the creator take the two reserved instruments (7 and 8, 128 Bleeps, via `creatorMultiMint`), then buys about fifty more by actually redeeming passes. So the DAO treasury holds real proceeds, the creator holds its real 25%, the pass bitmask has genuinely spent passes in it, and roughly 398 Bleeps are left purchasable so the buying flow is still reachable after the deploy. Half the transferable passes are left unredeemed for the same reason.
+
+The pass keys are DERIVED, not random: `devSalePassPrivateKey(i) = keccak256(encodePacked('bleeps dev sale pass', i))`. They are therefore public, which is fine and in fact wanted for a dev replay, and it means the sale is reproducible from the repository alone. The original script generated random keys and persisted them to a dotfile beside the deployment, so a sale could not be rebuilt without that file. This must never be used for a real sale.
 
 ## Consequences
 
@@ -30,6 +33,8 @@ Forgetting a flag cannot deploy a sale contract to a live chain; you would have 
 
 `demo` on Sepolia counts as dev. It gets the mocks and the seeded distribution, which is what makes it a demo.
 
-There is currently no test coverage of the sale contracts. `test/.Bleeps.sale.test.ts` had already been disabled (by renaming it to a dotfile) in commit 357cb96, when the sale deploy script was removed; it depended on a `BleepsInitialSale` deployment carrying the pass leaves and private keys in its `linkedData`, and no such deployment is produced any more. It has been deleted rather than left looking runnable.
+The sale went from no coverage to eleven tests. `test/.Bleeps.sale.test.ts` had been disabled (renamed to a dotfile) in commit 357cb96 when the sale deploy script was removed, and had a single test that only checked one happy path. The replacement covers both pass mechanisms, pass reuse, presenting somebody else's pass, the signature being bound to its recipient rather than its sender, the 25/75 split with nothing stranded in the sale contract, over- and underpayment, the reserved instruments, and the transition to the passless public phase.
 
-Restoring a playable sale on dev, which is wanted, therefore means writing a new dev-only deploy script that generates the pass keys, builds the merkle tree, deploys `BleepsFixedPriceSale` and appoints it minter, and porting the test alongside it. That is a separate piece of work, not covered here.
+Because the sale holds the minter role on a dev chain, nothing else can mint there. That is why `testScripts` exists: the other tests appoint themselves minter, which would fight with a deployed sale.
+
+The old `003_dev` scripts are gone. Minting all 576 Bleeps directly and transferring a round 33 ETH to the treasury is strictly worse than running the sale: it left nothing to buy, and the treasury figure was invented.

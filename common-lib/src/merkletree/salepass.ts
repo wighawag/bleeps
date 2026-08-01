@@ -11,11 +11,10 @@ import type {Hash} from './index.js';
  */
 export type SalePassLeaf = {passId: string; signer: `0x${string}`};
 
-export function calculateHash(
-	passId: string,
-	signer: `0x${string}`,
-): Hash {
-	return keccak256(encodePacked(['uint256', 'address'], [BigInt(passId), signer]));
+export function calculateHash(passId: string, signer: `0x${string}`): Hash {
+	return keccak256(
+		encodePacked(['uint256', 'address'], [BigInt(passId), signer]),
+	);
 }
 
 export function hashLeaves(data: SalePassLeaf[]): Hash[] {
@@ -39,6 +38,27 @@ export function createLeavesFromMandalaOwners(
 	}
 
 	return leaves;
+}
+
+/**
+ * The private key behind dev sale pass number `index`.
+ *
+ * DERIVED, NOT RANDOM, AND THEREFORE PUBLIC. Anybody who can read this file can
+ * compute every dev pass. That is the point: the mainnet sale is over, and on a
+ * dev chain a pass is a thing you want to be able to regenerate at will rather
+ * than a secret to look after. The original script generated random keys and
+ * persisted them to a dotfile next to the deployment, which meant the sale could
+ * not be reproduced from the repository alone.
+ *
+ * Never use this for a real sale. A real sale needs keys nobody else can derive.
+ */
+export function devSalePassPrivateKey(index: number): `0x${string}` {
+	return keccak256(
+		encodePacked(
+			['string', 'uint256'],
+			['bleeps dev sale pass', BigInt(index)],
+		),
+	);
 }
 
 export function createLeavesFromPrivateKeys(

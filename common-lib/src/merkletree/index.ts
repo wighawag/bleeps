@@ -44,7 +44,9 @@ export class MerkleTree {
 	/** Sorts nodes by hash, ascending, without mutating the input. */
 	sort(arrayToSort: Node[]): Node[] {
 		const sortedArray = [...arrayToSort];
-		return sortedArray.sort((a, b) => (BigInt(a.hash) > BigInt(b.hash) ? 1 : -1));
+		return sortedArray.sort((a, b) =>
+			BigInt(a.hash) > BigInt(b.hash) ? 1 : -1,
+		);
 	}
 
 	/** Builds the leaves of the tree, as an even and sorted array. */
