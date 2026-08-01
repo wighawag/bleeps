@@ -74,6 +74,9 @@
 }
 
 @theme inline {
+	/* The Bleeps accent, carried over from the pre-template site (tailwind
+	   config `colors.bleeps`). Used for the words the copy emphasises. */
+	--color-bleeps: #dab894;
 	--radius-sm: calc(var(--radius) - 4px);
 	--radius-md: calc(var(--radius) - 2px);
 	--radius-lg: var(--radius);

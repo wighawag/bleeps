@@ -30,8 +30,23 @@ The index is authoritative for what exists but always lags. A melody just minted
 
 Filtering is by `owner` and `creator` only. Anything richer belongs in the new indexer rather than being bolted onto this one.
 
-## Not verified
+## Not verified, and why
 
 The live round trip is NOT confirmed. The adapter has unit tests against recorded response shapes, and `pnpm subgraph:deploy:local` builds, uploads to IPFS and is accepted by graph-node, but graph-node never indexed a block, so no query has ever returned a real melody.
 
-The cause is that the dev chain is not reachable from the container: graph-node logs `Connection refused` for `http://host.docker.internal:8546`, and `ss` shows hardhat listening on `127.0.0.1:8546`. `hardhat node --hostname 0.0.0.0` is documented and accepted but the socket still binds loopback, so `contracts/package.json`'s `node:local` now passes it and it appears not to take effect. That needs to be run down before the melody list can be trusted, and it is a prerequisite for `pnpm start` to work as a whole, since the zellij layout starts both.
+graph-node logs `Connection refused` for `http://host.docker.internal:8546`. Two separate things caused that, and an earlier version of this ADR blamed the wrong one.
+
+First, the dev node bound loopback. `node:local` now passes `--hostname 0.0.0.0`, and that works: `ss` confirms `LISTEN 0.0.0.0:8546`. An earlier note here claimed the flag had no effect; that was a bad test, in which a second node crashed on stale build info while the first still held the port, so `ss` was reporting the original process. The flag is fine.
+
+Second, and this is the actual blocker, **the host has IPv4 forwarding disabled**:
+
+```
+$ sysctl net.ipv4.ip_forward
+net.ipv4.ip_forward = 0
+```
+
+so no container can route to the host gateway at all. Any container gets `WARNING: IPv4 forwarding is disabled. Networking will not work.` Host to container works, which is why `subgraph_create` and `subgraph_deploy` are accepted, but container to host does not, so graph-node can never read the chain.
+
+This is machine configuration, not repository configuration. Enabling it (`sudo sysctl -w net.ipv4.ip_forward=1`, and persisting it in `/etc/sysctl.d/`) is a decision for whoever owns the machine, so nothing here tries to work around it.
+
+Once forwarding is on, the remaining `ECONNRESET` seen by the deploy CLI should be re-checked before being treated as a separate problem: graph-node was thrashing on an unreachable chain throughout, and the CLI retry loop that produced repeated `subgraph_create` / `subgraph_deploy` pairs is consistent with that.

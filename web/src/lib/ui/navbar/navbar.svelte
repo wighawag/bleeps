@@ -131,6 +131,14 @@
 				Bleeps
 			</a>
 			<a
+				href={route('/about/')}
+				class="rounded px-2 py-1 text-sm transition-colors {isActive('/about')
+					? 'bg-primary/20 font-semibold text-primary'
+					: 'text-muted-foreground hover:text-foreground hover:underline'}"
+			>
+				About
+			</a>
+			<a
 				href={route('/melodies/')}
 				class="rounded px-2 py-1 text-sm transition-colors {isActive(
 					'/melodies',

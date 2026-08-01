@@ -1,49 +1,141 @@
 <script lang="ts">
-	import {route, getAppContext} from '$lib';
+	import DefaultHead from '$lib/metadata/DefaultHead.svelte';
+	import {getAppContext, route} from '$lib';
 	import {url} from '$lib/core/utils/web/path';
-	import Button from '$lib/shadcn/ui/button/button.svelte';
-	import DefaultHead from '../lib/metadata/DefaultHead.svelte';
-	import {name} from '../web-config.json';
+	import {Button} from '$lib/shadcn/ui/button';
 	import {NUM_BLEEPS} from '$lib/onchain/state';
-	import {formatBalance} from '$lib/core/utils/format/balance';
+
+	// Content, wording and graphics are the pre-template site's. Only the
+	// plumbing moved.
+	const name = 'Bleeps and The Bleeps DAO';
 
 	const {viewState} = getAppContext();
+
+	// The old site hard-coded `soldout = chainName === 'mainnet'` to avoid a
+	// fetch. The owners table is already in memory here, so it can just be true.
+	const allMinted = $derived(
+		$viewState.step === 'Loaded' && $viewState.bleeps.minted >= NUM_BLEEPS,
+	);
 </script>
 
 <DefaultHead />
 
-<div class="container mx-auto max-w-6xl px-4 py-12">
-	<div class="mb-16 flex flex-col items-center text-center">
+<section class="px-4 text-center">
+	<div class="mx-auto">
 		<img
-			src={url('/icon.svg')}
+			class="mx-auto mb-4"
+			src={url('/images/logo.svg')}
 			alt={name}
-			class="mb-8 h-48 w-48 drop-shadow-lg"
+			style="width:256px;height:256px;"
+			width="256px"
+			height="256px"
 		/>
-		<h1 class="mb-4 text-5xl font-bold tracking-tight text-primary md:text-6xl">
-			{name}
-		</h1>
-		<p class="mb-6 text-xl text-muted-foreground">
-			{NUM_BLEEPS} sounds, generated on chain, owned by their holders.
-		</p>
-		<p class="mb-8 max-w-2xl text-lg">
-			Every Bleep is a note on one of nine instruments, synthesised in Solidity
-			and rendered as sound by the contract itself. Compose them into melodies.
-		</p>
 
-		{#if $viewState.step === 'Loaded'}
-			<p class="mb-8 text-sm text-muted-foreground">
-				{$viewState.bleeps.minted} of {NUM_BLEEPS} minted, and the DAO holds
-				{formatBalance($viewState.bleeps.treasury)} ETH.
-			</p>
-		{/if}
-
-		<div class="mb-8 flex flex-wrap justify-center gap-4">
-			<Button
-				href={route('/editor/')}
-				size="lg"
-				class="min-w-40 bg-linear-to-r from-pink-600 via-pink-500 to-rose-500 font-semibold text-white shadow-lg transition-all duration-300 hover:from-pink-700 hover:via-pink-600 hover:to-rose-600 hover:shadow-xl"
-				>Compose a melody</Button
-			>
+		<div class="mb-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+			<div>
+				<div>
+					<img
+						src={url('/images/bleeps/Bleep.png')}
+						alt="Bleeps"
+						class="mx-auto w-24"
+					/>
+				</div>
+				<div class="mt-6">
+					<h3 class="text-lg font-black text-white">
+						Mint <span class="text-bleeps">Bleeps</span>
+					</h3>
+				</div>
+			</div>
+			<div>
+				<div>
+					<img
+						src={url('/images/bleeps/Bleeper.png')}
+						alt="Bleeper"
+						class="mx-auto w-24"
+					/>
+				</div>
+				<div class="mt-6">
+					<h3 class="text-lg font-black text-white">
+						Become a <span class="text-bleeps">Bleeper</span>
+					</h3>
+				</div>
+			</div>
+			<div>
+				<div>
+					<img
+						src={url('/images/bleeps/Royalties.png')}
+						alt="Royalties"
+						class="mx-auto w-24"
+					/>
+				</div>
+				<div class="mt-6">
+					<h3 class="text-lg font-black text-white">
+						Earn <span class="text-bleeps">Royalties</span>
+					</h3>
+				</div>
+			</div>
+			<div>
+				<div>
+					<img
+						src={url('/images/bleeps/DAO.png')}
+						alt="BleepsDAO"
+						class="mx-auto w-24"
+					/>
+				</div>
+				<div class="mt-6">
+					<h3 class="text-lg font-black text-white">
+						Join The <span class="text-bleeps">Bleeps DAO</span>
+					</h3>
+				</div>
+			</div>
 		</div>
 	</div>
+</section>
+
+<div class="mx-auto w-full text-center font-black">
+	{#if allMinted}
+		<div class="mx-auto h-12 w-80 border-4 border-white pt-2 sm:w-96">
+			<span class="text-bleeps">Sold Out</span>
+		</div>
+		<a
+			href="https://opensea.io/collection/bleeps"
+			class="mt-4 inline-block underline">Check on Opensea</a
+		>
+	{/if}
+
+	<Button href={route('/bleeps/')} class="mx-auto mt-4 block w-64 font-black">
+		{allMinted ? 'Bleeps' : 'Bleeps Sale'}
+	</Button>
+
+	<a class="m-8 block text-bleeps underline" href={route('/about/')}
+		>Learn More</a
+	>
+	<p class="mx-8 mt-8">And feel free to join our Discord server!</p>
+	<a
+		href="https://discord.com/invite/DRtq7xBdtn"
+		target="_blank"
+		aria-label="Bleeps on Discord"
+		class="discord mx-auto block w-min"
+	>
+		<svg
+			class="block h-10 w-26"
+			xmlns="http://www.w3.org/2000/svg"
+			fill="currentColor"
+			viewBox="0 0 800 272.1"
+			><path
+				class="st0"
+				d="M142.8 120.1c-5.7 0-10.2 4.9-10.2 11s4.6 11 10.2 11c5.7 0 10.2-4.9 10.2-11s-4.6-11-10.2-11zM106.3 120.1c-5.7 0-10.2 4.9-10.2 11s4.6 11 10.2 11c5.7 0 10.2-4.9 10.2-11 .1-6.1-4.5-11-10.2-11z"
+			/><path
+				class="st0"
+				d="M191.4 36.9h-134c-11.3 0-20.5 9.2-20.5 20.5v134c0 11.3 9.2 20.5 20.5 20.5h113.4l-5.3-18.3 12.8 11.8 12.1 11.1 21.6 18.7V57.4c-.1-11.3-9.3-20.5-20.6-20.5zm-38.6 129.5s-3.6-4.3-6.6-8c13.1-3.7 18.1-11.8 18.1-11.8-4.1 2.7-8 4.6-11.5 5.9-5 2.1-9.8 3.4-14.5 4.3-9.6 1.8-18.4 1.3-25.9-.1-5.7-1.1-10.6-2.6-14.7-4.3-2.3-.9-4.8-2-7.3-3.4-.3-.2-.6-.3-.9-.5-.2-.1-.3-.2-.4-.2-1.8-1-2.8-1.7-2.8-1.7s4.8 7.9 17.5 11.7c-3 3.8-6.7 8.2-6.7 8.2-22.1-.7-30.5-15.1-30.5-15.1 0-31.9 14.4-57.8 14.4-57.8 14.4-10.7 28-10.4 28-10.4l1 1.2c-18 5.1-26.2 13-26.2 13s2.2-1.2 5.9-2.8c10.7-4.7 19.2-5.9 22.7-6.3.6-.1 1.1-.2 1.7-.2 6.1-.8 13-1 20.2-.2 9.5 1.1 19.7 3.9 30.1 9.5 0 0-7.9-7.5-24.9-12.6l1.4-1.6s13.7-.3 28 10.4c0 0 14.4 25.9 14.4 57.8 0-.1-8.4 14.3-30.5 15zM303.8 79.7h-33.2V117l22.1 19.9v-36.2h11.8c7.5 0 11.2 3.6 11.2 9.4v27.7c0 5.8-3.5 9.7-11.2 9.7h-34v21.1h33.2c17.8.1 34.5-8.8 34.5-29.2v-29.8c.1-20.8-16.6-29.9-34.4-29.9zm174 59.7v-30.6c0-11 19.8-13.5 25.8-2.5l18.3-7.4c-7.2-15.8-20.3-20.4-31.2-20.4-17.8 0-35.4 10.3-35.4 30.3v30.6c0 20.2 17.6 30.3 35 30.3 11.2 0 24.6-5.5 32-19.9l-19.6-9c-4.8 12.3-24.9 9.3-24.9-1.4zM417.3 113c-6.9-1.5-11.5-4-11.8-8.3.4-10.3 16.3-10.7 25.6-.8l14.7-11.3c-9.2-11.2-19.6-14.2-30.3-14.2-16.3 0-32.1 9.2-32.1 26.6 0 16.9 13 26 27.3 28.2 7.3 1 15.4 3.9 15.2 8.9-.6 9.5-20.2 9-29.1-1.8l-14.2 13.3c8.3 10.7 19.6 16.1 30.2 16.1 16.3 0 34.4-9.4 35.1-26.6 1-21.7-14.8-27.2-30.6-30.1zm-67 55.5h22.4V79.7h-22.4v88.8zM728 79.7h-33.2V117l22.1 19.9v-36.2h11.8c7.5 0 11.2 3.6 11.2 9.4v27.7c0 5.8-3.5 9.7-11.2 9.7h-34v21.1H728c17.8.1 34.5-8.8 34.5-29.2v-29.8c0-20.8-16.7-29.9-34.5-29.9zm-162.9-1.2c-18.4 0-36.7 10-36.7 30.5v30.3c0 20.3 18.4 30.5 36.9 30.5 18.4 0 36.7-10.2 36.7-30.5V109c0-20.4-18.5-30.5-36.9-30.5zm14.4 60.8c0 6.4-7.2 9.7-14.3 9.7-7.2 0-14.4-3.1-14.4-9.7V109c0-6.5 7-10 14-10 7.3 0 14.7 3.1 14.7 10v30.3zM682.4 109c-.5-20.8-14.7-29.2-33-29.2h-35.5v88.8h22.7v-28.2h4l20.6 28.2h28L665 138.1c10.7-3.4 17.4-12.7 17.4-29.1zm-32.6 12h-13.2v-20.3h13.2c14.1 0 14.1 20.3 0 20.3z"
+			/></svg
+		>
+	</a>
+
+	<p class="m-8 text-green-400">
+		You can also checkout the <a
+			class="underline"
+			href="https://demo.bleeps.art/create/">Melodies Demo</a
+		>
+	</p>
 </div>
