@@ -8,6 +8,7 @@
 	import Share2Icon from '@lucide/svelte/icons/share-2';
 	import {toast} from 'svelte-sonner';
 	import {getAppContext} from '$lib';
+	import MusicIcon from '@lucide/svelte/icons/music';
 	import MelodyCanvas from '$lib/melodies/MelodyCanvas.svelte';
 	import {
 		DEFAULT_SPEED,
@@ -18,8 +19,11 @@
 	import {createMelodyEditor} from '$lib/melodies/melody-editor';
 	import {createMelodyPreview} from './lib/preview';
 	import {melodyFromHash} from './lib/share-link';
+	import {mintMelody} from './lib/mintMelody';
 
-	const {publicClient, deployments, account} = getAppContext();
+	const context = getAppContext();
+	const {publicClient, deployments, account, accountCannotSend, errorDetails} =
+		context;
 	const currentDeployments = deployments.get();
 
 	const melody = writable(emptyMelody());
@@ -66,6 +70,37 @@
 	// Shown under the name on the canvas, so a composer can see whose melody it
 	// will be. Undefined until a wallet is connected.
 	const creator = $derived($account);
+
+	let isMinting = $state(false);
+
+	async function mint() {
+		if (isMinting) {
+			return;
+		}
+		isMinting = true;
+		try {
+			const result = await mintMelody(context, $melody);
+			if (result.status === 'submitted') {
+				toast.success('Melody submitted', {
+					description: 'It will appear once the transaction is mined.',
+				});
+			} else if (result.status === 'cannot-send') {
+				accountCannotSend.show();
+			} else if (result.status === 'error') {
+				toast.error('Could not mint', {
+					description: result.message,
+					duration: 8000,
+					closeButton: true,
+					action: {
+						label: 'Details',
+						onClick: () => errorDetails.show(result.details),
+					},
+				});
+			}
+		} finally {
+			isMinting = false;
+		}
+	}
 </script>
 
 <DefaultHead title="Melody editor" />
@@ -115,6 +150,15 @@
 			<Button variant="outline" onclick={share}>
 				<Share2Icon class="size-4" />
 				Share
+			</Button>
+
+			<Button onclick={mint} disabled={isMinting}>
+				{#if isMinting}
+					<Spinner class="size-4" />
+				{:else}
+					<MusicIcon class="size-4" />
+				{/if}
+				Mint
 			</Button>
 		</div>
 
