@@ -1,11 +1,13 @@
-# `web` and `booking-service` are temporarily out of the workspace while they are
-# migrated onto the jolly-roger template. They are still in the tree, untouched,
-# and each is added back in the commit that migrates it. This keeps every commit
-# on this branch installable and green rather than carrying a lockfile that
-# resolves dependencies nothing can build against.
+# `web` is temporarily out of the workspace while it is migrated onto the
+# jolly-roger template. It is still in the tree, untouched, and goes back in with
+# the commit that migrates it. This keeps every commit on this branch installable
+# and green rather than carrying a lockfile that resolves dependencies nothing can
+# build against.
 packages:
   - 'contracts'
   - 'common-lib'
   - 'subgraph'
+  - 'booking-service'
 onlyBuiltDependencies:
   - esbuild
+  - workerd

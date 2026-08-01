@@ -1,5 +1,11 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-require('dotenv').config();
+/**
+ * Build src/contracts.json and wrangler.toml from a rocketh deployments folder.
+ *
+ * The service needs the sale's address and its linkedData (the pass leaves and
+ * the public-sale timestamp) to validate a booking, and none of that exists
+ * until the sale is deployed. So both files are generated, and neither is
+ * committed.
+ */
 const fs = require('fs-extra');
 const path = require('path');
 const Handlebars = require('handlebars');
@@ -8,92 +14,89 @@ const args = process.argv.slice(2);
 const pathArg = args[0];
 
 if (!pathArg) {
-  console.error(`please provide the path to contracts info, either a directory of deployemnt or a single export file`);
+	console.error(`please provide the path to a deployments directory or an export file`);
+	process.exit(1);
 }
 if (!fs.existsSync(pathArg)) {
-  console.error(`file ${pathArg} doest not exits`);
+	console.error(`${pathArg} does not exist`);
+	process.exit(1);
 }
 
-const chainNames = {
-  1: 'mainnet',
-  3: 'ropsten',
-  4: 'rinkeby',
-  5: 'goerli',
-  42: 'kovan',
-  1337: 'mainnet',
-  31337: 'mainnet',
-};
-// TODO use chain.network
+function readChainId(directory) {
+	// rocketh writes `.chain`; hardhat-deploy wrote `.chainId`.
+	const chainFile = path.join(directory, '.chain');
+	if (fs.existsSync(chainFile)) {
+		return JSON.parse(fs.readFileSync(chainFile, 'utf-8')).chainId;
+	}
+	return fs.readFileSync(path.join(directory, '.chainId'), 'utf-8').trim();
+}
 
 let networkName = 'unknown';
 let chainId = 'unknown';
+let contractsInfo;
 
 const stat = fs.statSync(pathArg);
-let contractsInfo;
 if (stat.isDirectory()) {
-  let normalizedPath = pathArg;
-  if (normalizedPath.endsWith('/')) {
-    normalizedPath = normalizedPath.slice(0, normalizedPath.length - 1);
-  }
-  networkName = normalizedPath.substring(normalizedPath.lastIndexOf('/') + 1);
+	const normalizedPath = pathArg.endsWith('/') ? pathArg.slice(0, -1) : pathArg;
+	networkName = normalizedPath.substring(normalizedPath.lastIndexOf('/') + 1);
+	chainId = readChainId(pathArg);
 
-  chainId = fs.readFileSync(path.join(pathArg, '.chainId')).toString().trim();
-  const chainName = chainNames[chainId];
-  if (!chainName) {
-    throw new Error(`chainId ${chainId} not know`);
-  }
-  contractsInfo = {
-    contracts: {},
-    chainName,
-  };
-  const files = fs.readdirSync(pathArg, {withFileTypes: true});
-  for (const file of files) {
-    if (!file.isDirectory() && file.name.substr(file.name.length - 5) === '.json' && !file.name.startsWith('.')) {
-      const contractName = file.name.substr(0, file.name.length - 5);
-      contractsInfo.contracts[contractName] = JSON.parse(fs.readFileSync(path.join(pathArg, file.name)).toString());
-    }
-  }
+	contractsInfo = {contracts: {}};
+	for (const file of fs.readdirSync(pathArg, {withFileTypes: true})) {
+		if (
+			!file.isDirectory() &&
+			file.name.endsWith('.json') &&
+			!file.name.startsWith('.') &&
+			!file.name.startsWith('old_')
+		) {
+			const contractName = file.name.slice(0, -'.json'.length);
+			contractsInfo.contracts[contractName] = JSON.parse(fs.readFileSync(path.join(pathArg, file.name), 'utf-8'));
+		}
+	}
 } else {
-  const contractsInfoFile = JSON.parse(fs.readFileSync(pathArg)).toString();
-  networkName = contractsInfoFile.name;
-  chainId = contractsInfoFile.chainId;
-  contractsInfo = {
-    contracts: contractsInfoFile.contracts,
-    chainName: chainNames[contractsInfoFile.chainId],
-  };
+	const contractsInfoFile = JSON.parse(fs.readFileSync(pathArg, 'utf-8'));
+	networkName = contractsInfoFile.name;
+	chainId = contractsInfoFile.chainId || contractsInfoFile.chain.id.toString();
+	contractsInfo = {contracts: contractsInfoFile.contracts};
+}
+
+if (!contractsInfo.contracts.BleepsInitialSale) {
+	// The service exists to coordinate purchases during the sale. Without a sale
+	// there is nothing for it to do, and src/Bookings.ts would fail at import
+	// time reading linkedData off undefined. Fail here, where the message is
+	// legible. See docs/adr/0001-dev-only-sale-and-distribution.md.
+	console.error(
+		`no BleepsInitialSale in ${pathArg}: the booking service only applies to environments that run the sale (dev ones).`,
+	);
+	process.exit(1);
 }
 
 const contracts = {};
 for (const contractName of Object.keys(contractsInfo.contracts)) {
-  const contractInfo = contractsInfo.contracts[contractName];
-  contracts[contractName] = {
-    address: contractInfo.address,
-    linkedData: contractInfo.linkedData,
-    abi: contractInfo.abi,
-  };
+	const contractInfo = contractsInfo.contracts[contractName];
+	contracts[contractName] = {
+		address: contractInfo.address,
+		linkedData: contractInfo.linkedData,
+		abi: contractInfo.abi,
+	};
 }
 
 fs.writeFileSync(
-  path.join(__dirname, 'src/contracts.json'),
-  JSON.stringify(
-    {
-      name: networkName,
-      chainId,
-      contracts,
-    },
-    null,
-    '  '
-  )
+	path.join(__dirname, 'src/contracts.json'),
+	JSON.stringify({name: networkName, chainId, contracts}, null, '  '),
 );
 
-const template = Handlebars.compile(fs.readFileSync('./templates/wrangler.toml').toString());
 const environment = networkName === 'localhost' ? 'dev' : 'production';
-const result = template({
-  devMode: 'true', // TODOenvironment === 'dev' ? 'true' : 'false',
-  networkName,
-  ETHEREUM_NODE: process.env.BOOKING_SERVICE_ETHEREUM_NODE,
-  DATA_DOG_API_KEY: process.env.DATA_DOG_API_KEY,
-  chainId,
-  environment,
-});
-fs.writeFileSync('./wrangler.toml', result);
+const template = Handlebars.compile(fs.readFileSync('./templates/wrangler.toml').toString());
+fs.writeFileSync(
+	'./wrangler.toml',
+	template({
+		networkName,
+		environment,
+		chainId,
+		ETHEREUM_NODE: process.env.BOOKING_SERVICE_ETHEREUM_NODE || 'http://127.0.0.1:8545',
+		DATA_DOG_API_KEY: process.env.DATA_DOG_API_KEY || '',
+	}),
+);
+
+console.log(`booking-service configured for ${networkName} (chain ${chainId})`);
