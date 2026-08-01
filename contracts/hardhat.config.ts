@@ -1,224 +1,125 @@
-import 'dotenv/config';
-import {HardhatUserConfig} from 'hardhat/types';
-import 'hardhat-deploy';
-import '@nomiclabs/hardhat-ethers';
-import 'hardhat-gas-reporter';
-import '@typechain/hardhat';
-import 'solidity-coverage';
-import 'hardhat-deploy-tenderly';
-import {node_url, accounts, addForkConfiguration} from './utils/network';
-const creator = '0x8350c9989ef11325b36ce6f7549004d418dbcee7';
-const initialAdmin = '0xdcA9d1FA839bB9Fe65DDC4de5161BCA43751D4B4';
+import type {HardhatUserConfig} from 'hardhat/config';
 
-const demoCreator = '0xE53cd71271AcAdbeb0f64d9c8C62bBdDc8cA9e66';
-const demoAdmin = '0x61c461EcC993aaDEB7e4b47E96d1B8cC37314B20';
+import HardhatNodeTestRunner from '@nomicfoundation/hardhat-node-test-runner';
+import HardhatViem from '@nomicfoundation/hardhat-viem';
+import HardhatNetworkHelpers from '@nomicfoundation/hardhat-network-helpers';
+import HardhatKeystore from '@nomicfoundation/hardhat-keystore';
 
-const devDeploy = [
-  'deploy/000_externals',
-  'deploy/001_bleeps',
-  'deploy/002_bleepsdao',
-  'deploy/003_dev',
-  'deploy/004_bleeps_setup',
-  'deploy/006_melobleeps',
-];
+import HardhatDeploy from 'hardhat-deploy';
+import {
+	addForkConfiguration,
+	addNetworksFromEnv,
+	addNetworksFromKnownList,
+} from 'hardhat-deploy/helpers';
 
-const productionDeploy = [
-  // 'deploy/000_externals',
-  'deploy/001_bleeps',
-  'deploy/002_bleepsdao',
-  // 'deploy/004_bleeps_setup',
-  'deploy/006_melobleeps',
-];
+// ----------------------------------------------------------------------------
+// Compiler settings.
+//
+// These reproduce the mainnet deployment exactly: solc 0.8.9, optimizer on with
+// runs=999999, evmVersion london (0.8.9's default, pinned here so a future solc
+// default cannot silently move it). `pnpm verify:bytecode` checks this against
+// the committed deployments and must stay green.
+//
+// Unlike the template, the DEFAULT profile carries the same optimizer settings
+// as production. Bleeps' runtime bytecode is 24,307 bytes against the EIP-170
+// limit of 24,576, so an unoptimised build is not merely slower, it is
+// undeployable. Keeping the profiles aligned means the dev chain deploys the
+// same code the tests and mainnet do.
+// ----------------------------------------------------------------------------
+const bleepsCompiler = {
+	version: '0.8.9',
+	settings: {
+		optimizer: {
+			enabled: true,
+			runs: 999999,
+		},
+		evmVersion: 'london',
+	},
+};
+
+// Only for src/externals/WETH9.sol, the canonical WETH source, deployed as a
+// mock on dev chains. Live chains use the canonical WETH, see deploy/utils.ts.
+const weth9Compiler = {
+	version: '0.4.19',
+	settings: {
+		optimizer: {
+			enabled: false,
+			runs: 200,
+		},
+	},
+};
+
+const compilers = [bleepsCompiler, weth9Compiler];
 
 const config: HardhatUserConfig = {
-  solidity: {
-    compilers: [
-      {
-        version: '0.8.9',
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 999999,
-          },
-        },
-      },
-      {
-        version: '0.4.19',
-        settings: {
-          optimizer: {
-            enabled: false,
-            run: 200,
-          },
-        },
-      },
-    ],
-  },
-  namedAccounts: {
-    deployer: 0,
+	plugins: [
+		HardhatNodeTestRunner,
+		HardhatViem,
+		HardhatNetworkHelpers,
+		HardhatKeystore,
+		HardhatDeploy,
+	],
+	solidity: {
+		profiles: {
+			default: {
+				compilers,
+			},
+			production: {
+				compilers,
+			},
+		},
+	},
+	networks:
+		// This adds the fork configuration for the chosen network
+		addForkConfiguration(
+			// this adds a network config for all known chains using kebab-case names
+			// Note that MNEMONIC_<network> (or MNEMONIC if the other is not set)
+			// will be used for accounts.
+			// Similarly ETH_NODE_URI_<network> will be used for rpcUrl.
+			// If you set these env variables to the value "SECRET" it will be like
+			// using configVariable('SECRET_ETH_NODE_URI_<network>').
+			addNetworksFromKnownList(
+				// this adds a network for each respective env var found
+				// (ETH_NODE_URI_<network>), reading MNEMONIC_<network> for accounts
+				addNetworksFromEnv({
+					default: {
+						type: 'edr-simulated',
+						chainType: 'l1',
+						accounts: {
+							mnemonic: process.env.MNEMONIC || undefined,
+						},
+						// Bleeps' tokenURI is a heavy on-chain renderer and the DAO
+						// tests submit large proposals.
+						blockGasLimit: 50_000_000,
+					},
 
-    // can set ENS name and withdraw ERC20 accidently sent to Bleeps contract => DAO
-    initialBleepsOwner: {
-      default: 'deployer', // right is given to the dao as part of the deployment process
-    },
-
-    // can set the tokenURI => keep on initialAdmin for a while, in case any issue arise, then DAO
-    initialBleepsTokenURIAdmin: {
-      default: 1,
-      mainnet: initialAdmin,
-      demo: demoAdmin,
-      rinkeby: demoAdmin,
-    },
-
-    // can set new minter contract => keep on initialAdmin until initial sale is over in case any issue arise, then DAO
-    initialBleepsMinterAdmin: {
-      default: 1,
-      mainnet: initialAdmin,
-      demo: demoAdmin,
-      rinkeby: demoAdmin,
-    },
-
-    // can set royalties => keep on initialAdmin for now.
-    initialBleepsRoyaltyAdmin: {
-      default: 1,
-      mainnet: initialAdmin,
-      demo: demoAdmin,
-      rinkeby: demoAdmin,
-    },
-
-    // can remove DAO rights => keep on initialAdmin for now. Revoke fully later.
-    bleepsGuardian: {
-      default: 1,
-      mainnet: initialAdmin,
-      demo: demoAdmin,
-      rinkeby: demoAdmin,
-    },
-
-    // this will be changeable by royaltyAdmin later
-    initialBleepsRoyaltyRecipient: {
-      default: 1,
-      mainnet: creator,
-      demo: demoCreator,
-      rinkeby: demoCreator,
-    },
-
-    // can disable the gas expensive checkpointing, would require a new governance mechanism  => keep on initialAdmin for now and then revoke.
-    initialCheckpointingDisabler: {
-      default: 1,
-      mainnet: initialAdmin,
-      demo: demoAdmin,
-      rinkeby: demoAdmin,
-    },
-
-    // this will receive the creator fee (25%)
-    projectCreator: {
-      default: 1,
-      mainnet: creator,
-      demo: demoCreator,
-      rinkeby: demoCreator,
-    },
-
-    // can block proposals (meant to protect the DAO in early days), will be revoked
-    daoVetoer: {
-      default: 1,
-      mainnet: initialAdmin,
-      demo: demoAdmin,
-      rinkeby: demoAdmin,
-    },
-
-    // can prevent the governance mechanism to switch to a new mechanism. To ensure Bleeps will always be the voting rights
-    // revoked when used
-    daoGuardian: {
-      default: 1,
-      mainnet: initialAdmin,
-      demo: demoAdmin,
-      rinkeby: demoAdmin,
-    },
-
-    // TODO comments:
-    initialMeloBleepsOwner: {
-      default: 1,
-      mainnet: initialAdmin,
-      demo: demoAdmin,
-      rinkeby: demoAdmin,
-    },
-    initialMeloBleepsTokenURIAdmin: {
-      default: 1,
-      mainnet: initialAdmin,
-      demo: demoAdmin,
-      rinkeby: demoAdmin,
-    },
-    initialMeloBleepsRoyaltyAdmin: 1,
-    initialMeloBleepsMinterAdmin: {
-      default: 1,
-      mainnet: initialAdmin,
-      demo: demoAdmin,
-      rinkeby: demoAdmin,
-    },
-    melobleepsGuardian: {
-      default: 1,
-      mainnet: initialAdmin,
-      demo: demoAdmin,
-      rinkeby: demoAdmin,
-    },
-  },
-  networks: addForkConfiguration({
-    hardhat: {
-      // TODO
-      blockGasLimit: 50000000,
-      initialBaseFeePerGas: 0, // to fix : https://github.com/sc-forks/solidity-coverage/issues/652, see https://github.com/sc-forks/solidity-coverage/issues/652#issuecomment-896330136
-      deploy: devDeploy,
-    },
-    localhost: {
-      url: node_url('localhost'),
-      accounts: accounts(),
-      deploy: devDeploy,
-    },
-    demo: {
-      url: node_url('sepolia'),
-      accounts: accounts('sepolia'),
-    },
-    mainnet: {
-      url: node_url('mainnet'),
-      accounts: accounts('mainnet'),
-    },
-    rinkeby: {
-      url: node_url('rinkeby'),
-      accounts: accounts('rinkeby'),
-    },
-  }),
-  paths: {
-    sources: 'src',
-    deploy: productionDeploy,
-  },
-  gasReporter: {
-    currency: 'USD',
-    gasPrice: 100,
-    enabled: process.env.REPORT_GAS ? true : false,
-    coinmarketcap: process.env.COINMARKETCAP_API_KEY,
-    maxMethodDiff: 10,
-  },
-  typechain: {
-    outDir: 'typechain',
-    target: 'ethers-v5',
-  },
-  mocha: {
-    timeout: 0,
-  },
-  external: process.env.HARDHAT_FORK
-    ? {
-        deployments: {
-          // process.env.HARDHAT_FORK will specify the network that the fork is made from.
-          // these lines allow it to fetch the deployments from the network being forked from both for node and deploy task
-          hardhat: ['deployments/' + process.env.HARDHAT_FORK],
-          localhost: ['deployments/' + process.env.HARDHAT_FORK],
-        },
-      }
-    : undefined,
-
-  tenderly: {
-    project: 'bleeps',
-    username: process.env.TENDERLY_USERNAME as string,
-  },
+					// `local` is the network used by `hardhat --network local node`,
+					// i.e. the long-running dev chain (see `pnpm node:local`).
+					local: {
+						type: 'edr-simulated',
+						chainType: 'l1',
+						accounts: {
+							mnemonic: process.env.MNEMONIC || undefined,
+						},
+						blockGasLimit: 50_000_000,
+						// A reverting transaction must still be mined, otherwise the
+						// app never sees the failed receipt it needs to report the error.
+						throwOnTransactionFailures: false,
+					},
+				}),
+			),
+		),
+	paths: {
+		sources: ['src'],
+	},
+	generateTypedArtifacts: {
+		destinations: [
+			{
+				folder: './generated',
+				mode: 'typescript',
+			},
+		],
+	},
 };
 
 export default config;

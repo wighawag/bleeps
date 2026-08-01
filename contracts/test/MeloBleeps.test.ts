@@ -1,207 +1,286 @@
-import {expect} from './chai-setup';
-import {ethers, deployments, getUnnamedAccounts} from 'hardhat';
-import {MeloBleeps} from '../typechain';
-import {setupUsers} from './utils';
-import {BigNumber, constants} from 'ethers';
-import {parseEther, solidityKeccak256} from 'ethers/lib/utils';
-import {ensureIsMeloBleepsMinter} from './utils/melobleeps';
-const {AddressZero, HashZero} = constants;
-// import Sound from 'node-aplay';
-// import fs from 'fs';
+import {expect} from 'earl';
+import {describe, it} from 'node:test';
+import {network} from 'hardhat';
+import {encodePacked, keccak256} from 'viem';
+import {setupFixtures, getEvent} from './utils/index.js';
+import {ensureIsMeloBleepsMinter} from './utils/bleeps.js';
+import {createData, exampleMelody} from './utils/melody.js';
 
-function encodeNote(bn: BigNumber, step: {note: number; vol: number; index: number; shape: number}): BigNumber {
-  const shift = BigNumber.from(2).pow(240 - step.index * 16);
-  const value = step.note + step.shape * 64 + step.vol * 64 * 16;
-  const extra = shift.mul(value);
-  return bn.add(extra);
+const {provider, networkHelpers} = await network.create();
+const {deployAll} = setupFixtures(provider);
+
+/**
+ * A connection to a pre-Fusaka EVM, used only to exercise the on-chain
+ * renderer.
+ *
+ * MeloBleeps' tokenURI needs ~34M gas, and EIP-7825 caps a transaction at
+ * 2^24 = 16,777,216 gas, so on a current EVM the renderer cannot run at all.
+ * That is pinned by the test at the bottom of this file. Its OUTPUT is still
+ * worth testing, though, so the rendering test runs against an EVM old enough
+ * to let it execute.
+ *
+ * See docs/adr/0002-melobleeps-tokenuri-exceeds-the-gas-cap.md.
+ */
+const preGasCap = await network.create({override: {hardfork: 'prague'}});
+const preGasCapFixtures = setupFixtures(preGasCap.provider);
+
+/** EIP-7825's per-transaction gas cap. */
+const TRANSACTION_GAS_CAP = 16_777_216;
+
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+const ZERO_BYTES32 =
+	'0x0000000000000000000000000000000000000000000000000000000000000000';
+
+const SPEED = 16;
+
+const {data1, data2} = createData(
+	exampleMelody({vol: 7, note: 1, shape: 8}, {vol: 5, note: 63, shape: 6}),
+);
+
+function melodyHashOf(
+	d1: `0x${string}`,
+	d2: `0x${string}`,
+	speed: number,
+): `0x${string}` {
+	return keccak256(
+		encodePacked(['bytes32', 'bytes32', 'uint8'], [d1, d2, speed]),
+	);
 }
 
-function createData(steps: {note: number; shape: number; vol: number}[]): {
-  data1: string;
-  data2: string;
-} {
-  const data1 =
-    '0x' +
-    steps
-      .slice(0, 16)
-      .reduce(
-        (prev, curr, index) => encodeNote(prev, {note: curr.note, index, vol: curr.vol, shape: curr.shape}),
-        BigNumber.from(0)
-      )
-      .toHexString()
-      .slice(2)
-      .padStart(64, '0');
-  const data2 =
-    '0x' +
-    steps
-      .slice(16)
-      .reduce(
-        (prev, curr, index) => encodeNote(prev, {note: curr.note, index, vol: curr.vol, shape: curr.shape}),
-        BigNumber.from(0)
-      )
-      .toHexString()
-      .slice(2)
-      .padStart(64, '0');
-  return {data1, data2};
-}
+describe('MeloBleeps', function () {
+	it('reserveAndReveal then mint', async function () {
+		const fixtures = await networkHelpers.loadFixture(deployAll);
+		const {env, MeloBleeps, unnamedAccounts} = fixtures;
 
-const setup = deployments.createFixture(async () => {
-  await deployments.fixture(['MeloBleeps']);
-  const contracts = {
-    MeloBleeps: <MeloBleeps>await ethers.getContract('MeloBleeps'),
-  };
-  const users = await setupUsers(await getUnnamedAccounts(), contracts);
-  return {
-    ...contracts,
-    users,
-  };
+		const artist = unnamedAccounts[1];
+		// The auctions contract is the real minter; the test takes the role so it
+		// can drive the melody lifecycle directly.
+		await ensureIsMeloBleepsMinter(fixtures, artist);
+
+		const receipt = await env.execute(MeloBleeps, {
+			account: artist,
+			functionName: 'reserveAndReveal',
+			args: [artist, 'test', data1, data2, SPEED],
+		});
+
+		const reserved = getEvent(receipt, MeloBleeps.abi, 'MelodyReserved');
+		expect(reserved.args.artist.toLowerCase()).toEqual(artist.toLowerCase());
+		expect(reserved.args.melodyHash).toEqual(melodyHashOf(data1, data2, SPEED));
+		const id = reserved.args.id as bigint;
+
+		const revealed = getEvent(receipt, MeloBleeps.abi, 'MelodyRevealed');
+		expect(revealed.args.id).toEqual(id);
+		expect(revealed.args.name).toEqual('test');
+		expect(revealed.args.speed).toEqual(SPEED);
+
+		// Reserved and revealed, but not owned by anyone yet.
+		expect(
+			(
+				await env.read(MeloBleeps, {functionName: 'creatorOf', args: [id]})
+			).toLowerCase(),
+		).toEqual(artist.toLowerCase());
+
+		const mintReceipt = await env.execute(MeloBleeps, {
+			account: artist,
+			functionName: 'mint',
+			args: [id, unnamedAccounts[1]],
+		});
+		const transfer = getEvent(mintReceipt, MeloBleeps.abi, 'Transfer');
+		expect(transfer.args.from.toLowerCase()).toEqual(ZERO_ADDRESS);
+		expect(transfer.args.to.toLowerCase()).toEqual(
+			unnamedAccounts[1].toLowerCase(),
+		);
+		expect(transfer.args.tokenId).toEqual(id);
+	});
+
+	it('a name can only be used once', async function () {
+		const fixtures = await networkHelpers.loadFixture(deployAll);
+		const {env, MeloBleeps, unnamedAccounts} = fixtures;
+
+		const artist = unnamedAccounts[1];
+		await ensureIsMeloBleepsMinter(fixtures, artist);
+
+		await env.execute(MeloBleeps, {
+			account: artist,
+			functionName: 'reserveAndReveal',
+			args: [artist, 'unique', data1, data2, SPEED],
+		});
+
+		// A different melody, so only the name collides.
+		const other = createData(
+			exampleMelody({vol: 6, note: 2, shape: 5}, {vol: 4, note: 40, shape: 3}),
+		);
+		await expect(
+			env.execute(MeloBleeps, {
+				account: artist,
+				functionName: 'reserveAndReveal',
+				args: [artist, 'unique', other.data1, other.data2, SPEED],
+			}),
+		).toBeRejectedWith('NAME_ALREADY_TAKEN');
+	});
+
+	it('an unnamed melody is allowed, and does not reserve the empty name', async function () {
+		const fixtures = await networkHelpers.loadFixture(deployAll);
+		const {env, MeloBleeps, unnamedAccounts} = fixtures;
+
+		const artist = unnamedAccounts[1];
+		await ensureIsMeloBleepsMinter(fixtures, artist);
+
+		const first = await env.execute(MeloBleeps, {
+			account: artist,
+			functionName: 'reserveAndReveal',
+			args: [artist, '', data1, data2, SPEED],
+		});
+		expect(
+			getEvent(first, MeloBleeps.abi, 'MelodyReserved').args.nameHash,
+		).toEqual(ZERO_BYTES32);
+
+		const other = createData(
+			exampleMelody({vol: 6, note: 2, shape: 5}, {vol: 4, note: 40, shape: 3}),
+		);
+		await env.execute(MeloBleeps, {
+			account: artist,
+			functionName: 'reserveAndReveal',
+			args: [artist, '', other.data1, other.data2, SPEED],
+		});
+	});
+
+	it('speed zero is rejected', async function () {
+		const fixtures = await networkHelpers.loadFixture(deployAll);
+		const {env, MeloBleeps, unnamedAccounts} = fixtures;
+
+		const artist = unnamedAccounts[1];
+		await ensureIsMeloBleepsMinter(fixtures, artist);
+
+		// speed doubles as the "has this been revealed" flag, so zero has to be
+		// refused or a melody could be minted with no content.
+		await expect(
+			env.execute(MeloBleeps, {
+				account: artist,
+				functionName: 'reserveAndReveal',
+				args: [artist, 'zero speed', data1, data2, 0],
+			}),
+		).toBeRejectedWith('INVALID_SPEED');
+	});
+
+	it('only the minter can reserve', async function () {
+		const {env, MeloBleeps, unnamedAccounts} =
+			await networkHelpers.loadFixture(deployAll);
+
+		await expect(
+			env.execute(MeloBleeps, {
+				account: unnamedAccounts[5],
+				functionName: 'reserveAndReveal',
+				args: [unnamedAccounts[5], 'nope', data1, data2, SPEED],
+			}),
+		).toBeRejectedWith('ONLY_MINTER_ALLOWED');
+	});
+
+	it('cannot mint the same melody twice', async function () {
+		const fixtures = await networkHelpers.loadFixture(deployAll);
+		const {env, MeloBleeps, unnamedAccounts} = fixtures;
+
+		const artist = unnamedAccounts[1];
+		await ensureIsMeloBleepsMinter(fixtures, artist);
+
+		const receipt = await env.execute(MeloBleeps, {
+			account: artist,
+			functionName: 'reserveRevealAndMint',
+			args: [artist, 'once', data1, data2, SPEED, artist],
+		});
+		const id = getEvent(receipt, MeloBleeps.abi, 'MelodyReserved').args
+			.id as bigint;
+
+		await expect(
+			env.execute(MeloBleeps, {
+				account: artist,
+				functionName: 'mint',
+				args: [id, artist],
+			}),
+		).toBeRejectedWith('ALREADY_MINTED');
+	});
+
+	it('cannot mint a melody that was never reserved', async function () {
+		const fixtures = await networkHelpers.loadFixture(deployAll);
+		const {env, MeloBleeps, unnamedAccounts} = fixtures;
+
+		const artist = unnamedAccounts[1];
+		await ensureIsMeloBleepsMinter(fixtures, artist);
+
+		await expect(
+			env.execute(MeloBleeps, {
+				account: artist,
+				functionName: 'mint',
+				args: [999n, artist],
+			}),
+		).toBeRejectedWith('NEED_RESERVATION');
+	});
+
+	it('tokenURI is not callable on a current EVM', async function () {
+		const fixtures = await networkHelpers.loadFixture(deployAll);
+		const {env, MeloBleeps, unnamedAccounts} = fixtures;
+
+		const artist = unnamedAccounts[1];
+		await ensureIsMeloBleepsMinter(fixtures, artist);
+
+		const receipt = await env.execute(MeloBleeps, {
+			account: artist,
+			functionName: 'reserveRevealAndMint',
+			args: [artist, 'too expensive', data1, data2, SPEED, artist],
+		});
+		const id = getEvent(receipt, MeloBleeps.abi, 'MelodyReserved').args
+			.id as bigint;
+
+		// This assertion is deliberately the wrong way round: it pins a defect.
+		// Rendering a melody costs about 34M gas, twice EIP-7825's 16,777,216 cap,
+		// so on mainnet or Sepolia today nothing can call it in a transaction.
+		// Fixing the renderer will make this test fail; delete it then.
+		await expect(
+			env.read(MeloBleeps, {functionName: 'tokenURI', args: [id]}),
+		).toBeRejectedWith('out of gas');
+	});
 });
-describe('MeloBleeps tokenURI', function () {
-  it('minting works', async function () {
-    const {users, MeloBleeps} = await setup();
-    // TODO :
-    // let tokenID = BigNumber.from(0);
-    // for (let i = 0; i < 16; i++) {
-    //   tokenID = tokenID.add(BigNumber.from(i * 2 ** (3 + 3 + 3)).mul(BigNumber.from(2).pow(i * (6 + 3 + 3 + 3))));
-    // }
-    // const tokenID = '0x00020406080a0c0e10121416181a1c1e'; //'0x0000000000000000000000000001010101010101010101010101010101010101';
-    // const data1 = '0x17042e105c30b8817142e305c70b9017242e505cb0b9817342e705cf0ba00000';
-    // const data2 = '0x17442e905d30ba817542eb05d70bb017642ed05db0bb817742ef05df0bc00000';
 
-    const testShape = 6;
-    const testSong1 = [
-      {vol: 5, note: 1, shape: testShape},
-      {vol: 5, note: 3, shape: testShape},
-      {vol: 5, note: 5, shape: testShape},
-      {vol: 5, note: 7, shape: testShape},
-      {vol: 5, note: 9, shape: testShape},
-      {vol: 5, note: 11, shape: testShape},
-      {vol: 5, note: 13, shape: testShape},
-      {vol: 5, note: 15, shape: testShape},
-      {vol: 5, note: 17, shape: testShape},
-      {vol: 5, note: 19, shape: testShape},
-      {vol: 5, note: 21, shape: testShape},
-      {vol: 5, note: 23, shape: testShape},
-      {vol: 5, note: 25, shape: testShape},
-      {vol: 5, note: 27, shape: testShape},
-      {vol: 5, note: 29, shape: testShape},
-      {vol: 5, note: 31, shape: testShape},
-      {vol: 5, note: 33, shape: testShape},
-      {vol: 5, note: 35, shape: testShape},
-      {vol: 5, note: 37, shape: testShape},
-      {vol: 5, note: 39, shape: testShape},
-      {vol: 5, note: 41, shape: testShape},
-      {vol: 5, note: 43, shape: testShape},
-      {vol: 5, note: 45, shape: testShape},
-      {vol: 5, note: 47, shape: testShape},
-      {vol: 5, note: 49, shape: testShape},
-      {vol: 5, note: 51, shape: testShape},
-      {vol: 5, note: 53, shape: testShape},
-      {vol: 5, note: 55, shape: testShape},
-      {vol: 5, note: 57, shape: testShape},
-      {vol: 5, note: 59, shape: testShape},
-      {vol: 5, note: 61, shape: testShape},
-      {vol: 5, note: 63, shape: testShape},
-    ];
+describe('MeloBleeps rendering (pre-EIP-7825 EVM)', function () {
+	it('tokenURI renders the melody as audio', async function () {
+		const fixtures = await preGasCap.networkHelpers.loadFixture(
+			preGasCapFixtures.deployAll,
+		);
+		const {env, MeloBleeps, unnamedAccounts} = fixtures;
 
-    const testSong2 = [
-      {vol: 7, note: 1, shape: 7},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 7, note: 1, shape: 7},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 5, note: 26, shape: 6},
-      {vol: 7, note: 1, shape: 7},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 7, note: 1, shape: 7},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 5, note: 26, shape: 6},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 7, note: 1, shape: 7},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 7, note: 1, shape: 7},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 7, note: 1, shape: 7},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 5, note: 26, shape: 6},
-      {vol: 7, note: 1, shape: 7},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 7, note: 1, shape: 7},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 5, note: 26, shape: 6},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 7, note: 1, shape: 7},
-      {vol: 5, note: 26, shape: 6},
-    ];
+		const artist = unnamedAccounts[1];
+		await ensureIsMeloBleepsMinter(fixtures, artist);
 
-    const testSong3 = [
-      {vol: 7, note: 1, shape: 8},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 7, note: 1, shape: 8},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 5, note: 63, shape: 6},
-      {vol: 7, note: 1, shape: 8},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 7, note: 1, shape: 8},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 5, note: 63, shape: 6},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 7, note: 1, shape: 8},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 7, note: 1, shape: 8},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 7, note: 1, shape: 8},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 5, note: 63, shape: 6},
-      {vol: 7, note: 1, shape: 8},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 7, note: 1, shape: 8},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 5, note: 63, shape: 6},
-      {vol: 0, note: 0, shape: 0},
-      {vol: 7, note: 1, shape: 8},
-      {vol: 5, note: 63, shape: 6},
-    ];
+		const receipt = await env.execute(MeloBleeps, {
+			account: artist,
+			functionName: 'reserveRevealAndMint',
+			args: [artist, 'rendered', data1, data2, SPEED, artist],
+		});
+		const id = getEvent(receipt, MeloBleeps.abi, 'MelodyReserved').args
+			.id as bigint;
 
-    const {data1, data2} = createData(testSong3);
+		const tokenURI = await env.read(MeloBleeps, {
+			functionName: 'tokenURI',
+			args: [id],
+		});
+		expect(tokenURI.startsWith('data:application/json,')).toEqual(true);
 
-    const tokenID = 1;
+		const metadata = JSON.parse(
+			tokenURI.slice('data:application/json,'.length),
+		);
+		expect(metadata.name).toEqual('rendered');
+		expect(metadata.animation_url.startsWith('data:audio/wav;base64,')).toEqual(
+			true,
+		);
 
-    const artist = users[1].address;
-    await ensureIsMeloBleepsMinter(artist);
-    const melobleepHash = solidityKeccak256(['bytes32', 'bytes32'], [data1, data2]);
-    await expect(users[1].MeloBleeps.reserve(artist, 'test', melobleepHash, 16))
-      .to.emit(MeloBleeps, 'ReservationSubmitted')
-      .withArgs(artist, tokenID, melobleepHash, 'test', 16);
-
-    await expect(users[1].MeloBleeps.mint(tokenID, data1, data2, users[1].address))
-      .to.emit(MeloBleeps, 'Transfer')
-      .withArgs(AddressZero, users[1].address, tokenID);
-
-    const tokenURI = await MeloBleeps.tokenURI(tokenID);
-    // console.log(tokenURI);
-    const metadataStr = tokenURI.substr('data:application/json,'.length);
-    // console.log(metadataStr);
-    const metadata = JSON.parse(metadataStr);
-    // console.log(JSON.stringify(metadata, null, '  '));
-    console.log(metadata.animation_url);
-    // console.log(`gas ${(await MeloBleeps.estimateGas.tokenURI(tokenID)).toNumber().toLocaleString('en')}`);
-    // const data = new Buffer(metadata.animation_url, 'base64');
-    // write buffer to file
-    // fs.writeFileSync('tmp.wav', data);
-
-    // const music = new Sound('tmp.wav');
-    // music.play();
-  });
+		// The number that matters: what it would cost if it could be called.
+		const gas = await env.viem.publicClient.estimateContractGas({
+			address: MeloBleeps.address,
+			abi: MeloBleeps.abi,
+			functionName: 'tokenURI',
+			args: [id],
+			account: artist,
+		});
+		expect(gas > BigInt(TRANSACTION_GAS_CAP)).toEqual(true);
+	});
 });

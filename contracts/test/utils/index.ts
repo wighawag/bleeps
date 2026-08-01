@@ -1,82 +1,75 @@
-import {SignerWithAddress} from '@nomiclabs/hardhat-ethers/dist/src/signers';
-import {ethers} from 'hardhat';
-import {Contract} from 'ethers';
-import {TypedDataDomain, TypedDataField} from '@ethersproject/abstract-signer';
+import type {EthereumProvider} from 'hardhat/types/providers';
+import {parseEventLogs, type Abi} from 'viem';
+import {loadAndExecuteDeploymentsFromFiles} from '../../rocketh/environment.js';
+import {testScripts} from '../../rocketh/config.js';
+import type {Abi_Bleeps} from '../../generated/abis/Bleeps.js';
+import type {Abi_BleepsDAOAccount} from '../../generated/abis/BleepsDAOAccount.js';
+import type {Abi_BleepsDAOGovernor} from '../../generated/abis/BleepsDAOGovernor.js';
+import type {Abi_MeloBleeps} from '../../generated/abis/MeloBleeps.js';
+import type {Abi_MeloBleepsAuctions} from '../../generated/abis/MeloBleepsAuctions.js';
+import type {Abi_OpenSeaProxyRegistryMock} from '../../generated/abis/OpenSeaProxyRegistryMock.js';
 
-export async function setupNamedUsers<T extends {[contractName: string]: Contract}>(
-  namedAccounts: {[name: string]: string},
-  contracts: T
-): Promise<{[name: string]: {address: string; signer: SignerWithAddress} & T}> {
-  const users: {[name: string]: {address: string; signer: SignerWithAddress} & T} = {};
-  for (const entry of Object.entries(namedAccounts)) {
-    users[entry[0]] = await setupUser(entry[1], contracts);
-  }
-  return users;
+/**
+ * Deploy everything the tests need: the real deploy scripts plus the dev mocks,
+ * stopping short of the seeding in `003_dev`. See `testScripts`.
+ */
+export function setupFixtures(provider: EthereumProvider) {
+	return {
+		async deployAll() {
+			const env = await loadAndExecuteDeploymentsFromFiles({
+				provider,
+				config: {scripts: [...testScripts]},
+			});
+
+			return {
+				env,
+				Bleeps: env.get<Abi_Bleeps>('Bleeps'),
+				BleepsDAOAccount: env.get<Abi_BleepsDAOAccount>('BleepsDAOAccount'),
+				BleepsDAOGovernor: env.get<Abi_BleepsDAOGovernor>('BleepsDAOGovernor'),
+				MeloBleeps: env.get<Abi_MeloBleeps>('MeloBleeps'),
+				MeloBleepsAuctions:
+					env.get<Abi_MeloBleepsAuctions>('MeloBleepsAuctions'),
+				WyvernProxyRegistry: env.get<Abi_OpenSeaProxyRegistryMock>(
+					'WyvernProxyRegistry',
+				),
+				namedAccounts: env.namedAccounts,
+				unnamedAccounts: env.unnamedAccounts,
+			};
+		},
+	};
 }
 
-export async function setupUsers<T extends {[contractName: string]: Contract}>(
-  addresses: string[],
-  contracts: T
-): Promise<({address: string; signer: SignerWithAddress} & T)[]> {
-  const users: ({address: string; signer: SignerWithAddress} & T)[] = [];
-  for (const address of addresses) {
-    users.push(await setupUser(address, contracts));
-  }
-  return users;
+export type Fixtures = Awaited<
+	ReturnType<ReturnType<typeof setupFixtures>['deployAll']>
+>;
+
+/**
+ * Find one decoded event in a receipt, failing loudly if it is not there.
+ *
+ * The old suite used chai's `.to.emit(...).withArgs(...)`. There is no direct
+ * equivalent here, and asserting on the decoded args explicitly is clearer
+ * about what is actually being checked.
+ */
+export function getEvent<TAbi extends Abi, TName extends string>(
+	receipt: {
+		logs: readonly {address: string; topics: readonly string[]; data: string}[];
+	},
+	abi: TAbi,
+	eventName: TName,
+): any {
+	const events = parseEventLogs({
+		abi,
+		eventName: eventName as any,
+		logs: receipt.logs as any,
+	});
+	if (events.length === 0) {
+		throw new Error(`no '${eventName}' event in this receipt`);
+	}
+	return events[0];
 }
 
-export async function setupUser<T extends {[contractName: string]: Contract}>(
-  address: string,
-  contracts: T
-): Promise<{address: string; signer: SignerWithAddress} & T> {
-  const signer = await ethers.getSigner(address);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const user: any = {address, signer};
-  for (const key of Object.keys(contracts)) {
-    user[key] = contracts[key].connect(signer);
-  }
-  return user as {address: string; signer: SignerWithAddress} & T;
-}
-
-export class EIP712Signer {
-  constructor(private domain: TypedDataDomain, private types: Record<string, Array<TypedDataField>>) {}
-
-  sign(
-    user: {signer: SignerWithAddress},
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    value: Record<string, any>
-  ): Promise<string> {
-    return user.signer._signTypedData(this.domain, this.types, value);
-  }
-}
-
-export class EIP712SignerFactory {
-  constructor(private fixedDomain: TypedDataDomain, private types: Record<string, Array<TypedDataField>>) {}
-
-  createSigner(domain: TypedDataDomain): {
-    sign: (
-      user: {signer: SignerWithAddress},
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      value: Record<string, any>
-    ) => Promise<string>;
-  } {
-    const domainToUse = Object.assign(this.fixedDomain, domain);
-    const types = this.types;
-    return {
-      async sign(
-        user: {signer: SignerWithAddress},
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        value: Record<string, any>
-      ): Promise<string> {
-        if (domainToUse.chainId === 0) {
-          domainToUse.chainId = await user.signer.getChainId();
-        }
-        return user.signer._signTypedData(domainToUse, types, value);
-      },
-    };
-  }
-}
-
-export function waitFor<T>(p: Promise<{wait: () => Promise<T>}>): Promise<T> {
-  return p.then((t) => t.wait());
-}
+/**
+ * The total supply, and the id of every Bleep. Fixed by the contract: 64 notes
+ * across 9 instruments.
+ */
+export const NUM_BLEEPS = 576;

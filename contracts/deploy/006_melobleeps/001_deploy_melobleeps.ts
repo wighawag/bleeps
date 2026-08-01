@@ -1,69 +1,70 @@
-import {HardhatRuntimeEnvironment} from 'hardhat/types';
-import {DeployFunction} from 'hardhat-deploy/types';
-import {network} from 'hardhat';
+import {deployScript, artifacts} from '../../rocketh/deploy.js';
+import {isLocalDevChain} from '../utils.js';
+import type {Abi_MeloBleeps} from '../../generated/abis/MeloBleeps.js';
 
-const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-  const {deployments, getNamedAccounts} = hre;
-  const {deploy, execute, read} = deployments;
+/**
+ * MeloBleeps: melodies composed out of Bleeps.
+ *
+ * Not on mainnet yet, so on a throwaway chain we redeploy it from scratch on
+ * every run rather than preserving an old one; the contract is still moving and
+ * a stale deployment is more confusing than a fresh one. On a real chain,
+ * including Sepolia, it is deploy-once like Bleeps, and replacing it is a
+ * deliberate act (delete the deployment file).
+ */
+export default deployScript(
+	async (env) => {
+		const {
+			deployer,
+			initialMeloBleepsOwner,
+			initialMeloBleepsTokenURIAdmin,
+			initialMeloBleepsRoyaltyAdmin,
+			initialMeloBleepsMinterAdmin,
+			melobleepsGuardian,
+		} = env.namedAccounts;
 
-  const devMode = !network.live;
+		const devMode = isLocalDevChain(env);
 
-  const {
-    deployer,
-    initialMeloBleepsOwner,
-    initialMeloBleepsTokenURIAdmin,
-    initialMeloBleepsRoyaltyAdmin,
-    initialMeloBleepsMinterAdmin,
-    melobleepsGuardian,
-  } = await getNamedAccounts();
+		const tokenURIContract = await env.deploy('MeloBleepsTokenURI', {
+			account: deployer,
+			artifact: artifacts.MeloBleepsTokenURI,
+			args: [],
+		});
 
-  const tokenURIContract = await deploy('MeloBleepsTokenURI', {
-    from: deployer,
-    log: true,
-    autoMine: true,
-  });
+		const existingMeloBleeps = env.getOrNull<Abi_MeloBleeps>('MeloBleeps');
 
-  const existingMeloBleeps = await deployments.getOrNull('MeloBleeps');
+		if (!existingMeloBleeps || devMode) {
+			await env.deploy(
+				'MeloBleeps',
+				{
+					account: deployer,
+					artifact: artifacts.MeloBleeps,
+					args: [
+						initialMeloBleepsOwner,
+						initialMeloBleepsTokenURIAdmin,
+						initialMeloBleepsRoyaltyAdmin,
+						initialMeloBleepsMinterAdmin,
+						melobleepsGuardian,
+						tokenURIContract.address,
+					],
+				},
+				{skipIfAlreadyDeployed: !devMode},
+			);
+			return;
+		}
 
-  // TODO
-  // const openseaProxyRegistry =
-  //   (await deployments.getOrNull('WyvernProxyRegistry'))?.address || '0x0000000000000000000000000000000000000000';
-
-  let needTokenURIUpdate = false;
-  if (existingMeloBleeps) {
-    const currentTokenURIContract = await read('MeloBleeps', 'tokenURIContract');
-    if (currentTokenURIContract?.toLowerCase() !== tokenURIContract.address.toLowerCase()) {
-      needTokenURIUpdate = true;
-    }
-  }
-
-  if (!existingMeloBleeps || devMode) {
-    await deploy('MeloBleeps', {
-      from: deployer,
-      args: [
-        initialMeloBleepsOwner,
-        initialMeloBleepsTokenURIAdmin,
-        initialMeloBleepsRoyaltyAdmin,
-        initialMeloBleepsMinterAdmin,
-        melobleepsGuardian,
-        tokenURIContract.address,
-      ],
-      // proxy: devMode,
-      skipIfAlreadyDeployed: !devMode,
-      log: true,
-      autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
-    });
-    needTokenURIUpdate = false;
-  }
-
-  if (needTokenURIUpdate) {
-    await execute(
-      'MeloBleeps',
-      {from: initialMeloBleepsTokenURIAdmin, log: true, autoMine: true},
-      'setTokenURIContract',
-      tokenURIContract.address
-    );
-  }
-};
-export default func;
-func.tags = ['MeloBleeps', 'MeloBleeps_deploy'];
+		const currentTokenURIContract = await env.read(existingMeloBleeps, {
+			functionName: 'tokenURIContract',
+		});
+		if (
+			currentTokenURIContract?.toLowerCase() !==
+			tokenURIContract.address.toLowerCase()
+		) {
+			await env.execute(existingMeloBleeps, {
+				account: initialMeloBleepsTokenURIAdmin,
+				functionName: 'setTokenURIContract',
+				args: [tokenURIContract.address],
+			});
+		}
+	},
+	{tags: ['MeloBleeps', 'MeloBleeps_deploy']},
+);

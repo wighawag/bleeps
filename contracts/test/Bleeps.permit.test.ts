@@ -1,146 +1,258 @@
-import {expect} from './chai-setup';
-import {ethers, deployments, getUnnamedAccounts} from 'hardhat';
-import {Bleeps, IBleepsSale} from '../typechain';
-import {setupUsers, waitFor} from './utils';
-import {BigNumber, constants} from 'ethers';
-import {parseEther, solidityKeccak256} from 'ethers/lib/utils';
-import {PermitSignerFactory, PermitForAllSignerFactory} from './utils/eip712';
-import {splitSignature} from '@ethersproject/bytes';
-import {mintViaMinterAdmin} from './utils/bleepsfixedsale';
-const {AddressZero} = constants;
+import {expect} from 'earl';
+import {describe, it} from 'node:test';
+import {network} from 'hardhat';
+import {setupFixtures} from './utils/index.js';
+import {mintViaMinterAdmin} from './utils/bleeps.js';
+import {signPermit, signPermitForAll} from './utils/eip712.js';
 
-const setup = deployments.createFixture(async () => {
-  await deployments.fixture(['Bleeps']);
-  const contracts = {
-    Bleeps: <Bleeps>await ethers.getContract('Bleeps'),
-  };
-  const BleepsPermitSigner = PermitSignerFactory.createSigner({
-    verifyingContract: contracts.Bleeps.address,
-  });
+const {provider, networkHelpers} = await network.create();
+const {deployAll} = setupFixtures(provider);
 
-  const BleepsPermitForAllSigner = PermitForAllSignerFactory.createSigner({
-    verifyingContract: contracts.Bleeps.address,
-  });
+const DEADLINE = 4000000000n;
 
-  const users = await setupUsers(await getUnnamedAccounts(), contracts);
-  return {
-    ...contracts,
-    users,
-    BleepsPermitSigner,
-    BleepsPermitForAllSigner,
-  };
-});
 describe('Bleeps Permit', function () {
-  it('permit works', async function () {
-    const {users, BleepsPermitSigner, Bleeps} = await setup();
+	it('permit works', async function () {
+		const fixtures = await networkHelpers.loadFixture(deployAll);
+		const {env, Bleeps, unnamedAccounts} = fixtures;
+		const chainId = env.network.chain.id;
+		const walletClient = env.viem.walletClient;
 
-    const tokenId = 1;
-    await mintViaMinterAdmin(tokenId, users[0].address, users[0].address);
-    await mintViaMinterAdmin(2, users[0].address, users[0].address);
-    await mintViaMinterAdmin(3, users[0].address, users[0].address);
-    await mintViaMinterAdmin(4, users[0].address, users[0].address);
-    await mintViaMinterAdmin(5, users[0].address, users[0].address);
-    await mintViaMinterAdmin(6, users[0].address, users[2].address);
+		for (const id of [1, 2, 3, 4, 5]) {
+			await mintViaMinterAdmin(
+				fixtures,
+				id,
+				unnamedAccounts[0],
+				unnamedAccounts[0],
+			);
+		}
+		await mintViaMinterAdmin(
+			fixtures,
+			6,
+			unnamedAccounts[0],
+			unnamedAccounts[2],
+		);
 
-    const signer = users[0].address;
-    const spender = users[1].address;
-    const nonce = await Bleeps.callStatic['nonces(uint256)'](tokenId);
-    const deadline = 4000000000;
+		const tokenId = 1n;
+		const owner = unnamedAccounts[0];
+		const spender = unnamedAccounts[1];
 
-    const signature = await BleepsPermitSigner.sign(users[0], {
-      spender,
-      tokenId,
-      nonce,
-      deadline,
-    });
+		const nonce = await env.read(Bleeps, {
+			functionName: 'nonces',
+			args: [tokenId],
+		});
 
-    await expect(users[1].Bleeps.transferFrom(users[0].address, users[2].address, tokenId)).to.be.revertedWith(
-      'UNAUTHORIZED_TRANSFER'
-    );
+		const signature = await signPermit(
+			walletClient,
+			owner,
+			chainId,
+			Bleeps.address,
+			{spender, tokenId, nonce, deadline: DEADLINE},
+		);
 
-    await users[1].Bleeps.permit(spender, tokenId, deadline, signature);
+		// Before the permit, the spender has no rights at all.
+		await expect(
+			env.execute(Bleeps, {
+				account: spender,
+				functionName: 'transferFrom',
+				args: [owner, unnamedAccounts[2], tokenId],
+			}),
+		).toBeRejectedWith('UNAUTHORIZED_TRANSFER');
 
-    await expect(users[1].Bleeps.transferFrom(users[0].address, users[2].address, 2)).to.be.revertedWith(
-      'UNAUTHORIZED_TRANSFER'
-    );
+		await env.execute(Bleeps, {
+			account: spender,
+			functionName: 'permit',
+			args: [spender, tokenId, DEADLINE, signature],
+		});
 
-    await users[1].Bleeps.transferFrom(users[0].address, users[2].address, tokenId);
-    await expect(users[1].Bleeps.transferFrom(users[2].address, users[3].address, tokenId)).to.be.revertedWith(
-      'UNAUTHORIZED_TRANSFER'
-    );
+		// The permit is for ONE token: it must not leak to the owner's others.
+		await expect(
+			env.execute(Bleeps, {
+				account: spender,
+				functionName: 'transferFrom',
+				args: [owner, unnamedAccounts[2], 2n],
+			}),
+		).toBeRejectedWith('UNAUTHORIZED_TRANSFER');
 
-    const signature2 = await BleepsPermitSigner.sign(users[2], {
-      spender: users[4].address,
-      tokenId,
-      nonce: await Bleeps['nonces(uint256)'](tokenId),
-      deadline,
-    });
+		await env.execute(Bleeps, {
+			account: spender,
+			functionName: 'transferFrom',
+			args: [owner, unnamedAccounts[2], tokenId],
+		});
 
-    await expect(users[4].Bleeps.transferFrom(users[2].address, users[5].address, tokenId)).to.be.revertedWith(
-      'UNAUTHORIZED_TRANSFER'
-    );
+		// ...and it must not survive the transfer: the new owner did not sign it.
+		await expect(
+			env.execute(Bleeps, {
+				account: spender,
+				functionName: 'transferFrom',
+				args: [unnamedAccounts[2], unnamedAccounts[3], tokenId],
+			}),
+		).toBeRejectedWith('UNAUTHORIZED_TRANSFER');
 
-    await expect(users[4].Bleeps.permit(users[4].address, tokenId, deadline, signature)).to.be.revertedWith(
-      'INVALID_SIGNATURE'
-    );
-    await users[4].Bleeps.permit(users[4].address, tokenId, deadline, signature2);
+		// The new owner signs their own permit, for a different spender.
+		const nonce2 = await env.read(Bleeps, {
+			functionName: 'nonces',
+			args: [tokenId],
+		});
+		const signature2 = await signPermit(
+			walletClient,
+			unnamedAccounts[2],
+			chainId,
+			Bleeps.address,
+			{
+				spender: unnamedAccounts[4],
+				tokenId,
+				nonce: nonce2,
+				deadline: DEADLINE,
+			},
+		);
 
-    await expect(users[4].Bleeps.transferFrom(users[2].address, users[5].address, 6)).to.be.revertedWith(
-      'UNAUTHORIZED_TRANSFER'
-    );
+		await expect(
+			env.execute(Bleeps, {
+				account: unnamedAccounts[4],
+				functionName: 'transferFrom',
+				args: [unnamedAccounts[2], unnamedAccounts[5], tokenId],
+			}),
+		).toBeRejectedWith('UNAUTHORIZED_TRANSFER');
 
-    await users[4].Bleeps.transferFrom(users[2].address, users[5].address, tokenId);
-    await expect(users[4].Bleeps.transferFrom(users[5].address, users[6].address, tokenId)).to.be.revertedWith(
-      'UNAUTHORIZED_TRANSFER'
-    );
-  });
+		// Replaying the FIRST signature under the new owner must not work.
+		await expect(
+			env.execute(Bleeps, {
+				account: unnamedAccounts[4],
+				functionName: 'permit',
+				args: [unnamedAccounts[4], tokenId, DEADLINE, signature],
+			}),
+		).toBeRejectedWith('INVALID_SIGNATURE');
 
-  it('permitForAll works', async function () {
-    const {users, BleepsPermitForAllSigner, Bleeps} = await setup();
+		await env.execute(Bleeps, {
+			account: unnamedAccounts[4],
+			functionName: 'permit',
+			args: [unnamedAccounts[4], tokenId, DEADLINE, signature2],
+		});
 
-    await mintViaMinterAdmin(1, users[0].address, users[0].address);
-    await mintViaMinterAdmin(2, users[0].address, users[0].address);
-    await mintViaMinterAdmin(3, users[0].address, users[0].address);
-    await mintViaMinterAdmin(4, users[0].address, users[0].address);
-    await mintViaMinterAdmin(5, users[0].address, users[0].address);
-    await mintViaMinterAdmin(6, users[0].address, users[0].address);
+		await expect(
+			env.execute(Bleeps, {
+				account: unnamedAccounts[4],
+				functionName: 'transferFrom',
+				args: [unnamedAccounts[2], unnamedAccounts[5], 6n],
+			}),
+		).toBeRejectedWith('UNAUTHORIZED_TRANSFER');
 
-    const signer = users[0].address;
-    const spender = users[1].address;
-    const nonce = await Bleeps['nonces(address)'](signer);
-    const deadline = 4000000000;
+		await env.execute(Bleeps, {
+			account: unnamedAccounts[4],
+			functionName: 'transferFrom',
+			args: [unnamedAccounts[2], unnamedAccounts[5], tokenId],
+		});
 
-    const signature = await BleepsPermitForAllSigner.sign(users[0], {
-      spender,
-      nonce,
-      deadline,
-    });
+		await expect(
+			env.execute(Bleeps, {
+				account: unnamedAccounts[4],
+				functionName: 'transferFrom',
+				args: [unnamedAccounts[5], unnamedAccounts[6], tokenId],
+			}),
+		).toBeRejectedWith('UNAUTHORIZED_TRANSFER');
+	});
 
-    await expect(users[1].Bleeps.transferFrom(users[0].address, users[2].address, 1)).to.be.revertedWith(
-      'UNAUTHORIZED_TRANSFER'
-    );
+	it('permitForAll works', async function () {
+		const fixtures = await networkHelpers.loadFixture(deployAll);
+		const {env, Bleeps, unnamedAccounts} = fixtures;
+		const chainId = env.network.chain.id;
+		const walletClient = env.viem.walletClient;
 
-    await users[1].Bleeps.permitForAll(signer, spender, deadline, signature);
+		for (const id of [1, 2, 3, 4, 5, 6]) {
+			await mintViaMinterAdmin(
+				fixtures,
+				id,
+				unnamedAccounts[0],
+				unnamedAccounts[0],
+			);
+		}
 
-    await users[1].Bleeps.transferFrom(users[0].address, users[2].address, 1);
-    await users[1].Bleeps.transferFrom(users[0].address, users[2].address, 2);
+		const owner = unnamedAccounts[0];
+		const spender = unnamedAccounts[1];
 
-    const signature2 = await BleepsPermitForAllSigner.sign(users[0], {
-      spender: users[4].address,
-      nonce: nonce.add(1),
-      deadline,
-    });
+		const nonce = await env.read(Bleeps, {
+			functionName: 'nonces',
+			args: [owner],
+		});
 
-    await expect(users[4].Bleeps.transferFrom(users[0].address, users[5].address, 5)).to.be.revertedWith(
-      'UNAUTHORIZED_TRANSFER'
-    );
+		const signature = await signPermitForAll(
+			walletClient,
+			owner,
+			chainId,
+			Bleeps.address,
+			{spender, nonce, deadline: DEADLINE},
+		);
 
-    await expect(users[4].Bleeps.permitForAll(signer, users[4].address, deadline, signature)).to.be.revertedWith(
-      'INVALID_SIGNATURE'
-    );
-    await users[4].Bleeps.permitForAll(signer, users[4].address, deadline, signature2);
+		await expect(
+			env.execute(Bleeps, {
+				account: spender,
+				functionName: 'transferFrom',
+				args: [owner, unnamedAccounts[2], 1n],
+			}),
+		).toBeRejectedWith('UNAUTHORIZED_TRANSFER');
 
-    await users[4].Bleeps.transferFrom(users[0].address, users[5].address, 5);
-    await users[4].Bleeps.transferFrom(users[0].address, users[5].address, 6);
-  });
+		await env.execute(Bleeps, {
+			account: spender,
+			functionName: 'permitForAll',
+			args: [owner, spender, DEADLINE, signature],
+		});
+
+		// Unlike `permit`, this one does cover every token the owner holds.
+		await env.execute(Bleeps, {
+			account: spender,
+			functionName: 'transferFrom',
+			args: [owner, unnamedAccounts[2], 1n],
+		});
+		await env.execute(Bleeps, {
+			account: spender,
+			functionName: 'transferFrom',
+			args: [owner, unnamedAccounts[2], 2n],
+		});
+
+		const signature2 = await signPermitForAll(
+			walletClient,
+			owner,
+			chainId,
+			Bleeps.address,
+			{
+				spender: unnamedAccounts[4],
+				nonce: nonce + 1n,
+				deadline: DEADLINE,
+			},
+		);
+
+		await expect(
+			env.execute(Bleeps, {
+				account: unnamedAccounts[4],
+				functionName: 'transferFrom',
+				args: [owner, unnamedAccounts[5], 5n],
+			}),
+		).toBeRejectedWith('UNAUTHORIZED_TRANSFER');
+
+		// The first signature is spent; presenting it for a new spender fails.
+		await expect(
+			env.execute(Bleeps, {
+				account: unnamedAccounts[4],
+				functionName: 'permitForAll',
+				args: [owner, unnamedAccounts[4], DEADLINE, signature],
+			}),
+		).toBeRejectedWith('INVALID_SIGNATURE');
+
+		await env.execute(Bleeps, {
+			account: unnamedAccounts[4],
+			functionName: 'permitForAll',
+			args: [owner, unnamedAccounts[4], DEADLINE, signature2],
+		});
+
+		await env.execute(Bleeps, {
+			account: unnamedAccounts[4],
+			functionName: 'transferFrom',
+			args: [owner, unnamedAccounts[5], 5n],
+		});
+		await env.execute(Bleeps, {
+			account: unnamedAccounts[4],
+			functionName: 'transferFrom',
+			args: [owner, unnamedAccounts[5], 6n],
+		});
+	});
 });

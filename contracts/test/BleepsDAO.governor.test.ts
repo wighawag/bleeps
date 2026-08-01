@@ -1,346 +1,557 @@
-import {expect} from './chai-setup';
-import {ethers, deployments, getUnnamedAccounts, getNamedAccounts, network} from 'hardhat';
-import {Bleeps, BleepsDAOAccount, BleepsDAOGovernor, IBleepsSale} from '../typechain';
-import {setupNamedUsers, setupUsers, waitFor} from './utils';
-import {parseEther} from 'ethers/lib/utils';
-import {DelegationSignerFactory} from './utils/eip712';
-import {mintMultipleViaMinterAdmin, mintViaMinterAdmin} from './utils/bleepsfixedsale';
+import {expect} from 'earl';
+import {describe, it} from 'node:test';
+import {network} from 'hardhat';
+import {encodeFunctionData, parseEther} from 'viem';
+import {setupFixtures, getEvent, type Fixtures} from './utils/index.js';
+import {
+	mintMultipleViaMinterAdmin,
+	mintViaMinterAdmin,
+} from './utils/bleeps.js';
 
-const ZeroBytes = '0x0000000000000000000000000000000000000000000000000000000000000000';
+const {provider, networkHelpers} = await network.create();
+const {deployAll} = setupFixtures(provider);
 
-const setup = deployments.createFixture(async () => {
-  await deployments.fixture(['BleepsDAOGovernor']);
-  const contracts = {
-    Bleeps: <Bleeps>await ethers.getContract('Bleeps'),
-    BleepsDAOGovernor: <BleepsDAOGovernor>await ethers.getContract('BleepsDAOGovernor'),
-    BleepsDAOAccount: <BleepsDAOAccount>await ethers.getContract('BleepsDAOAccount'),
-  };
-  const DelegationSigner = DelegationSignerFactory.createSigner({
-    verifyingContract: contracts.Bleeps.address,
-  });
+const ZERO_BYTES32 =
+	'0x0000000000000000000000000000000000000000000000000000000000000000';
 
-  const users = await setupUsers(await getUnnamedAccounts(), contracts);
-  const accounts = await setupNamedUsers(await getNamedAccounts(), contracts);
-  return {
-    ...contracts,
-    users,
-    accounts,
-    DelegationSigner,
-  };
-});
+const TIMELOCK_DELAY = 2 * 24 * 3600;
+
+/**
+ * Enough Bleeps to clear the proposal threshold and, on their own, the quorum.
+ *
+ * Taken from the top of the id range so they do not collide with the single
+ * token the simpler tests mint.
+ */
+const VOTING_BLOCK = Array.from(Array(65)).map((_, i) => i + 448);
+
+/**
+ * A view of a deployment whose ABI keeps only one member of an overloaded set.
+ *
+ * GovernorCompatibilityBravo overloads `propose`, `queue` and `execute`, and
+ * viem resolves overloads by argument shape, which is ambiguous here (both
+ * `queue` overloads would accept what we pass). Narrowing the ABI says which
+ * one we mean, unambiguously and at the call site.
+ */
+function pickOverload<D extends {abi: readonly unknown[]}>(
+	deployment: D,
+	name: string,
+	inputCount: number,
+): D {
+	return {
+		...deployment,
+		abi: (deployment.abi as any[]).filter(
+			(entry) =>
+				entry.type !== 'function' ||
+				entry.name !== name ||
+				entry.inputs.length === inputCount,
+		),
+	};
+}
+
+/**
+ * Send a transaction from an address we do not hold the key for.
+ *
+ * The timelock acts on its own roles, so some of these tests have to be the
+ * timelock. rocketh only knows how to sign for the provider's own accounts, so
+ * this goes straight at the node.
+ */
+async function sendAsImpersonated(
+	from: `0x${string}`,
+	to: `0x${string}`,
+	data: `0x${string}`,
+): Promise<void> {
+	await networkHelpers.impersonateAccount(from);
+	await provider.request({
+		method: 'eth_sendTransaction',
+		params: [{from, to, data}],
+	});
+}
+
+async function propose(
+	{env, BleepsDAOGovernor}: Pick<Fixtures, 'env' | 'BleepsDAOGovernor'>,
+	account: `0x${string}`,
+	targets: `0x${string}`[],
+	values: bigint[],
+	calldatas: `0x${string}`[],
+	description: string,
+) {
+	return env.execute(pickOverload(BleepsDAOGovernor, 'propose', 4), {
+		account,
+		functionName: 'propose',
+		args: [targets, values, calldatas, description],
+	} as never);
+}
+
+/** Run a proposal all the way through: vote, wait, queue, wait, execute. */
+async function passProposal(
+	fixtures: Fixtures,
+	voter: `0x${string}`,
+	executor: `0x${string}`,
+	proposalId: bigint,
+) {
+	const {env, BleepsDAOGovernor} = fixtures;
+
+	const votingDelay = await env.read(BleepsDAOGovernor, {
+		functionName: 'votingDelay',
+	});
+	const votingPeriod = await env.read(BleepsDAOGovernor, {
+		functionName: 'votingPeriod',
+	});
+
+	// mine in bulk: the voting period is ~45,818 blocks and mining them one
+	// JSON-RPC call at a time takes minutes
+	await networkHelpers.mine(Number(votingDelay) + 1);
+
+	await env.execute(BleepsDAOGovernor, {
+		account: voter,
+		functionName: 'castVote',
+		args: [proposalId, 1],
+	});
+
+	await networkHelpers.mine(Number(votingPeriod) + 1);
+
+	await env.execute(pickOverload(BleepsDAOGovernor, 'queue', 1), {
+		account: executor,
+		functionName: 'queue',
+		args: [proposalId],
+	} as never);
+
+	await networkHelpers.time.increase(TIMELOCK_DELAY);
+
+	await env.execute(pickOverload(BleepsDAOGovernor, 'execute', 1), {
+		account: executor,
+		functionName: 'execute',
+		args: [proposalId],
+	} as never);
+}
+
 describe('BleepsDAOGovernor', function () {
-  it('cannot propose with no Bleeps', async function () {
-    const {users, accounts, BleepsDAOAccount} = await setup();
-    await deployments.rawTx({from: accounts.deployer.address, to: BleepsDAOAccount.address, value: parseEther('1')});
-    await expect(
-      accounts.daoVetoer.BleepsDAOGovernor['propose(address[],uint256[],bytes[],string)'](
-        [users[0].address],
-        [parseEther('1')],
-        ['0x'],
-        'send 1 ETH to user 0'
-      )
-    ).to.be.revertedWith('GovernorCompatibilityBravo: proposer votes below proposal threshold');
-  });
+	it('cannot propose with no Bleeps', async function () {
+		const fixtures = await networkHelpers.loadFixture(deployAll);
+		const {env, BleepsDAOAccount, namedAccounts, unnamedAccounts} = fixtures;
 
-  it('propose', async function () {
-    const {users, accounts, BleepsDAOAccount} = await setup();
-    await mintViaMinterAdmin(0, users[0].address, users[0].address);
-    await deployments.rawTx({from: accounts.deployer.address, to: BleepsDAOAccount.address, value: parseEther('1')});
-    await waitFor(
-      users[0].BleepsDAOGovernor['propose(address[],uint256[],bytes[],string)'](
-        [users[0].address],
-        [parseEther('1')],
-        ['0x'],
-        'send 1 ETH to user 0'
-      )
-    );
-  });
+		await env.tx({
+			account: namedAccounts.deployer,
+			to: BleepsDAOAccount.address,
+			value: parseEther('1'),
+		});
 
-  it('cannot veto if not vetoer', async function () {
-    const {users, accounts, BleepsDAOAccount} = await setup();
-    await mintViaMinterAdmin(0, users[0].address, users[0].address);
-    await deployments.rawTx({from: accounts.deployer.address, to: BleepsDAOAccount.address, value: parseEther('1')});
-    const receipt = await waitFor(
-      users[0].BleepsDAOGovernor['propose(address[],uint256[],bytes[],string)'](
-        [users[0].address],
-        [parseEther('1')],
-        ['0x'],
-        'send 1 ETH to user 0'
-      )
-    );
+		await expect(
+			propose(
+				fixtures,
+				namedAccounts.daoVetoer,
+				[unnamedAccounts[0]],
+				[parseEther('1')],
+				['0x'],
+				'send 1 ETH to user 0',
+			),
+		).toBeRejectedWith(
+			'GovernorCompatibilityBravo: proposer votes below proposal threshold',
+		);
+	});
 
-    if (!receipt.events) {
-      throw new Error('no events');
-    }
+	it('propose', async function () {
+		const fixtures = await networkHelpers.loadFixture(deployAll);
+		const {env, BleepsDAOAccount, namedAccounts, unnamedAccounts} = fixtures;
 
-    await expect(users[0].BleepsDAOGovernor.veto(receipt.events[0].args?.proposalId)).to.be.revertedWith(
-      'GovernorBravo: not vetoer'
-    );
-  });
+		await mintViaMinterAdmin(
+			fixtures,
+			0,
+			unnamedAccounts[0],
+			unnamedAccounts[0],
+		);
+		await env.tx({
+			account: namedAccounts.deployer,
+			to: BleepsDAOAccount.address,
+			value: parseEther('1'),
+		});
 
-  it('veto', async function () {
-    const {users, accounts, BleepsDAOAccount} = await setup();
-    await mintViaMinterAdmin(0, users[0].address, users[0].address);
-    await deployments.rawTx({from: accounts.deployer.address, to: BleepsDAOAccount.address, value: parseEther('1')});
-    const receipt = await waitFor(
-      users[0].BleepsDAOGovernor['propose(address[],uint256[],bytes[],string)'](
-        [users[0].address],
-        [parseEther('1')],
-        ['0x'],
-        'send 1 ETH to user 0'
-      )
-    );
+		const receipt = await propose(
+			fixtures,
+			unnamedAccounts[0],
+			[unnamedAccounts[0]],
+			[parseEther('1')],
+			['0x'],
+			'send 1 ETH to user 0',
+		);
 
-    if (!receipt.events) {
-      throw new Error('no events');
-    }
+		const event = getEvent(
+			receipt,
+			fixtures.BleepsDAOGovernor.abi,
+			'ProposalCreated',
+		);
+		expect(typeof event.args.proposalId).toEqual('bigint');
+	});
 
-    await accounts.daoVetoer.BleepsDAOGovernor.veto(receipt.events[0].args?.proposalId);
-  });
+	it('cannot veto if not vetoer', async function () {
+		const fixtures = await networkHelpers.loadFixture(deployAll);
+		const {
+			env,
+			BleepsDAOGovernor,
+			BleepsDAOAccount,
+			namedAccounts,
+			unnamedAccounts,
+		} = fixtures;
 
-  it('random user cannot change proposer', async function () {
-    const {users, BleepsDAOAccount} = await setup();
-    const proposerRole = await BleepsDAOAccount.callStatic.PROPOSER_ROLE();
-    const adminRole = await BleepsDAOAccount.callStatic.TIMELOCK_ADMIN_ROLE();
-    await expect(users[0].BleepsDAOAccount.grantRole(proposerRole, users[0].address)).to.be.revertedWith(
-      `AccessControl: account ${users[0].address.toLowerCase()} is missing role ${adminRole}`
-    );
-  });
+		await mintViaMinterAdmin(
+			fixtures,
+			0,
+			unnamedAccounts[0],
+			unnamedAccounts[0],
+		);
+		await env.tx({
+			account: namedAccounts.deployer,
+			to: BleepsDAOAccount.address,
+			value: parseEther('1'),
+		});
+		const receipt = await propose(
+			fixtures,
+			unnamedAccounts[0],
+			[unnamedAccounts[0]],
+			[parseEther('1')],
+			['0x'],
+			'send 1 ETH to user 0',
+		);
+		const proposalId = getEvent(
+			receipt,
+			BleepsDAOGovernor.abi,
+			'ProposalCreated',
+		).args.proposalId as bigint;
 
-  // it('BleepsDAOGovernor can change proposer', async function () {
-  //   const {users, BleepsDAOAccount, BleepsDAOGovernor} = await setup();
-  //   const proposerRole = await BleepsDAOAccount.callStatic.PROPOSER_ROLE();
-  //   const adminRole = await BleepsDAOAccount.callStatic.TIMELOCK_ADMIN_ROLE();
-  //   await network.provider.request({
-  //     method: 'hardhat_impersonateAccount',
-  //     params: [BleepsDAOGovernor.address],
-  //   });
-  //   await users[0].signer.sendTransaction({to: BleepsDAOGovernor.address, value: parseEther('1')});
-  //   const signer = await ethers.getSigner(BleepsDAOGovernor.address);
-  //   console.log({
-  //     BleepsDAOGovernor: BleepsDAOGovernor.address,
-  //     proposerRole,
-  //     adminRole,
-  //   });
-  //   await waitFor(BleepsDAOAccount.connect(signer).grantRole(proposerRole, users[0].address));
-  // });
+		await expect(
+			env.execute(BleepsDAOGovernor, {
+				account: unnamedAccounts[0],
+				functionName: 'veto',
+				args: [proposalId],
+			}),
+		).toBeRejectedWith('GovernorBravo: not vetoer');
+	});
 
-  it('BleepsDAOAccount can change its own proposer', async function () {
-    const {users, BleepsDAOAccount} = await setup();
-    const proposerRole = await BleepsDAOAccount.callStatic.PROPOSER_ROLE();
-    await network.provider.request({
-      method: 'hardhat_impersonateAccount',
-      params: [BleepsDAOAccount.address],
-    });
-    await users[0].signer.sendTransaction({to: BleepsDAOAccount.address, value: parseEther('1')});
-    const signer = await ethers.getSigner(BleepsDAOAccount.address);
-    await waitFor(BleepsDAOAccount.connect(signer).grantRole(proposerRole, users[0].address));
-  });
+	it('veto', async function () {
+		const fixtures = await networkHelpers.loadFixture(deployAll);
+		const {
+			env,
+			BleepsDAOGovernor,
+			BleepsDAOAccount,
+			namedAccounts,
+			unnamedAccounts,
+		} = fixtures;
 
-  it('cannot change proposer once immortalised', async function () {
-    const {users, accounts, BleepsDAOAccount} = await setup();
-    const proposerRole = await BleepsDAOAccount.callStatic.PROPOSER_ROLE();
-    // const adminRole = await BleepsDAOAccount.callStatic.TIMELOCK_ADMIN_ROLE();
-    const voidRole = await BleepsDAOAccount.callStatic.VOID_ROLE();
-    await network.provider.request({
-      method: 'hardhat_impersonateAccount',
-      params: [BleepsDAOAccount.address],
-    });
-    await users[0].signer.sendTransaction({to: BleepsDAOAccount.address, value: parseEther('1')});
-    const signer = await ethers.getSigner(BleepsDAOAccount.address);
+		await mintViaMinterAdmin(
+			fixtures,
+			0,
+			unnamedAccounts[0],
+			unnamedAccounts[0],
+		);
+		await env.tx({
+			account: namedAccounts.deployer,
+			to: BleepsDAOAccount.address,
+			value: parseEther('1'),
+		});
+		const receipt = await propose(
+			fixtures,
+			unnamedAccounts[0],
+			[unnamedAccounts[0]],
+			[parseEther('1')],
+			['0x'],
+			'send 1 ETH to user 0',
+		);
+		const proposalId = getEvent(
+			receipt,
+			BleepsDAOGovernor.abi,
+			'ProposalCreated',
+		).args.proposalId as bigint;
 
-    await accounts.daoGuardian.BleepsDAOAccount.immortalizeGovernance();
-    await expect(BleepsDAOAccount.connect(signer).grantRole(proposerRole, users[0].address)).to.be.revertedWith(
-      `AccessControl: account ${BleepsDAOAccount.address.toLowerCase()} is missing role ${voidRole}`
-    );
-  });
+		await env.execute(BleepsDAOGovernor, {
+			account: namedAccounts.daoVetoer,
+			functionName: 'veto',
+			args: [proposalId],
+		});
+	});
 
-  it('vote', async function () {
-    const {users, accounts, BleepsDAOAccount} = await setup();
+	it('random user cannot change proposer', async function () {
+		const {env, BleepsDAOAccount, unnamedAccounts} =
+			await networkHelpers.loadFixture(deployAll);
 
-    await mintMultipleViaMinterAdmin(
-      Array.from(Array(65)).map((v, i) => i + 448),
-      accounts.projectCreator.address,
-      [users[0].address]
-    );
+		const proposerRole = await env.read(BleepsDAOAccount, {
+			functionName: 'PROPOSER_ROLE',
+		});
+		const adminRole = await env.read(BleepsDAOAccount, {
+			functionName: 'TIMELOCK_ADMIN_ROLE',
+		});
 
-    console.log('proposing...');
-    await deployments.rawTx({from: accounts.deployer.address, to: BleepsDAOAccount.address, value: parseEther('1')});
-    const receipt = await waitFor(
-      users[0].BleepsDAOGovernor['propose(address[],uint256[],bytes[],string)'](
-        [users[0].address],
-        [parseEther('1')],
-        ['0x'],
-        'send 1 ETH to user 0'
-      )
-    );
+		await expect(
+			env.execute(BleepsDAOAccount, {
+				account: unnamedAccounts[0],
+				functionName: 'grantRole',
+				args: [proposerRole, unnamedAccounts[0]],
+			}),
+		).toBeRejectedWith(
+			`AccessControl: account ${unnamedAccounts[0].toLowerCase()} is missing role ${adminRole}`,
+		);
+	});
 
-    if (!receipt.events) {
-      throw new Error('no events');
-    }
-    const proposalId = receipt.events[0].args?.proposalId;
+	it('BleepsDAOAccount can change its own proposer', async function () {
+		const {env, BleepsDAOAccount, unnamedAccounts} =
+			await networkHelpers.loadFixture(deployAll);
 
-    // skip 1 blocks (votingDelay)
-    for (let i = 0; i < 1; i++) {
-      await network.provider.request({
-        method: 'evm_mine',
-        params: [],
-      });
-    }
+		const proposerRole = await env.read(BleepsDAOAccount, {
+			functionName: 'PROPOSER_ROLE',
+		});
 
-    console.log('casting vote...');
-    await users[0].BleepsDAOGovernor.castVote(proposalId, 1); // vote
+		// The timelock is its own admin, so acting AS the timelock is allowed.
+		await env.tx({
+			account: unnamedAccounts[0],
+			to: BleepsDAOAccount.address,
+			value: parseEther('1'),
+		});
+		await sendAsImpersonated(
+			BleepsDAOAccount.address,
+			BleepsDAOAccount.address,
+			encodeFunctionData({
+				abi: BleepsDAOAccount.abi,
+				functionName: 'grantRole',
+				args: [proposerRole, unnamedAccounts[0]],
+			}),
+		);
 
-    console.log('skipping blocks...');
-    // skip 45818 blocks (votingPeriod)
-    for (let i = 0; i < 45818 + 1; i++) {
-      await network.provider.request({
-        method: 'evm_mine',
-        params: [],
-      });
-    }
+		expect(
+			await env.read(BleepsDAOAccount, {
+				functionName: 'hasRole',
+				args: [proposerRole, unnamedAccounts[0]],
+			}),
+		).toEqual(true);
+	});
 
-    console.log('queuing...');
-    await users[1].BleepsDAOGovernor['queue(uint256)'](proposalId); // queue
+	it('cannot change proposer once immortalised', async function () {
+		const {env, BleepsDAOAccount, namedAccounts, unnamedAccounts} =
+			await networkHelpers.loadFixture(deployAll);
 
-    const block = await ethers.provider.getBlock('latest');
+		const proposerRole = await env.read(BleepsDAOAccount, {
+			functionName: 'PROPOSER_ROLE',
+		});
+		const voidRole = await env.read(BleepsDAOAccount, {
+			functionName: 'VOID_ROLE',
+		});
 
-    // delay 2 days for timelock
-    await network.provider.request({
-      method: 'evm_setNextBlockTimestamp',
-      params: [block.timestamp + 2 * 24 * 3600],
-    });
+		await env.tx({
+			account: unnamedAccounts[0],
+			to: BleepsDAOAccount.address,
+			value: parseEther('1'),
+		});
 
-    console.log('executing...');
-    await users[1].BleepsDAOGovernor['execute(uint256)'](proposalId); // execute
-  });
+		// Immortalising points every role's admin at VOID_ROLE, which nobody
+		// holds and nobody can be granted. After this the governance wiring is
+		// frozen, including for the timelock itself.
+		await env.execute(BleepsDAOAccount, {
+			account: namedAccounts.daoGuardian,
+			functionName: 'immortalizeGovernance',
+		});
 
-  it('vote to change governor', async function () {
-    const {users, accounts, BleepsDAOAccount, BleepsDAOGovernor} = await setup();
+		await expect(
+			sendAsImpersonated(
+				BleepsDAOAccount.address,
+				BleepsDAOAccount.address,
+				encodeFunctionData({
+					abi: BleepsDAOAccount.abi,
+					functionName: 'grantRole',
+					args: [proposerRole, unnamedAccounts[0]],
+				}),
+			),
+		).toBeRejectedWith(
+			`AccessControl: account ${BleepsDAOAccount.address.toLowerCase()} is missing role ${voidRole}`,
+		);
+	});
 
-    const proposerRole = await BleepsDAOAccount.callStatic.PROPOSER_ROLE();
-    // const adminRole = await BleepsDAOAccount.callStatic.TIMELOCK_ADMIN_ROLE();
-    // const voidRole = await BleepsDAOAccount.callStatic.VOID_ROLE();
+	it('vote', async function () {
+		const fixtures = await networkHelpers.loadFixture(deployAll);
+		const {
+			env,
+			BleepsDAOGovernor,
+			BleepsDAOAccount,
+			namedAccounts,
+			unnamedAccounts,
+		} = fixtures;
 
-    // console.log({
-    //   proposerRole,
-    //   adminRole,
-    //   voidRole,
-    //   BleepsDAOAccount: BleepsDAOAccount.address,
-    //   BleepsDAOGovernor: BleepsDAOGovernor.address,
-    //   user0: users[0].address,
-    // });
+		await mintMultipleViaMinterAdmin(
+			fixtures,
+			VOTING_BLOCK,
+			namedAccounts.projectCreator,
+			VOTING_BLOCK.map(() => unnamedAccounts[0]),
+		);
 
-    await mintMultipleViaMinterAdmin(
-      Array.from(Array(65)).map((v, i) => i + 448),
-      accounts.projectCreator.address,
-      [users[0].address]
-    );
+		await env.tx({
+			account: namedAccounts.deployer,
+			to: BleepsDAOAccount.address,
+			value: parseEther('1'),
+		});
 
-    await deployments.rawTx({from: accounts.deployer.address, to: BleepsDAOAccount.address, value: parseEther('1')});
-    const grantProposerData = await BleepsDAOAccount.populateTransaction.grantRole(proposerRole, users[2].address);
-    const revokeProposerData = await BleepsDAOAccount.populateTransaction.revokeRole(
-      proposerRole,
-      BleepsDAOGovernor.address
-    );
-    if (!grantProposerData.to || !revokeProposerData.to || !grantProposerData.data || !revokeProposerData.data) {
-      throw new Error(`invalid tx data`);
-    }
-    const receipt = await waitFor(
-      users[0].BleepsDAOGovernor['propose(address[],uint256[],bytes[],string)'](
-        [grantProposerData.to, revokeProposerData.to],
-        [0, 0],
-        [grantProposerData.data, revokeProposerData.data],
-        'change governor'
-      )
-    );
+		const balanceBefore = await env.viem.publicClient.getBalance({
+			address: unnamedAccounts[0],
+		});
 
-    if (!receipt.events) {
-      throw new Error('no events');
-    }
-    const proposalId = receipt.events[0].args?.proposalId;
+		const receipt = await propose(
+			fixtures,
+			unnamedAccounts[0],
+			[unnamedAccounts[0]],
+			[parseEther('1')],
+			['0x'],
+			'send 1 ETH to user 0',
+		);
+		const proposalId = getEvent(
+			receipt,
+			BleepsDAOGovernor.abi,
+			'ProposalCreated',
+		).args.proposalId as bigint;
 
-    // skip 1 blocks (votingDelay)
-    for (let i = 0; i < 1; i++) {
-      await network.provider.request({
-        method: 'evm_mine',
-        params: [],
-      });
-    }
+		await passProposal(
+			fixtures,
+			unnamedAccounts[0],
+			unnamedAccounts[1],
+			proposalId,
+		);
 
-    await users[0].BleepsDAOGovernor.castVote(proposalId, 1); // vote
+		// The proposal actually moved the money, which is the only proof the
+		// whole pipeline worked rather than merely not reverting.
+		expect(
+			await env.viem.publicClient.getBalance({
+				address: BleepsDAOAccount.address,
+			}),
+		).toEqual(0n);
+		const balanceAfter = await env.viem.publicClient.getBalance({
+			address: unnamedAccounts[0],
+		});
+		expect(balanceAfter > balanceBefore).toEqual(true);
+	});
 
-    console.log('skipping blocks...');
-    // skip 45818 blocks (votingPeriod)
-    for (let i = 0; i < 45818 + 1; i++) {
-      await network.provider.request({
-        method: 'evm_mine',
-        params: [],
-      });
-    }
+	it('vote to change governor', async function () {
+		const fixtures = await networkHelpers.loadFixture(deployAll);
+		const {
+			env,
+			BleepsDAOGovernor,
+			BleepsDAOAccount,
+			namedAccounts,
+			unnamedAccounts,
+		} = fixtures;
 
-    // const state = await BleepsDAOGovernor.state(proposalId);
-    // console.log({state});
-    await users[1].BleepsDAOGovernor['queue(uint256)'](proposalId); // queue
+		const proposerRole = await env.read(BleepsDAOAccount, {
+			functionName: 'PROPOSER_ROLE',
+		});
 
-    // console.log('execute...');
-    const block = await ethers.provider.getBlock('latest');
+		await mintMultipleViaMinterAdmin(
+			fixtures,
+			VOTING_BLOCK,
+			namedAccounts.projectCreator,
+			VOTING_BLOCK.map(() => unnamedAccounts[0]),
+		);
+		await env.tx({
+			account: namedAccounts.deployer,
+			to: BleepsDAOAccount.address,
+			value: parseEther('1'),
+		});
 
-    // delay 2 days for timelock
-    await network.provider.request({
-      method: 'evm_setNextBlockTimestamp',
-      params: [block.timestamp + 2 * 24 * 3600],
-    });
+		// The DAO votes to replace itself: user 2 becomes the proposer, and the
+		// current governor stops being one.
+		const grantProposer = encodeFunctionData({
+			abi: BleepsDAOAccount.abi,
+			functionName: 'grantRole',
+			args: [proposerRole, unnamedAccounts[2]],
+		});
+		const revokeProposer = encodeFunctionData({
+			abi: BleepsDAOAccount.abi,
+			functionName: 'revokeRole',
+			args: [proposerRole, BleepsDAOGovernor.address],
+		});
 
-    await users[1].BleepsDAOGovernor['execute(uint256)'](proposalId); // execute
+		const receipt = await propose(
+			fixtures,
+			unnamedAccounts[0],
+			[BleepsDAOAccount.address, BleepsDAOAccount.address],
+			[0n, 0n],
+			[grantProposer, revokeProposer],
+			'change governor',
+		);
+		const proposalId = getEvent(
+			receipt,
+			BleepsDAOGovernor.abi,
+			'ProposalCreated',
+		).args.proposalId as bigint;
 
-    const grantProposerData2 = await BleepsDAOAccount.populateTransaction.grantRole(proposerRole, users[3].address);
-    if (!grantProposerData2.to || !grantProposerData2.data) {
-      throw new Error(`invalid tx data for second`);
-    }
-    await users[2].BleepsDAOAccount.schedule(
-      grantProposerData2.to,
-      0,
-      grantProposerData2.data,
-      ZeroBytes,
-      ZeroBytes,
-      2 * 24 * 3600
-    );
+		await passProposal(
+			fixtures,
+			unnamedAccounts[0],
+			unnamedAccounts[1],
+			proposalId,
+		);
 
-    const block2 = await ethers.provider.getBlock('latest');
-    // delay 2 days for timelock
-    await network.provider.request({
-      method: 'evm_setNextBlockTimestamp',
-      params: [block2.timestamp + 2 * 24 * 3600],
-    });
+		// User 2 can now schedule directly on the timelock...
+		const grantProposerToUser3 = encodeFunctionData({
+			abi: BleepsDAOAccount.abi,
+			functionName: 'grantRole',
+			args: [proposerRole, unnamedAccounts[3]],
+		});
 
-    await users[2].BleepsDAOAccount.execute(grantProposerData2.to, 0, grantProposerData2.data, ZeroBytes, ZeroBytes);
+		await env.execute(BleepsDAOAccount, {
+			account: unnamedAccounts[2],
+			functionName: 'schedule',
+			args: [
+				BleepsDAOAccount.address,
+				0n,
+				grantProposerToUser3,
+				ZERO_BYTES32,
+				ZERO_BYTES32,
+				BigInt(TIMELOCK_DELAY),
+			],
+		});
 
-    await users[3].BleepsDAOAccount.schedule(
-      grantProposerData2.to,
-      0,
-      grantProposerData2.data,
-      ZeroBytes,
-      '0x0000000000000000000000000000000000000000000000000000000000000001',
-      2 * 24 * 3600
-    );
+		await networkHelpers.time.increase(TIMELOCK_DELAY);
 
-    await network.provider.request({
-      method: 'hardhat_impersonateAccount',
-      params: [BleepsDAOAccount.address],
-    });
-    const signer = await ethers.getSigner(BleepsDAOAccount.address);
-    await expect(
-      BleepsDAOAccount.connect(signer).schedule(
-        grantProposerData2.to,
-        0,
-        grantProposerData2.data,
-        ZeroBytes,
-        '0x0000000000000000000000000000000000000000000000000000000000000002',
-        2 * 24 * 3600
-      )
-    ).to.be.revertedWith(
-      `AccessControl: account ${BleepsDAOAccount.address.toLowerCase()} is missing role ${proposerRole}`
-    );
-  });
+		await env.execute(BleepsDAOAccount, {
+			account: unnamedAccounts[2],
+			functionName: 'execute',
+			args: [
+				BleepsDAOAccount.address,
+				0n,
+				grantProposerToUser3,
+				ZERO_BYTES32,
+				ZERO_BYTES32,
+			],
+		});
+
+		// ...and so can user 3, who was just granted the role that way.
+		await env.execute(BleepsDAOAccount, {
+			account: unnamedAccounts[3],
+			functionName: 'schedule',
+			args: [
+				BleepsDAOAccount.address,
+				0n,
+				grantProposerToUser3,
+				ZERO_BYTES32,
+				'0x0000000000000000000000000000000000000000000000000000000000000001',
+				BigInt(TIMELOCK_DELAY),
+			],
+		});
+
+		// The timelock itself is NOT a proposer, and the vote did not make it one.
+		await expect(
+			sendAsImpersonated(
+				BleepsDAOAccount.address,
+				BleepsDAOAccount.address,
+				encodeFunctionData({
+					abi: BleepsDAOAccount.abi,
+					functionName: 'schedule',
+					args: [
+						BleepsDAOAccount.address,
+						0n,
+						grantProposerToUser3,
+						ZERO_BYTES32,
+						'0x0000000000000000000000000000000000000000000000000000000000000002',
+						BigInt(TIMELOCK_DELAY),
+					],
+				}),
+			),
+		).toBeRejectedWith(
+			`AccessControl: account ${BleepsDAOAccount.address.toLowerCase()} is missing role ${proposerRole}`,
+		);
+	});
 });

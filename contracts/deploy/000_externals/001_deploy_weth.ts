@@ -1,18 +1,24 @@
-import {HardhatRuntimeEnvironment} from 'hardhat/types';
-import {DeployFunction} from 'hardhat-deploy/types';
-const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-  const {deployments, getNamedAccounts} = hre;
-  const {deploy} = deployments;
+import {deployScript, artifacts} from '../../rocketh/deploy.js';
 
-  const {deployer} = await getNamedAccounts();
+/**
+ * A WETH of our own, for dev chains only.
+ *
+ * Live chains have a canonical WETH, resolved in deploy/utils.ts. This script
+ * is therefore only listed in the dev script set.
+ */
+export default deployScript(
+	async (env) => {
+		const {deployer} = env.namedAccounts;
 
-  await deploy('WETH', {
-    contract: 'WETH9',
-    from: deployer,
-    skipIfAlreadyDeployed: true,
-    log: true,
-    autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
-  });
-};
-export default func;
-func.tags = ['WETH'];
+		await env.deploy(
+			'WETH',
+			{
+				account: deployer,
+				artifact: artifacts.WETH9,
+				args: [],
+			},
+			{skipIfAlreadyDeployed: true},
+		);
+	},
+	{tags: ['WETH', 'externals']},
+);

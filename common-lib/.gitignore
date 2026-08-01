@@ -1,4 +1,3 @@
-node_modules/
-lib/
-.vscode/*
-!.vscode/*.default
+/node_modules
+lib
+*.local

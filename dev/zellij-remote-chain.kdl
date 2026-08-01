@@ -1,0 +1,25 @@
+layout {
+	pane split_direction="vertical" {
+		
+	}
+	pane split_direction="vertical" {
+		pane name="web" command="pnpm"  {
+			args "web:dev"
+		}
+		pane name="svelte-check" command="pnpm"  {
+			args "web:check:watch"
+		}
+	}
+
+	pane split_direction="vertical" {
+		pane name="watch and compile" command="pnpm"  {
+			args "contracts:compile:watch"
+		}
+		pane name="watch and deploy 2 " command="ldenv"  {
+			args "pnpm" "contracts:deploy:watch" "@@MODE" "--ts" "../web/src/lib/deployments.ts"
+		}
+		pane name="watch and build typescript" command="pnpm"  {
+			args "contracts:build:watch"
+		}
+	}
+}

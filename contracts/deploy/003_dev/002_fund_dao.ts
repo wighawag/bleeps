@@ -1,28 +1,36 @@
-import {HardhatRuntimeEnvironment} from 'hardhat/types';
-import {DeployFunction} from 'hardhat-deploy/types';
-import {AddressZero} from '@ethersproject/constants';
-import {parseEther} from 'ethers/lib/utils';
+import {deployScript} from '../../rocketh/deploy.js';
+import {parseEther} from 'viem';
 
-const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-  const {deployments, ethers, getNamedAccounts} = hre;
-  const {rawTx, log} = deployments;
-  const {deployer} = await getNamedAccounts();
+/**
+ * Give the DAO treasury something to spend, on dev chains only.
+ *
+ * On mainnet the treasury filled up from sale proceeds. Any UI or proposal that
+ * shows or moves the balance is untestable against zero, so put a comparable
+ * amount in.
+ */
+export default deployScript(
+	async (env) => {
+		const {deployer} = env.namedAccounts;
 
-  const BleepsDAOAccount = await deployments.get('BleepsDAOAccount');
+		const BleepsDAOAccount = env.get('BleepsDAOAccount');
 
-  const currentBalance = await ethers.provider.getBalance(BleepsDAOAccount.address);
+		const currentBalance = await env.viem.publicClient.getBalance({
+			address: BleepsDAOAccount.address,
+		});
 
-  if (currentBalance.eq(0)) {
-    const tx = await ethers.provider
-      .getSigner(deployer)
-      .sendTransaction({to: BleepsDAOAccount.address, value: parseEther('33')});
-    log(`tx 33 ETH : ${tx.hash}`);
-    await tx.wait();
-    // await rawTx({from: deployer, log: true, value: parseEther('33'), to: BleepsDAOAccount.address});
-  } else {
-    log('already funded');
-  }
-};
-export default func;
-func.tags = ['Bleeps', 'Bleeps_setup'];
-func.dependencies = ['Bleeps_deploy'];
+		if (currentBalance > 0n) {
+			env.showMessage('DAO treasury already funded');
+			return;
+		}
+
+		await env.tx({
+			account: deployer,
+			to: BleepsDAOAccount.address,
+			value: parseEther('33'),
+		});
+	},
+	{
+		tags: ['BleepsDAOAccount', 'Bleeps_dev_setup'],
+		dependencies: ['BleepsDAOAccount_deploy'],
+	},
+);

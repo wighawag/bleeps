@@ -1,5 +1,12 @@
-.env*
-!.env*.default
-.newsh.json
-node_modules
+# environment variables
+.env*.local
+
+# node modules
+node_modules/
+
+.vscode/*
+!.vscode/*.default
+
+tmp/
+
 bleeps.code-workspace

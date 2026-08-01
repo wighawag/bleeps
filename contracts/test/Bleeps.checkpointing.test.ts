@@ -1,101 +1,108 @@
-import {expect} from './chai-setup';
-import {ethers, deployments, getUnnamedAccounts} from 'hardhat';
-import {Bleeps, IBleepsSale} from '../typechain';
-import {setupUsers} from './utils';
-import {DelegationSignerFactory} from './utils/eip712';
-import {splitSignature} from '@ethersproject/bytes';
-import {mintViaMinterAdmin} from './utils/bleepsfixedsale';
+import {expect} from 'earl';
+import {describe, it} from 'node:test';
+import {network} from 'hardhat';
+import {setupFixtures} from './utils/index.js';
+import {mintViaMinterAdmin} from './utils/bleeps.js';
+import {signDelegation} from './utils/eip712.js';
 
-const setup = deployments.createFixture(async () => {
-  await deployments.fixture(['Bleeps']);
-  const contracts = {
-    Bleeps: <Bleeps>await ethers.getContract('Bleeps'),
-  };
-  const DelegationSigner = DelegationSignerFactory.createSigner({
-    verifyingContract: contracts.Bleeps.address,
-  });
+const {provider, networkHelpers} = await network.create();
+const {deployAll} = setupFixtures(provider);
 
-  const users = await setupUsers(await getUnnamedAccounts(), contracts);
+const EXPIRY = 4000000000n;
 
-  await mintViaMinterAdmin(1, users[0].address, users[0].address);
-  await mintViaMinterAdmin(2, users[0].address, users[0].address);
-  await mintViaMinterAdmin(3, users[0].address, users[0].address);
-  await mintViaMinterAdmin(4, users[0].address, users[0].address);
-  await mintViaMinterAdmin(5, users[0].address, users[0].address);
-
-  const tokenHolder = users[0];
-  users.shift();
-
-  const delegatee = users[0];
-  users.shift();
-
-  return {
-    ...contracts,
-    users,
-    tokenHolder,
-    delegatee,
-    DelegationSigner,
-  };
-});
 describe('Bleeps Checkpointing', function () {
-  it('delegation via signature works', async function () {
-    const {users, tokenHolder, delegatee, DelegationSigner, Bleeps} = await setup();
+	it('delegation via signature works', async function () {
+		const fixtures = await networkHelpers.loadFixture(deployAll);
+		const {env, Bleeps, unnamedAccounts} = fixtures;
+		const chainId = env.network.chain.id;
+		const walletClient = env.viem.walletClient;
 
-    const delegatee2 = users[0];
+		const tokenHolder = unnamedAccounts[0];
+		const delegatee = unnamedAccounts[1];
+		const delegatee2 = unnamedAccounts[2];
 
-    const nonce = 0;
-    const expiry = 4000000000;
+		for (const id of [1, 2, 3, 4, 5]) {
+			await mintViaMinterAdmin(fixtures, id, tokenHolder, tokenHolder);
+		}
 
-    const signature = await DelegationSigner.sign(tokenHolder, {
-      delegatee: delegatee.address,
-      nonce,
-      expiry,
-    });
+		const votesOf = (account: `0x${string}`) =>
+			env.read(Bleeps, {functionName: 'getCurrentVotes', args: [account]});
 
-    const {v, r, s} = splitSignature(signature);
+		const previousVoteForTokenHolder = await votesOf(tokenHolder);
+		const previousVoteForDelegatee = await votesOf(delegatee);
+		const previousVoteForDelegatee2 = await votesOf(delegatee2);
 
-    const previousVoteForTokenHolder = await Bleeps.getCurrentVotes(tokenHolder.address);
-    const previousVoteForDelegatee = await Bleeps.getCurrentVotes(delegatee.address);
-    const previousVoteForDelegatee2 = await Bleeps.getCurrentVotes(delegatee2.address);
+		const signature = await signDelegation(
+			walletClient,
+			tokenHolder,
+			chainId,
+			Bleeps.address,
+			{delegatee, nonce: 0n, expiry: EXPIRY},
+		);
 
-    await delegatee.Bleeps.delegateBySig(delegatee.address, nonce, expiry, v, r, s);
+		await env.execute(Bleeps, {
+			account: delegatee,
+			functionName: 'delegateBySig',
+			args: [delegatee, 0n, EXPIRY, signature.v, signature.r, signature.s],
+		});
 
-    const newVoteForTokenHolder = await Bleeps.getCurrentVotes(tokenHolder.address);
-    const newVoteForDelegatee = await Bleeps.getCurrentVotes(delegatee.address);
+		expect(await votesOf(tokenHolder)).toEqual(0n);
+		expect(await votesOf(delegatee)).toEqual(
+			previousVoteForTokenHolder + previousVoteForDelegatee,
+		);
 
-    expect(newVoteForTokenHolder).to.equal(0);
-    expect(newVoteForDelegatee).to.equal(previousVoteForTokenHolder.add(previousVoteForDelegatee));
+		const signature2 = await signDelegation(
+			walletClient,
+			tokenHolder,
+			chainId,
+			Bleeps.address,
+			{delegatee: delegatee2, nonce: 1n, expiry: EXPIRY},
+		);
 
-    const signature2 = await DelegationSigner.sign(tokenHolder, {
-      delegatee: delegatee2.address,
-      nonce: nonce + 1,
-      expiry,
-    });
+		// The nonce is checked against the signature's recovered signer, so a
+		// wrong nonce is rejected outright.
+		await expect(
+			env.execute(Bleeps, {
+				account: delegatee2,
+				functionName: 'delegateBySig',
+				args: [
+					delegatee2,
+					2n,
+					EXPIRY,
+					signature2.v,
+					signature2.r,
+					signature2.s,
+				],
+			}),
+		).toBeRejectedWith('ERC721Checkpointable::delegateBySig: invalid nonce');
 
-    const {v: v2, r: r2, s: s2} = splitSignature(signature2);
+		// Submitting the signature with a DIFFERENT delegatee argument does not
+		// revert: the signature recovers to some other address, whose (empty)
+		// delegation is what gets changed. The token holder's votes are untouched.
+		// This is a known sharp edge of the Nouns-derived checkpointing, pinned
+		// here so a future change to it is a visible decision rather than an
+		// accident.
+		await env.execute(Bleeps, {
+			account: delegatee2,
+			functionName: 'delegateBySig',
+			args: [delegatee, 0n, EXPIRY, signature2.v, signature2.r, signature2.s],
+		});
 
-    await expect(delegatee2.Bleeps.delegateBySig(delegatee2.address, nonce + 2, expiry, v2, r2, s2)).to.be.revertedWith(
-      'ERC721Checkpointable::delegateBySig: invalid nonce'
-    );
+		expect(await votesOf(tokenHolder)).toEqual(0n);
+		expect(await votesOf(delegatee)).toEqual(
+			previousVoteForTokenHolder + previousVoteForDelegatee,
+		);
 
-    await delegatee2.Bleeps.delegateBySig(delegatee.address, nonce, expiry, v2, r2, s2); // do not revert but affect someone else account
+		await env.execute(Bleeps, {
+			account: delegatee2,
+			functionName: 'delegateBySig',
+			args: [delegatee2, 1n, EXPIRY, signature2.v, signature2.r, signature2.s],
+		});
 
-    {
-      const newVoteForTokenHolder = await Bleeps.getCurrentVotes(tokenHolder.address);
-      const newVoteForDelegatee = await Bleeps.getCurrentVotes(delegatee.address);
-
-      expect(newVoteForTokenHolder).to.equal(0);
-      expect(newVoteForDelegatee).to.equal(previousVoteForTokenHolder.add(previousVoteForDelegatee));
-    }
-
-    await delegatee2.Bleeps.delegateBySig(delegatee2.address, nonce + 1, expiry, v2, r2, s2);
-
-    const latestVoteForTokenHolder = await Bleeps.getCurrentVotes(tokenHolder.address);
-    const latestVoteForDelegatee = await Bleeps.getCurrentVotes(delegatee.address);
-    const newVoteForDelegatee2 = await Bleeps.getCurrentVotes(delegatee2.address);
-
-    expect(latestVoteForTokenHolder).to.equal(0);
-    expect(latestVoteForDelegatee).to.equal(0);
-    expect(newVoteForDelegatee2).to.equal(previousVoteForTokenHolder.add(previousVoteForDelegatee2));
-  });
+		expect(await votesOf(tokenHolder)).toEqual(0n);
+		expect(await votesOf(delegatee)).toEqual(0n);
+		expect(await votesOf(delegatee2)).toEqual(
+			previousVoteForTokenHolder + previousVoteForDelegatee2,
+		);
+	});
 });
