@@ -93,7 +93,37 @@ if (stat.isDirectory()) {
 	contractsInfo = {contracts: contractsInfoFile.contracts, chainName};
 }
 
+/**
+ * Contracts the manifest needs before it is worth generating.
+ *
+ * The template wraps the MeloBleeps data sources in `{{#if contracts.MeloBleeps}}`,
+ * so a deployments directory that is only half written produces a VALID manifest
+ * with the melody data sources silently missing. It then indexes Bleeps happily
+ * and never records a single melody, which looks like a bug in the app.
+ *
+ * That is not hypothetical: the deploy watcher fires on the first file appearing
+ * in deployments/, which is Bleeps.json, well before MeloBleeps.json is written.
+ * Failing here means the watcher simply retries when the rest lands.
+ *
+ * Set SUBGRAPH_ALLOW_PARTIAL=true for a chain that genuinely has no MeloBleeps
+ * (mainnet, today).
+ */
+const REQUIRED = ['Bleeps', 'MeloBleeps', 'MeloBleepsAuctions'];
+
 const contracts = contractsInfo.contracts;
+
+if (process.env.SUBGRAPH_ALLOW_PARTIAL !== 'true') {
+	const missing = REQUIRED.filter((name) => !contracts[name]);
+	if (missing.length > 0) {
+		console.error(
+			`not generating: ${pathArg} has no ${missing.join(', ')} yet.\n` +
+				`A manifest built now would index Bleeps and silently ignore melodies.\n` +
+				`If this chain really has no melodies, set SUBGRAPH_ALLOW_PARTIAL=true.`,
+		);
+		process.exit(1);
+	}
+}
+
 fs.emptyDirSync('./abis');
 for (const contractName of Object.keys(contracts)) {
 	fs.writeFileSync(
