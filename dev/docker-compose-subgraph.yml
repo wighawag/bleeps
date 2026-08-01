@@ -3,6 +3,19 @@
 # Start with `pnpm externals`, tear down with `pnpm externals:down`. The
 # subgraph is deployed into it by `pnpm subgraph:deploy:local:watch`.
 #
+# `pnpm externals` WIPES the volumes before starting, on purpose. The dev chain
+# is ephemeral: `hardhat node` starts from genesis every time, so block 134 of
+# this run is a different block from block 134 of the last one. graph-node
+# persists what it indexed in postgres, sees a different hash at a height it has
+# already written, and treats it as a reorg. It then tries to revert past its own
+# earliest block, fails with `store error: No rows affected`, and retries
+# forever:
+#
+#   ERRO Could not revert block. Retrying, error: store error: No rows affected.
+#   ERRO Subgraph writer failed ... attempt to revert beyond earliest_block
+#
+# An indexer of a throwaway chain has to be as throwaway as the chain.
+#
 # The network is called `localhost`, which must match the name generate.cjs
 # derives for chain 31337; a mismatch shows up as a subgraph that deploys and
 # then indexes nothing.

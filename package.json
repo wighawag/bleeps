@@ -56,7 +56,7 @@
 		"web:check": "pnpm --filter ./web check",
 		"web:check:watch": "pnpm --filter ./web check:watch",
 		"---------------------- SUBGRAPH ----------------------": "",
-		"externals": "docker compose -f dev/docker-compose-subgraph.yml up",
+		"externals": "docker compose -f dev/docker-compose-subgraph.yml down -v && docker compose -f dev/docker-compose-subgraph.yml up",
 		"externals:down": "docker compose -f dev/docker-compose-subgraph.yml down -v",
 		"subgraph:generate:codegen": "ldenv pnpm run --filter ./subgraph generate:codegen @@MODE @@",
 		"subgraph:deploy": "ldenv pnpm run --filter ./subgraph deploy:build @@MODE @@",
