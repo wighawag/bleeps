@@ -5,6 +5,7 @@ import {encodePacked, keccak256} from 'viem';
 import {setupFixtures, getEvent} from './utils/index.js';
 import {ensureIsMeloBleepsMinter} from './utils/bleeps.js';
 import {createData, exampleMelody} from './utils/melody.js';
+import {parseMetadata, parseWav} from './utils/wav.js';
 
 const {provider, networkHelpers} = await network.create();
 const {deployAll} = setupFixtures(provider);
@@ -225,6 +226,31 @@ describe('MeloBleeps', function () {
 			}),
 		).toBeRejectedWith('NEED_RESERVATION');
 	});
+
+	it('has no way to reserve without also revealing', async function () {
+		const {MeloBleeps} = await networkHelpers.loadFixture(deployAll);
+
+		// `ed1582c new setup for melody reservations including an option to skip
+		// reservation step` added a two-phase flow: commit to a melody hash with
+		// `reserve`, then `reveal` it later, so nobody can see your composition and
+		// front-run it. `reserve` was left `internal`, so it is not in the ABI and
+		// no reservation can be created without revealing in the same transaction.
+		//
+		// `reveal` and `revealAndMint` are external but can therefore only ever be
+		// handed an already-revealed melody, which makes them re-writes of data that
+		// is already public. The "skip reservation" half works; the commit-reveal
+		// half is unreachable.
+		//
+		// Pinned so that a UI is not built against a flow the contract does not
+		// offer. Making `reserve` external is a redeployment of MeloBleeps.
+		const functions = MeloBleeps.abi
+			.filter((entry) => entry.type === 'function')
+			.map((entry) => (entry as {name: string}).name);
+
+		expect(functions.includes('reserve')).toEqual(false);
+		expect(functions.includes('reveal')).toEqual(true);
+		expect(functions.includes('reserveAndReveal')).toEqual(true);
+	});
 });
 
 describe('MeloBleeps rendering', function () {
@@ -249,15 +275,29 @@ describe('MeloBleeps rendering', function () {
 			functionName: 'tokenURI',
 			args: [id],
 		});
-		expect(tokenURI.startsWith('data:application/json,')).toEqual(true);
-
-		const metadata = JSON.parse(
-			tokenURI.slice('data:application/json,'.length),
-		);
+		const metadata = parseMetadata(tokenURI);
 		expect(metadata.name).toEqual('rendered');
-		expect(metadata.animation_url.startsWith('data:audio/wav;base64,')).toEqual(
-			true,
-		);
+
+		// Parse the container rather than just checking the prefix. The app hands
+		// animation_url straight to an <audio> element, which fails silently on a
+		// malformed header: you get a player that renders and never plays.
+		const wav = parseWav(metadata.animation_url);
+		expect(wav.audioFormat).toEqual(1); // PCM
+		expect(wav.channels).toEqual(1);
+		expect(wav.bitsPerSample).toEqual(8);
+		expect(wav.sampleRate).toEqual(11000); // SAMPLE_RATE in MeloBleepsTokenURI
+
+		// The header goes in before the samples and is patched afterwards with the
+		// length. A mismatch means the two disagree about how much audio there is,
+		// and a player would truncate or read past the end.
+		expect(wav.declaredDataSize).toEqual(wav.actualDataSize);
+		expect(wav.declaredRiffSize).toEqual(wav.actualDataSize + 36);
+
+		// 32 steps at speed 16 is about 4.25s. Bounded rather than pinned exactly,
+		// so the fixed-point rounding is free to differ in the last sample.
+		const seconds = wav.actualDataSize / wav.sampleRate;
+		expect(seconds > 3).toEqual(true);
+		expect(seconds < 6).toEqual(true);
 
 		// Pin the cost and, with it, where this renderer can and cannot be used:
 		// off-chain reads are fine, on-chain composability is not. If it ever drops
@@ -271,5 +311,95 @@ describe('MeloBleeps rendering', function () {
 		});
 		expect(gas > TRANSACTION_GAS_CAP).toEqual(true);
 		expect(gas < NODE_RPC_GAS_CAP).toEqual(true);
+	});
+
+	it('the preview the editor renders is what gets minted', async function () {
+		const fixtures = await nodeLikeCap.networkHelpers.loadFixture(
+			nodeLikeCapFixtures.deployAll,
+		);
+		const {env, MeloBleeps, MeloBleepsTokenURI, unnamedAccounts} = fixtures;
+
+		const artist = unnamedAccounts[1];
+		await ensureIsMeloBleepsMinter(fixtures, artist);
+
+		// The editor previews an unminted melody by calling the renderer directly
+		// with the raw data (MelodyAndMint.svelte does exactly this). Nothing forces
+		// that preview to agree with what MeloBleeps.tokenURI produces once the
+		// melody exists: the token reads its name, data and speed back out of
+		// storage, and if any of them fail to round-trip the user hears one thing
+		// and mints another.
+		const preview = await env.read(MeloBleepsTokenURI, {
+			functionName: 'tokenURI',
+			args: [data1, data2, SPEED, 'faithful'],
+		});
+
+		const receipt = await env.execute(MeloBleeps, {
+			account: artist,
+			functionName: 'reserveRevealAndMint',
+			args: [artist, 'faithful', data1, data2, SPEED, artist],
+		});
+		const id = getEvent(receipt, MeloBleeps.abi, 'MelodyReserved').args
+			.id as bigint;
+
+		const minted = await env.read(MeloBleeps, {
+			functionName: 'tokenURI',
+			args: [id],
+		});
+
+		expect(minted).toEqual(preview);
+	});
+
+	it('an unnamed melody previews and mints identically', async function () {
+		const fixtures = await nodeLikeCap.networkHelpers.loadFixture(
+			nodeLikeCapFixtures.deployAll,
+		);
+		const {env, MeloBleeps, MeloBleepsTokenURI, unnamedAccounts} = fixtures;
+
+		const artist = unnamedAccounts[1];
+		await ensureIsMeloBleepsMinter(fixtures, artist);
+
+		// The name is only written to storage when one was given, so the empty case
+		// takes a different branch and is worth its own check.
+		const preview = await env.read(MeloBleepsTokenURI, {
+			functionName: 'tokenURI',
+			args: [data1, data2, SPEED, ''],
+		});
+
+		const receipt = await env.execute(MeloBleeps, {
+			account: artist,
+			functionName: 'reserveRevealAndMint',
+			args: [artist, '', data1, data2, SPEED, artist],
+		});
+		const id = getEvent(receipt, MeloBleeps.abi, 'MelodyReserved').args
+			.id as bigint;
+
+		expect(
+			await env.read(MeloBleeps, {functionName: 'tokenURI', args: [id]}),
+		).toEqual(preview);
+	});
+
+	it('the rendered length follows the speed', async function () {
+		const fixtures = await nodeLikeCap.networkHelpers.loadFixture(
+			nodeLikeCapFixtures.deployAll,
+		);
+		const {env, MeloBleepsTokenURI} = fixtures;
+
+		// speed is the only thing that sets the duration, so halving it should
+		// roughly halve the audio. This is the one property of the synthesiser
+		// reachable without reimplementing it.
+		const render = async (speed: number) => {
+			const uri = await env.read(MeloBleepsTokenURI, {
+				functionName: 'tokenURI',
+				args: [data1, data2, speed, 'timed'],
+			});
+			return parseWav(parseMetadata(uri).animation_url).actualDataSize;
+		};
+
+		const atFull = await render(SPEED);
+		const atHalf = await render(SPEED / 2);
+
+		const ratio = atFull / atHalf;
+		expect(ratio > 1.9).toEqual(true);
+		expect(ratio < 2.1).toEqual(true);
 	});
 });

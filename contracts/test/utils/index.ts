@@ -7,6 +7,7 @@ import type {Abi_BleepsDAOAccount} from '../../generated/abis/BleepsDAOAccount.j
 import type {Abi_BleepsDAOGovernor} from '../../generated/abis/BleepsDAOGovernor.js';
 import type {Abi_MeloBleeps} from '../../generated/abis/MeloBleeps.js';
 import type {Abi_MeloBleepsAuctions} from '../../generated/abis/MeloBleepsAuctions.js';
+import type {Abi_MeloBleepsTokenURI} from '../../generated/abis/MeloBleepsTokenURI.js';
 import type {Abi_OpenSeaProxyRegistryMock} from '../../generated/abis/OpenSeaProxyRegistryMock.js';
 
 /**
@@ -29,6 +30,8 @@ export function setupFixtures(provider: EthereumProvider) {
 				MeloBleeps: env.get<Abi_MeloBleeps>('MeloBleeps'),
 				MeloBleepsAuctions:
 					env.get<Abi_MeloBleepsAuctions>('MeloBleepsAuctions'),
+				MeloBleepsTokenURI:
+					env.get<Abi_MeloBleepsTokenURI>('MeloBleepsTokenURI'),
 				WyvernProxyRegistry: env.get<Abi_OpenSeaProxyRegistryMock>(
 					'WyvernProxyRegistry',
 				),
