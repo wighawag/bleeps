@@ -51,6 +51,33 @@ const weth9Compiler = {
 
 const compilers = [bleepsCompiler, weth9Compiler];
 
+/**
+ * `demo` is the Sepolia deployment, and it deliberately reads
+ * ETH_NODE_URI_sepolia / MNEMONIC_sepolia rather than *_demo: that is the chain
+ * it is on, and it is what the pre-template config did
+ * (`url: node_url('sepolia')`).
+ *
+ * Only declared when the RPC is actually configured. Declaring it with an empty
+ * url makes hardhat reject the whole config, which would break every command
+ * (including `compile`) for anyone without Sepolia credentials.
+ */
+/**
+ * `demo` is the Sepolia deployment, and its credentials are stored under the
+ * chain's name rather than the environment's: ETH_NODE_URI_sepolia and
+ * MNEMONIC_sepolia. That is what the pre-template config did
+ * (`url: node_url('sepolia')`) and what is already in people's .env.local.
+ *
+ * Aliasing them here lets hardhat-deploy's own `addNetworksFromEnv` build the
+ * network, rather than hand-rolling an http network config and getting its
+ * account types subtly wrong.
+ */
+if (process.env.ETH_NODE_URI_sepolia && !process.env.ETH_NODE_URI_demo) {
+	process.env.ETH_NODE_URI_demo = process.env.ETH_NODE_URI_sepolia;
+}
+if (process.env.MNEMONIC_sepolia && !process.env.MNEMONIC_demo) {
+	process.env.MNEMONIC_demo = process.env.MNEMONIC_sepolia;
+}
+
 const config: HardhatUserConfig = {
 	plugins: [
 		HardhatNodeTestRunner,

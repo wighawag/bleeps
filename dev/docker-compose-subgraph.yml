@@ -11,27 +11,28 @@
 # in front of it. Purgatory deliberately delays inclusion so the app can be
 # tested against realistic confirmation behaviour, which is not something an
 # indexer should be looking at.
+#
+# graph-node runs on the HOST network, and reaches everything over 127.0.0.1.
+# `host.docker.internal` does not work under rootless Docker: the container is in
+# its own network namespace with its own (disabled) ip_forward, so the host's
+# sysctl is irrelevant and every route to the host is refused. Host networking is
+# the one thing that works in both rootless and rootful setups, and it also means
+# the dev chain does not have to be moved into the compose file. ipfs and postgres
+# stay in the compose network and are reached through their published ports.
 services:
   graph-node:
     image: graphprotocol/graph-node
-    ports:
-      - '8000:8000'
-      - '8001:8001'
-      - '8020:8020'
-      - '8030:8030'
-      - '8040:8040'
+    network_mode: host
     depends_on:
       - ipfs
       - postgres
-    extra_hosts:
-      - 'host.docker.internal:host-gateway'
     environment:
-      postgres_host: postgres
+      postgres_host: 127.0.0.1
       postgres_user: graph-node
       postgres_pass: let-me-in
       postgres_db: graph-node
-      ipfs: 'ipfs:5001'
-      ethereum: 'localhost:http://host.docker.internal:8546'
+      ipfs: '127.0.0.1:5001'
+      ethereum: 'localhost:http://127.0.0.1:8546'
       GRAPH_LOG: info
 
   ipfs:

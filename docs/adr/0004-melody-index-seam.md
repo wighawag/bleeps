@@ -30,23 +30,23 @@ The index is authoritative for what exists but always lags. A melody just minted
 
 Filtering is by `owner` and `creator` only. Anything richer belongs in the new indexer rather than being bolted onto this one.
 
-## Not verified, and why
+## Verified
 
-The live round trip is NOT confirmed. The adapter has unit tests against recorded response shapes, and `pnpm subgraph:deploy:local` builds, uploads to IPFS and is accepted by graph-node, but graph-node never indexed a block, so no query has ever returned a real melody.
-
-graph-node logs `Connection refused` for `http://host.docker.internal:8546`. Two separate things caused that, and an earlier version of this ADR blamed the wrong one.
-
-First, the dev node bound loopback. `node:local` now passes `--hostname 0.0.0.0`, and that works: `ss` confirms `LISTEN 0.0.0.0:8546`. An earlier note here claimed the flag had no effect; that was a bad test, in which a second node crashed on stale build info while the first still held the port, so `ss` was reporting the original process. The flag is fine.
-
-Second, and this is the actual blocker, **the host has IPv4 forwarding disabled**:
+The full round trip now works, on a local chain with the subgraph running:
 
 ```
-$ sysctl net.ipv4.ip_forward
-net.ipv4.ip_forward = 0
+subgraph: bleepsSummaries -> numTokens 178, numOwners 19   (exactly the dev seed)
+minted a melody:            reserveAndMint, block 135
+index.list():               id=1 minted=true revealed=true name="indexed tune" speed=16
+                            decoded slots: n12/i2/v5  n30/i5/v7   (what was sent)
 ```
 
-so no container can route to the host gateway at all. Any container gets `WARNING: IPv4 forwarding is disabled. Networking will not work.` Host to container works, which is why `subgraph_create` and `subgraph_deploy` are accepted, but container to host does not, so graph-node can never read the chain.
+Getting there took two wrong diagnoses of mine and one real one.
 
-This is machine configuration, not repository configuration. Enabling it (`sudo sysctl -w net.ipv4.ip_forward=1`, and persisting it in `/etc/sysctl.d/`) is a decision for whoever owns the machine, so nothing here tries to work around it.
+Wrong: I said `hardhat node --hostname 0.0.0.0` had no effect. It works; my test had a second node crashing on stale build info while the first held the port.
 
-Once forwarding is on, the remaining `ECONNRESET` seen by the deploy CLI should be re-checked before being treated as a separate problem: graph-node was thrashing on an unreachable chain throughout, and the CLI retry loop that produced repeated `subgraph_create` / `subgraph_deploy` pairs is consistent with that.
+Wrong: I said the blocker was the host's `net.ipv4.ip_forward=0`. It is 1 now and nothing changed.
+
+Right: **Docker here is rootless.** A rootless container sits in its own network namespace with its own disabled forwarding, so the host's sysctl is irrelevant and `host.docker.internal`, `172.17.0.1` and slirp4netns' `10.0.2.2` are all unreachable. `--network host` is reachable, because for rootless Docker that namespace is the user's own, which is where the dev chain runs.
+
+So `dev/docker-compose-subgraph.yml` puts graph-node on `network_mode: host` and reaches the chain, ipfs and postgres over `127.0.0.1`. That works under both rootless and rootful Docker and avoids moving the dev chain into the compose file. The `ECONNRESET` from the deploy CLI was indeed downstream: it has not recurred.
