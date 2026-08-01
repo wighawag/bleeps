@@ -28,9 +28,13 @@ import type {Abi_BleepsFixedPriceSale} from '../../generated/abis/BleepsFixedPri
 const RESERVED_IDS = Array.from({length: 128}, (_, i) => 448 + i);
 
 /**
- * Mints per transaction. Bleeps are checkpointed, so each one writes an owner
- * slot and a voting checkpoint; 48 keeps a batch well under EIP-7825's
- * 16,777,216 gas cap. See docs/adr/0002.
+ * Mints per transaction.
+ *
+ * Bleeps are checkpointed, so each mint writes an owner slot and a voting
+ * checkpoint: about 30k gas, and more for a first-time holder. Minting all 576
+ * in one call costs 17,390,329 gas, just over EIP-7825's 16,777,216
+ * per-transaction cap, so bulk minting has to be split. 48 leaves plenty of
+ * headroom. See docs/adr/0002-melobleeps-tokenuri-gas.md.
  */
 const MINTS_PER_TRANSACTION = 48;
 

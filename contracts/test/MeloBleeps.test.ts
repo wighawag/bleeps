@@ -10,22 +10,32 @@ const {provider, networkHelpers} = await network.create();
 const {deployAll} = setupFixtures(provider);
 
 /**
- * A connection to a pre-Fusaka EVM, used only to exercise the on-chain
- * renderer.
+ * A connection whose RPC gas cap is raised to 50,000,000, which is geth's
+ * default `--rpc.gascap`.
  *
- * MeloBleeps' tokenURI needs ~34M gas, and EIP-7825 caps a transaction at
- * 2^24 = 16,777,216 gas, so on a current EVM the renderer cannot run at all.
- * That is pinned by the test at the bottom of this file. Its OUTPUT is still
- * worth testing, though, so the rendering test runs against an EVM old enough
- * to let it execute.
+ * Rendering a melody costs about 34M gas. That is over EIP-7825's 16,777,216
+ * per-TRANSACTION cap, so no transaction can call it, but `eth_call` is bound by
+ * node policy rather than consensus and 34M sits comfortably inside a normal
+ * node's allowance. Wallets and marketplaces read tokenURI over eth_call, so the
+ * metadata is readable in practice.
  *
- * See docs/adr/0002-melobleeps-tokenuri-exceeds-the-gas-cap.md.
+ * EDR applies one limit to both, so a second connection is needed to model the
+ * eth_call side. Nothing here is pretending the chain is old: the default
+ * connection stays faithful to consensus.
+ *
+ * See docs/adr/0002-melobleeps-tokenuri-gas.md.
  */
-const preGasCap = await network.create({override: {hardfork: 'prague'}});
-const preGasCapFixtures = setupFixtures(preGasCap.provider);
+const NODE_RPC_GAS_CAP = 50_000_000n;
+const nodeLikeCap = await network.create({
+	override: {
+		transactionGasCap: NODE_RPC_GAS_CAP,
+		blockGasLimit: NODE_RPC_GAS_CAP,
+	} as never,
+});
+const nodeLikeCapFixtures = setupFixtures(nodeLikeCap.provider);
 
 /** EIP-7825's per-transaction gas cap. */
-const TRANSACTION_GAS_CAP = 16_777_216;
+const TRANSACTION_GAS_CAP = 16_777_216n;
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 const ZERO_BYTES32 =
@@ -215,36 +225,12 @@ describe('MeloBleeps', function () {
 			}),
 		).toBeRejectedWith('NEED_RESERVATION');
 	});
-
-	it('tokenURI is not callable on a current EVM', async function () {
-		const fixtures = await networkHelpers.loadFixture(deployAll);
-		const {env, MeloBleeps, unnamedAccounts} = fixtures;
-
-		const artist = unnamedAccounts[1];
-		await ensureIsMeloBleepsMinter(fixtures, artist);
-
-		const receipt = await env.execute(MeloBleeps, {
-			account: artist,
-			functionName: 'reserveRevealAndMint',
-			args: [artist, 'too expensive', data1, data2, SPEED, artist],
-		});
-		const id = getEvent(receipt, MeloBleeps.abi, 'MelodyReserved').args
-			.id as bigint;
-
-		// This assertion is deliberately the wrong way round: it pins a defect.
-		// Rendering a melody costs about 34M gas, twice EIP-7825's 16,777,216 cap,
-		// so on mainnet or Sepolia today nothing can call it in a transaction.
-		// Fixing the renderer will make this test fail; delete it then.
-		await expect(
-			env.read(MeloBleeps, {functionName: 'tokenURI', args: [id]}),
-		).toBeRejectedWith('out of gas');
-	});
 });
 
-describe('MeloBleeps rendering (pre-EIP-7825 EVM)', function () {
+describe('MeloBleeps rendering', function () {
 	it('tokenURI renders the melody as audio', async function () {
-		const fixtures = await preGasCap.networkHelpers.loadFixture(
-			preGasCapFixtures.deployAll,
+		const fixtures = await nodeLikeCap.networkHelpers.loadFixture(
+			nodeLikeCapFixtures.deployAll,
 		);
 		const {env, MeloBleeps, unnamedAccounts} = fixtures;
 
@@ -273,7 +259,9 @@ describe('MeloBleeps rendering (pre-EIP-7825 EVM)', function () {
 			true,
 		);
 
-		// The number that matters: what it would cost if it could be called.
+		// Pin the cost and, with it, where this renderer can and cannot be used:
+		// off-chain reads are fine, on-chain composability is not. If it ever drops
+		// below the transaction cap that is worth knowing about, hence both bounds.
 		const gas = await env.viem.publicClient.estimateContractGas({
 			address: MeloBleeps.address,
 			abi: MeloBleeps.abi,
@@ -281,6 +269,7 @@ describe('MeloBleeps rendering (pre-EIP-7825 EVM)', function () {
 			args: [id],
 			account: artist,
 		});
-		expect(gas > BigInt(TRANSACTION_GAS_CAP)).toEqual(true);
+		expect(gas > TRANSACTION_GAS_CAP).toEqual(true);
+		expect(gas < NODE_RPC_GAS_CAP).toEqual(true);
 	});
 });
