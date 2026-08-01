@@ -57,7 +57,7 @@
 		"---------------------- INTERNAL ----------------------": "",
 		":deploy+export": "cross-var pnpm hardhat --network $MODE deploy --skip-prompts && cross-var rocketh-export -e $MODE",
 		"---------------------- DEV ---------------------- ": "",
-		"node:local": "ldenv -d localhost hardhat --network local node",
+		"node:local": "ldenv -d localhost hardhat --network local node --hostname 0.0.0.0",
 		"node:purgatory": "purgatory --port 8545 --reset-db --db purgatory.db",
 		"faucet": "ldenv -w faucet --no-captcha --port 34010",
 		"compile": "hardhat compile",

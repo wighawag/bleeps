@@ -317,6 +317,7 @@ export async function createContext(): Promise<{
 
 	const viewState = createViewState({
 		onchainState,
+		operations: accountData.watchField('operations'),
 	});
 
 	const balanceCheck = createBalanceCheckStore({

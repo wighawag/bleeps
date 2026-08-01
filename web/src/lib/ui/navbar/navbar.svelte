@@ -131,6 +131,24 @@
 				Bleeps
 			</a>
 			<a
+				href={route('/melodies/')}
+				class="rounded px-2 py-1 text-sm transition-colors {isActive(
+					'/melodies',
+				)
+					? 'bg-primary/20 font-semibold text-primary'
+					: 'text-muted-foreground hover:text-foreground hover:underline'}"
+			>
+				Melodies
+			</a>
+			<a
+				href={route('/me/')}
+				class="rounded px-2 py-1 text-sm transition-colors {isActive('/me')
+					? 'bg-primary/20 font-semibold text-primary'
+					: 'text-muted-foreground hover:text-foreground hover:underline'}"
+			>
+				Yours
+			</a>
+			<a
 				href={route('/editor/')}
 				class="rounded px-2 py-1 text-sm transition-colors {isActive('/editor')
 					? 'bg-primary/20 font-semibold text-primary'

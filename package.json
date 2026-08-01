@@ -60,6 +60,7 @@
 		"externals:down": "docker compose -f dev/docker-compose-subgraph.yml down -v",
 		"subgraph:generate:codegen": "ldenv pnpm run --filter ./subgraph generate:codegen @@MODE @@",
 		"subgraph:deploy": "ldenv pnpm run --filter ./subgraph deploy:build @@MODE @@",
+		"subgraph:deploy:local": "ldenv pnpm run --filter ./subgraph deploy:local:build @@MODE @@",
 		"subgraph:deploy:local:watch": "ldenv pnpm run --filter ./subgraph deploy:local:watch",
 		"subgraph:schema:watch": "ldenv pnpm run --filter ./subgraph schema:watch",
 		"---------------------- BOOKING SERVICE ----------------------": "",
