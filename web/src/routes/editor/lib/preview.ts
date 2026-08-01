@@ -2,6 +2,7 @@ import {readable, type Readable} from 'svelte/store';
 import type {PublicClient} from 'viem';
 import type {TypedDeployments} from '$lib/core/connection/types';
 import {encodeMelodyToChainData, type MelodyInfo} from '$lib/melodies/melody';
+import {parseTokenURI} from '$lib/bleeps/metadata';
 
 /**
  * What the melody sounds like, according to the chain.
@@ -25,16 +26,6 @@ export type PreviewState =
 	| {step: 'Failed'; message: string};
 
 const DEBOUNCE_MS = 400;
-
-type Metadata = {name: string; image: string; animation_url: string};
-
-function parseMetadata(tokenURI: string): Metadata {
-	const prefix = 'data:application/json,';
-	if (!tokenURI.startsWith(prefix)) {
-		throw new Error('the renderer did not return a JSON data URI');
-	}
-	return JSON.parse(tokenURI.slice(prefix.length));
-}
 
 export function createMelodyPreview(params: {
 	melody: Readable<MelodyInfo>;
@@ -67,7 +58,7 @@ export function createMelodyPreview(params: {
 					if (mine !== generation) {
 						return;
 					}
-					const metadata = parseMetadata(tokenURI as string);
+					const metadata = parseTokenURI(tokenURI as string);
 					set({
 						step: 'Rendered',
 						name: metadata.name,
