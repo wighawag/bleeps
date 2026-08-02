@@ -5,6 +5,7 @@
 	import {Button} from '$lib/shadcn/ui/button';
 	import SaleCountdown from '$lib/sale/SaleCountdown.svelte';
 	import {saleDeployment} from '$lib/sale/deployment';
+	import {DEMO_URL, HAS_MELODIES} from '$lib/navigation';
 
 	// Content, wording and graphics are the pre-template site's. Only the
 	// plumbing moved.
@@ -146,10 +147,15 @@
 		>
 	</a>
 
-	<p class="m-8 text-green-400">
-		You can also checkout the <a
-			class="underline"
-			href="https://demo.bleeps.art/create/">Melodies Demo</a
-		>
-	</p>
+	<!-- Melodies live on the demo chain, so this build points at it. On the demo
+	     itself there is nowhere to point: the Melodies and Editor tabs are right
+	     there in the bar. See lib/navigation.ts. -->
+	{#if !HAS_MELODIES}
+		<p class="m-8 text-green-400">
+			You can also checkout the <a
+				class="underline"
+				href={`${DEMO_URL}/editor/`}>Melodies Demo</a
+			>
+		</p>
+	{/if}
 </div>

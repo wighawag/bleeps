@@ -8,6 +8,7 @@
 	import {createMelodyIndex} from '$lib/melodies/index';
 	import {createMelodyList} from '../melodies/lib/list';
 	import {isOwned} from '$lib/bleeps/grid';
+	import {HAS_MELODIES} from '$lib/navigation';
 
 	const {viewState, account, connection} = getAppContext();
 
@@ -60,7 +61,9 @@
 	{#if !$account}
 		<div class="flex flex-col items-center gap-4">
 			<p class="text-sm text-muted-foreground">
-				Connect a wallet to see your Bleeps and melodies.
+				Connect a wallet to see your Bleeps{HAS_MELODIES
+					? ' and melodies'
+					: ''}.
 			</p>
 			<Button onclick={() => connection.connect()}>Connect</Button>
 		</div>
@@ -103,13 +106,17 @@
 			{/if}
 		</section>
 
-		<section>
-			<h2 class="mb-4 text-xl font-semibold">Melodies</h2>
-			<MelodyList
-				result={$melodies}
-				{pending}
-				emptyMessage="You have not minted a melody yet."
-			/>
-		</section>
+		<!-- Only where melodies exist. On mainnet `Yours` is your Bleeps, because
+		     that is all there is to own there. See lib/navigation.ts. -->
+		{#if HAS_MELODIES}
+			<section>
+				<h2 class="mb-4 text-xl font-semibold">Melodies</h2>
+				<MelodyList
+					result={$melodies}
+					{pending}
+					emptyMessage="You have not minted a melody yet."
+				/>
+			</section>
+		{/if}
 	{/if}
 </div>

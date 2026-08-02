@@ -1,4 +1,5 @@
 import {PUBLIC_SUBGRAPH_URL} from '$env/static/public';
+import {HAS_MELODIES} from '$lib/navigation';
 import {createSubgraphMelodyIndex} from './subgraph';
 import type {MelodyIndex} from './types';
 
@@ -11,9 +12,12 @@ export * from './types';
  * when no endpoint is configured, so the app degrades to "melodies cannot be
  * listed" rather than failing to start: everything else, including composing
  * and minting, works without an indexer.
+ *
+ * Also undefined where the build has no MeloBleeps at all (mainnet): there is
+ * nothing for an indexer to have indexed, so nothing asks one.
  */
 export function createMelodyIndex(): MelodyIndex | undefined {
-	if (!PUBLIC_SUBGRAPH_URL) {
+	if (!HAS_MELODIES || !PUBLIC_SUBGRAPH_URL) {
 		return undefined;
 	}
 	return createSubgraphMelodyIndex(PUBLIC_SUBGRAPH_URL);

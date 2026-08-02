@@ -3,6 +3,7 @@ import type {PublicClient} from 'viem';
 import type {TypedDeployments} from '$lib/core/connection/types';
 import {encodeMelodyToChainData, type MelodyInfo} from '$lib/melodies/melody';
 import {parseTokenURI} from '$lib/bleeps/metadata';
+import {melodyRenderer} from '$lib/melodies/deployment';
 
 /**
  * What the melody sounds like, according to the chain.
@@ -33,6 +34,16 @@ export function createMelodyPreview(params: {
 	deployments: TypedDeployments;
 }): Readable<PreviewState> {
 	const {melody, publicClient, deployments} = params;
+	const renderer = melodyRenderer(deployments);
+
+	if (!renderer) {
+		// The editor is not built where MeloBleeps is not deployed, so this is a
+		// belt for the braces: nothing renders rather than something throws.
+		return readable<PreviewState>({
+			step: 'Failed',
+			message: 'Melodies are not on this chain.',
+		});
+	}
 
 	return readable<PreviewState>({step: 'Idle'}, (set) => {
 		let timer: ReturnType<typeof setTimeout> | undefined;
@@ -51,7 +62,7 @@ export function createMelodyPreview(params: {
 				const {data1, data2} = encodeMelodyToChainData(current);
 				try {
 					const tokenURI = await publicClient.readContract({
-						...deployments.contracts.MeloBleepsTokenURI,
+						...renderer,
 						functionName: 'tokenURI',
 						args: [data1, data2, current.speed, current.name],
 					});

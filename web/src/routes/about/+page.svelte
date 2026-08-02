@@ -3,6 +3,8 @@
 	import {url} from '$lib/core/utils/web/path';
 	import {getAppContext} from '$lib';
 	import BleepTile from '$lib/bleeps/BleepTile.svelte';
+	import {route} from '$lib';
+	import {DEMO_URL, HAS_MELODIES} from '$lib/navigation';
 
 	// Content and wording are the pre-template site's, unchanged. Only the
 	// plumbing moved: contracts.json became the deployments store, BleepsSVG
@@ -86,10 +88,16 @@
 			Melodies are put on auction as they are minted, and the revenue from the
 			auction is split between the <span class="text-bleeps">Creator (90%)</span
 			>, the <span class="text-bleeps">Bleepers (5%)</span> and the
-			<span class="text-bleeps">DAO (5%)</span>. You can test a demo version
-			<a class="text-bleeps underline" href="https://demo.bleeps.art/create/"
-				>here</a
-			>.
+			<span class="text-bleeps">DAO (5%)</span>.
+			<!-- Where this build has no melodies (mainnet), they are on the demo
+			     chain and this says so. Where it has them, they are here. -->
+			{#if HAS_MELODIES}
+				You can compose one in the
+				<a class="text-bleeps underline" href={route('/editor/')}>editor</a>.
+			{:else}
+				You can test a demo version
+				<a class="text-bleeps underline" href={`${DEMO_URL}/editor/`}>here</a>.
+			{/if}
 		</p>
 
 		<h2 class="font-heading mt-16 text-3xl text-black dark:text-white">

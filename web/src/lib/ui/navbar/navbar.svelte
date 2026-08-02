@@ -17,29 +17,16 @@
 	import AlertCircleIcon from '@lucide/svelte/icons/circle-alert';
 	import RefreshCwIcon from '@lucide/svelte/icons/refresh-cw';
 	import {page} from '$app/state';
+	import {NAV_LINKS, NEEDS_MORE_MENU} from '$lib/navigation';
 
 	/**
-	 * The site's destinations, in order, About last.
+	 * The destinations, and whether they all fit on a phone, are both decided by
+	 * what this build was built against. See lib/navigation.ts.
 	 *
-	 * More of them than fit on a phone, so the bar shows the tab you are on and
-	 * the rest live behind a `...` tab. They stay in the tab bar, where
-	 * navigation belongs: the button next to it is the WALLET, and it turns into
-	 * an account avatar once you connect, which is the wrong place to hide pages.
-	 */
-	const NAV_LINKS = [
-		{href: '/', title: 'Home'},
-		{href: '/bleeps/', title: 'Bleeps'},
-		{href: '/melodies/', title: 'Melodies'},
-		{href: '/editor/', title: 'Editor'},
-		{href: '/me/', title: 'Yours'},
-		{href: '/about/', title: 'About'},
-	] as const;
-
-	/**
-	 * All six fit above `sm`, so all six are tabs. Below it the bar shows the page
-	 * you are on and `...` holds the rest. That rule is CSS rather than
-	 * measurement, so there is no resize observer, no layout thrash, and no flash
-	 * of the wrong set on first paint.
+	 * Where they do not all fit, the bar shows the tab you are on and `More`
+	 * holds the rest. They stay in the TAB BAR, where navigation belongs: the
+	 * button beside it is the wallet, and it becomes an account avatar once you
+	 * connect, which is the wrong place to hide pages.
 	 */
 	let moreOpen = $state(false);
 
@@ -139,11 +126,11 @@
 >
 	<ul class="flex min-w-0 flex-1 items-end">
 		{#each NAV_LINKS as link (link.href)}
-			<!-- On a phone the tabs do not all fit, and a row that scrolls sideways
+			<!-- Where the tabs do not all fit on a phone, a row that scrolls sideways
 			     reads as a mistake rather than an affordance. So the bar keeps the
-			     tab that says where you are and `...` carries the rest. -->
+			     tab that says where you are and `More` carries the rest. -->
 			<li
-				class="mr-1 shrink-0 sm:block {isActive(link.href)
+				class="mr-1 shrink-0 sm:block {!NEEDS_MORE_MENU || isActive(link.href)
 					? 'block'
 					: 'hidden'}"
 			>
@@ -153,7 +140,7 @@
 					     the line. Every other tab leaves the rule alone, which is what
 					     makes this read as a tab bar rather than a row of boxes. -->
 					<span
-						class="-mb-px inline-block rounded-t border-t border-r border-l border-bleeps bg-background px-2 py-2 text-sm font-semibold text-bleeps sm:px-4 sm:text-base"
+						class="-mb-px inline-block rounded-t border-t border-r border-l border-bleeps bg-background px-1.5 py-2 text-sm font-semibold text-bleeps sm:px-4 sm:text-base"
 						aria-current="page"
 					>
 						{link.title}
@@ -161,7 +148,7 @@
 				{:else}
 					<a
 						href={route(link.href)}
-						class="inline-block px-2 py-2 text-sm font-semibold text-bleeps hover:underline sm:px-4 sm:text-base"
+						class="inline-block px-1.5 py-2 text-sm font-semibold text-bleeps hover:underline sm:px-4 sm:text-base"
 					>
 						{link.title}
 					</a>
@@ -169,13 +156,13 @@
 			</li>
 		{/each}
 
-		<!-- Only where the tabs do not all fit. A `More` next to five visible tabs
-		     and one hidden one would be a menu for the sake of having one.
+		<!-- Only where the tabs do not all fit, which is a fact about the build: a
+		     mainnet one has four of them and shows the lot at every width.
 
 		     It says `More` rather than `...` because a row of dots is a shrug: it
 		     tells you something is hidden without telling you it is the rest of the
 		     site. The chevron says it opens rather than navigates. -->
-		<li class="mr-1 shrink-0 sm:hidden">
+		<li class="mr-1 shrink-0 sm:hidden" class:hidden={!NEEDS_MORE_MENU}>
 			<Popover.Root bind:open={moreOpen}>
 				<Popover.Trigger
 					class="inline-flex items-center gap-1 px-2 py-2 text-sm font-semibold text-bleeps hover:underline"

@@ -20,6 +20,7 @@
 	import {createMelodyPreview} from './lib/preview';
 	import {melodyFromHash} from './lib/share-link';
 	import {mintMelody} from './lib/mintMelody';
+	import RequiresMelodies from '$lib/melodies/RequiresMelodies.svelte';
 
 	const context = getAppContext();
 	const {publicClient, deployments, account, accountCannotSend, errorDetails} =
@@ -103,102 +104,107 @@
 	}
 </script>
 
-<DefaultHead title="Melody editor" />
-
 <svelte:window onhashchange={() => !applyingHash && loadFromHash()} />
 
-<div class="mx-auto max-w-3xl px-4 py-8">
-	<header class="mb-6 text-center">
-		<h1 class="text-3xl font-bold">Melody editor</h1>
-		<p class="mt-2 text-sm text-muted-foreground">
-			Drag in the tall strip to draw notes, in the short strip at the bottom to
-			set volumes. Hold shift to repaint the instrument without moving the note.
-		</p>
-	</header>
+<RequiresMelodies>
+	<DefaultHead title="Melody editor" />
 
-	<div class="flex flex-col items-center gap-4">
-		<MelodyCanvas {melody} editable {creator} />
+	<div class="mx-auto max-w-3xl px-4 py-8">
+		<header class="mb-6 text-center">
+			<h1 class="text-3xl font-bold">Melody editor</h1>
+			<p class="mt-2 text-sm text-muted-foreground">
+				Drag in the tall strip to draw notes, in the short strip at the bottom
+				to set volumes. Hold shift to repaint the instrument without moving the
+				note.
+			</p>
+		</header>
 
-		<div class="flex w-full flex-wrap items-end justify-center gap-3">
-			<label class="flex flex-col gap-1 text-sm">
-				<span class="text-muted-foreground">Name</span>
-				<Input
-					value={$melody.name}
-					maxlength={32}
-					oninput={(event) =>
-						editor.setName((event.currentTarget as HTMLInputElement).value)}
-				/>
-			</label>
+		<div class="flex flex-col items-center gap-4">
+			<MelodyCanvas {melody} editable {creator} />
 
-			<label class="flex flex-col gap-1 text-sm">
-				<span class="text-muted-foreground">Speed</span>
-				<select
-					class="h-9 rounded-md border border-input bg-background px-3 text-sm"
-					value={$melody.speed}
-					onchange={(event) =>
-						editor.setSpeed(
-							parseInt((event.currentTarget as HTMLSelectElement).value, 10) ||
-								DEFAULT_SPEED,
-						)}
-				>
-					{#each SPEEDS as speed (speed)}
-						<option value={speed}>{speed}</option>
-					{/each}
-				</select>
-			</label>
+			<div class="flex w-full flex-wrap items-end justify-center gap-3">
+				<label class="flex flex-col gap-1 text-sm">
+					<span class="text-muted-foreground">Name</span>
+					<Input
+						value={$melody.name}
+						maxlength={32}
+						oninput={(event) =>
+							editor.setName((event.currentTarget as HTMLInputElement).value)}
+					/>
+				</label>
 
-			<Button variant="outline" onclick={share}>
-				<Share2Icon class="size-4" />
-				Share
-			</Button>
+				<label class="flex flex-col gap-1 text-sm">
+					<span class="text-muted-foreground">Speed</span>
+					<select
+						class="h-9 rounded-md border border-input bg-background px-3 text-sm"
+						value={$melody.speed}
+						onchange={(event) =>
+							editor.setSpeed(
+								parseInt(
+									(event.currentTarget as HTMLSelectElement).value,
+									10,
+								) || DEFAULT_SPEED,
+							)}
+					>
+						{#each SPEEDS as speed (speed)}
+							<option value={speed}>{speed}</option>
+						{/each}
+					</select>
+				</label>
 
-			<Button onclick={mint} disabled={isMinting}>
-				{#if isMinting}
-					<Spinner class="size-4" />
-				{:else}
-					<MusicIcon class="size-4" />
-				{/if}
-				Mint
-			</Button>
-		</div>
-
-		<div class="flex flex-wrap justify-center gap-2">
-			{#each INSTRUMENTS as instrument (instrument)}
-				<Button
-					size="sm"
-					variant={$editor.selectedInstrument === instrument
-						? 'default'
-						: 'outline'}
-					onclick={() => editor.selectInstrument(instrument)}
-				>
-					{instrumentName(instrument)}
+				<Button variant="outline" onclick={share}>
+					<Share2Icon class="size-4" />
+					Share
 				</Button>
-			{/each}
-		</div>
 
-		<section class="w-full text-center">
-			{#if $preview.step === 'Rendering'}
-				<p
-					class="flex items-center justify-center gap-2 text-sm text-muted-foreground"
-				>
-					<Spinner class="size-4" />
-					Rendering on chain...
-				</p>
-			{:else if $preview.step === 'Rendered'}
-				<audio
-					class="mx-auto w-full max-w-md"
-					src={$preview.animationUrl}
-					controls
-					preload="auto"
-				></audio>
-			{:else if $preview.step === 'Failed'}
-				<p
-					class="flex items-center justify-center gap-2 text-sm text-destructive"
-				>
-					<AlertCircleIcon class="size-4" />
-					{$preview.message}
-				</p>
-			{/if}
-		</section>
+				<Button onclick={mint} disabled={isMinting}>
+					{#if isMinting}
+						<Spinner class="size-4" />
+					{:else}
+						<MusicIcon class="size-4" />
+					{/if}
+					Mint
+				</Button>
+			</div>
+
+			<div class="flex flex-wrap justify-center gap-2">
+				{#each INSTRUMENTS as instrument (instrument)}
+					<Button
+						size="sm"
+						variant={$editor.selectedInstrument === instrument
+							? 'default'
+							: 'outline'}
+						onclick={() => editor.selectInstrument(instrument)}
+					>
+						{instrumentName(instrument)}
+					</Button>
+				{/each}
+			</div>
+
+			<section class="w-full text-center">
+				{#if $preview.step === 'Rendering'}
+					<p
+						class="flex items-center justify-center gap-2 text-sm text-muted-foreground"
+					>
+						<Spinner class="size-4" />
+						Rendering on chain...
+					</p>
+				{:else if $preview.step === 'Rendered'}
+					<audio
+						class="mx-auto w-full max-w-md"
+						src={$preview.animationUrl}
+						controls
+						preload="auto"
+					></audio>
+				{:else if $preview.step === 'Failed'}
+					<p
+						class="flex items-center justify-center gap-2 text-sm text-destructive"
+					>
+						<AlertCircleIcon class="size-4" />
+						{$preview.message}
+					</p>
+				{/if}
+			</section>
+		</div>
 	</div>
-</div>
+</RequiresMelodies>

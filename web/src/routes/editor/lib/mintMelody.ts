@@ -13,6 +13,7 @@ import {
 	melodyNameProblem,
 	type MelodyInfo,
 } from '$lib/melodies/melody';
+import {melodyToken} from '$lib/melodies/deployment';
 
 export type MintMelodyResult =
 	| {status: 'submitted'}
@@ -74,12 +75,24 @@ export async function mintMelody(
 		if ($executor.status === 'cannot-send') return {status: 'cannot-send'};
 		if ($executor.status !== 'ready') return {status: 'cancelled'};
 
+		const melobleeps = melodyToken($deployments);
+		if (!melobleeps) {
+			// Nothing should reach this: the editor is not built where MeloBleeps is
+			// not deployed. Said out loud rather than thrown as `undefined.address`.
+			return {
+				status: 'error',
+				message: 'Melodies are not on this chain',
+				details:
+					'MeloBleeps is not part of this deployment, so there is nothing to mint with.',
+			};
+		}
+
 		const {data1, data2} = encodeMelodyToChainData(melody);
 
 		const contractRequest = await balanceCheck.ensureCanAfford({
 			contract: {
-				address: $deployments.contracts.MeloBleeps.address,
-				abi: $deployments.contracts.MeloBleeps.abi,
+				address: melobleeps.address,
+				abi: melobleeps.abi,
 				functionName: 'reserveAndMint',
 				// `address` is the sender as a plain address; `account` may be a viem
 				// Account object, which is not what an `address` argument accepts.
