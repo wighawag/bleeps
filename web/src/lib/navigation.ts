@@ -38,16 +38,5 @@ export const NAV_LINKS: readonly NavLink[] = [
 	{href: '/about/', title: 'About'},
 ];
 
-/**
- * Whether the bar has to fold its tabs away on a phone.
- *
- * Six tabs do not fit on a 360px screen next to a Connect button; four do, once
- * they wear the tighter padding the pre-template site used at that width. So a
- * mainnet build shows every tab at every width and needs no `More` menu at all,
- * and only the demo build folds. Decided here, at build time, rather than
- * measured in the browser.
- */
-export const NEEDS_MORE_MENU = NAV_LINKS.length > 4;
-
 /** The demo site, which is where melodies live when this build has none. */
 export const DEMO_URL = 'https://demo.bleeps.art';

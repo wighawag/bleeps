@@ -17,11 +17,19 @@
 	import AlertCircleIcon from '@lucide/svelte/icons/circle-alert';
 	import RefreshCwIcon from '@lucide/svelte/icons/refresh-cw';
 	import {page} from '$app/state';
-	import {NAV_LINKS, NEEDS_MORE_MENU} from '$lib/navigation';
+	import {NAV_LINKS} from '$lib/navigation';
 
 	/**
-	 * The destinations, and whether they all fit on a phone, are both decided by
-	 * what this build was built against. See lib/navigation.ts.
+	 * Which destinations exist is decided by what this build was built against
+	 * (lib/navigation.ts). Whether they all FIT is measured, here.
+	 *
+	 * It has to be measured rather than pinned to a breakpoint, because both
+	 * sides of the bar move: a mainnet build has four tabs and a demo build six,
+	 * the tabs' padding changes at `sm`, and the right-hand side is a Connect
+	 * button, or a balance and an avatar, or an avatar on its own. Every static
+	 * rule I tried was wrong somewhere: four tabs overlapped Connect below 362px,
+	 * and six overlapped it at exactly 640px, where the padding grows at the same
+	 * breakpoint the folding stopped.
 	 *
 	 * Where they do not all fit, the bar shows the tab you are on and `More`
 	 * holds the rest. They stay in the TAB BAR, where navigation belongs: the
@@ -29,6 +37,45 @@
 	 * connect, which is the wrong place to hide pages.
 	 */
 	let moreOpen = $state(false);
+
+	let navElement = $state<HTMLElement | undefined>(undefined);
+	/** The hidden copy of every tab, which is what gets measured. */
+	let measuringElement = $state<HTMLElement | undefined>(undefined);
+	let accountElement = $state<HTMLElement | undefined>(undefined);
+
+	/**
+	 * Starts as "they fit", because that is right on a desktop, which is where a
+	 * prerendered page is most often first painted; the measurement corrects it
+	 * before the browser paints anything on a phone.
+	 */
+	let showsEveryTab = $state(true);
+
+	/** Room for the gap between the two halves, and a little either way. */
+	const BREATHING_ROOM = 24;
+
+	function measureTabs() {
+		if (!navElement || !measuringElement || !accountElement) {
+			return;
+		}
+		const available =
+			navElement.clientWidth - accountElement.offsetWidth - BREATHING_ROOM;
+		showsEveryTab = measuringElement.scrollWidth <= available;
+	}
+
+	$effect(() => {
+		if (!navElement || !accountElement) {
+			return;
+		}
+		measureTabs();
+		// The bar resizes with the window; the account side also resizes on its own
+		// when a wallet connects and a balance appears where a button was.
+		const observer = new ResizeObserver(measureTabs);
+		observer.observe(navElement);
+		observer.observe(accountElement);
+		// Tab widths change when the webfont lands, which is after the first paint.
+		void document.fonts?.ready.then(measureTabs);
+		return () => observer.disconnect();
+	});
 
 	const {
 		connection,
@@ -117,20 +164,45 @@
 	whole bar, and the current page drawn as a tab sitting on top of it.
 
 	Two things it has to survive that the original did not: six destinations
-	instead of three, and a phone. So the tabs scroll sideways when they do not
-	fit (`min-w-0` is what lets them, without it the row simply pushes everything
-	to its right off screen) and the account cluster never shrinks.
+	instead of three, and a phone. The account cluster never shrinks (`shrink-0`)
+	and the tab row can (`min-w-0`), so the wallet cannot be pushed off the edge,
+	and the tabs fold into `More` when they do not fit.
 -->
 <nav
+	bind:this={navElement}
 	class="needs-gutter-padding sticky top-0 left-0 z-50 flex w-full items-end gap-2 border-b border-bleeps bg-background pt-1"
 >
-	<ul class="flex min-w-0 flex-1 items-end">
+	<!-- Every tab, laid out but not shown, so the width they WOULD take can be
+	     measured whatever the bar is currently showing. Without it the decision
+	     would feed on its own output: fold, become narrower, decide it fits,
+	     unfold, overflow, fold again. -->
+	<ul
+		bind:this={measuringElement}
+		aria-hidden="true"
+		class="pointer-events-none invisible absolute top-0 left-0 flex items-end pl-2 whitespace-nowrap"
+	>
 		{#each NAV_LINKS as link (link.href)}
-			<!-- Where the tabs do not all fit on a phone, a row that scrolls sideways
-			     reads as a mistake rather than an affordance. So the bar keeps the
-			     tab that says where you are and `More` carries the rest. -->
+			<li class="mr-1 shrink-0">
+				<span
+					class="inline-block border-t border-r border-l border-transparent px-3 py-2 text-sm font-semibold sm:text-base"
+					>{link.title}</span
+				>
+			</li>
+		{/each}
+	</ul>
+
+	<!-- The small indent is the pre-template site's: it leaves a run of the rule
+	     showing before the first tab, so the bar starts as a line rather than as
+	     a box. The measuring copy carries it too, or the fit maths would be out
+	     by its width. -->
+	<ul class="flex min-w-0 flex-1 items-end pl-2">
+		{#each NAV_LINKS as link (link.href)}
+			<!-- Where the tabs do not all fit, a row that scrolls sideways reads as a
+			     mistake rather than an affordance, and one that overlaps the Connect
+			     button reads as a bug. So the bar keeps the tab that says where you
+			     are and `More` carries the rest. -->
 			<li
-				class="mr-1 shrink-0 sm:block {!NEEDS_MORE_MENU || isActive(link.href)
+				class="mr-1 shrink-0 {showsEveryTab || isActive(link.href)
 					? 'block'
 					: 'hidden'}"
 			>
@@ -140,7 +212,7 @@
 					     the line. Every other tab leaves the rule alone, which is what
 					     makes this read as a tab bar rather than a row of boxes. -->
 					<span
-						class="-mb-px inline-block rounded-t border-t border-r border-l border-bleeps bg-background px-1.5 py-2 text-sm font-semibold text-bleeps sm:px-4 sm:text-base"
+						class="-mb-px inline-block rounded-t border-t border-r border-l border-bleeps bg-background px-3 py-2 text-sm font-semibold text-bleeps sm:text-base"
 						aria-current="page"
 					>
 						{link.title}
@@ -148,7 +220,7 @@
 				{:else}
 					<a
 						href={route(link.href)}
-						class="inline-block px-1.5 py-2 text-sm font-semibold text-bleeps hover:underline sm:px-4 sm:text-base"
+						class="inline-block px-3 py-2 text-sm font-semibold text-bleeps hover:underline sm:text-base"
 					>
 						{link.title}
 					</a>
@@ -156,13 +228,14 @@
 			</li>
 		{/each}
 
-		<!-- Only where the tabs do not all fit, which is a fact about the build: a
-		     mainnet one has four of them and shows the lot at every width.
+		<!-- Only when the tabs do not all fit, which is measured rather than
+		     guessed at a breakpoint: the right-hand side is a Connect button, or a
+		     balance, or an avatar on its own, and the answer differs for each.
 
 		     It says `More` rather than `...` because a row of dots is a shrug: it
 		     tells you something is hidden without telling you it is the rest of the
 		     site. The chevron says it opens rather than navigates. -->
-		<li class="mr-1 shrink-0 sm:hidden" class:hidden={!NEEDS_MORE_MENU}>
+		<li class="mr-1 shrink-0" class:hidden={showsEveryTab}>
 			<Popover.Root bind:open={moreOpen}>
 				<Popover.Trigger
 					class="inline-flex items-center gap-1 px-2 py-2 text-sm font-semibold text-bleeps hover:underline"
@@ -195,7 +268,10 @@
 		</li>
 	</ul>
 
-	<div class="flex shrink-0 items-center space-x-2 pb-1">
+	<div
+		bind:this={accountElement}
+		class="flex shrink-0 items-center space-x-2 pb-1"
+	>
 		<!-- Connect Button / Connected Address -->
 		{#if ($connection.step === 'Idle' && $connection.loading) || ($connection.step != 'Idle' && !connection.isTargetStepReached($connection))}
 			<Button disabled class="flex h-8 items-center justify-center p-0 px-3">

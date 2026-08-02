@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {HAS_MELODIES, NAV_LINKS, NEEDS_MORE_MENU} from '$lib/navigation';
+import {HAS_MELODIES, NAV_LINKS} from '$lib/navigation';
 import {hasMelodies} from '$lib/melodies/deployment';
 import deployments from '$lib/deployments';
 
@@ -27,10 +27,13 @@ describe('the site navigation', () => {
 		expect(titles.includes('Editor')).toEqual(HAS_MELODIES);
 	});
 
-	it('only folds the tabs away when there are more than four', () => {
-		// four tabs fit beside a Connect button at 320px and six do not, so a
-		// mainnet build needs no `More` menu at all
-		expect(NEEDS_MORE_MENU).toEqual(NAV_LINKS.length > 4);
-		expect(NEEDS_MORE_MENU).toEqual(HAS_MELODIES);
+	it('has no duplicates and no melody page without melodies', () => {
+		const hrefs = NAV_LINKS.map((link) => link.href);
+		expect(new Set(hrefs).size).toEqual(hrefs.length);
+		// whether they all FIT is measured in the bar itself, not decided here:
+		// both sides of it change width, so no static rule was ever right
+		expect(hrefs.some((href) => href.startsWith('/editor'))).toEqual(
+			HAS_MELODIES,
+		);
 	});
 });
