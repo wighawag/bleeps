@@ -127,17 +127,6 @@ html {
 	scrollbar-gutter: stable both-edges;
 }
 
-/* A row that scrolls sideways when it has to, without a scrollbar sitting under
-   it. Used by the nav tabs: there are more destinations than fit on a phone, and
-   a visible scrollbar inside a 40px-tall bar looks broken. */
-.no-scrollbar {
-	scrollbar-width: none;
-	-ms-overflow-style: none;
-}
-.no-scrollbar::-webkit-scrollbar {
-	display: none;
-}
-
 /* On touch devices (no visible scrollbar), scrollbar-gutter has no visual effect.
    Add explicit padding to compensate for the missing gutter space. */
 @media (pointer: coarse) {

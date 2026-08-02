@@ -36,18 +36,11 @@
 	] as const;
 
 	/**
-	 * Which pages the bar has room to show as tabs.
-	 *
-	 * `Yours` is account-scoped and means nothing until a wallet is connected, so
-	 * it is the one that lives under `...` at every width. On a phone the bar
-	 * shows only the page you are on, and `...` holds the rest. Both rules are
-	 * applied in CSS rather than measured, so there is no layout thrash and no
-	 * flash of the wrong set on first paint.
+	 * All six fit above `sm`, so all six are tabs. Below it the bar shows the page
+	 * you are on and `...` holds the rest. That rule is CSS rather than
+	 * measurement, so there is no resize observer, no layout thrash, and no flash
+	 * of the wrong set on first paint.
 	 */
-	function isTab(href: string): boolean {
-		return href !== '/me/';
-	}
-
 	let moreOpen = $state(false);
 
 	const {
@@ -144,15 +137,15 @@
 <nav
 	class="needs-gutter-padding sticky top-0 left-0 z-50 flex w-full items-end gap-2 border-b border-bleeps bg-background pt-1"
 >
-	<ul class="no-scrollbar flex min-w-0 flex-1 items-end overflow-x-auto">
+	<ul class="flex min-w-0 flex-1 items-end">
 		{#each NAV_LINKS as link (link.href)}
 			<!-- On a phone the tabs do not all fit, and a row that scrolls sideways
 			     reads as a mistake rather than an affordance. So the bar keeps the
 			     tab that says where you are and `...` carries the rest. -->
 			<li
-				class="mr-1 -mb-px shrink-0 {isActive(link.href)
+				class="mr-1 -mb-px shrink-0 sm:block {isActive(link.href)
 					? 'block'
-					: 'hidden'} {isTab(link.href) ? 'sm:block' : 'sm:hidden'}"
+					: 'hidden'}"
 			>
 				{#if isActive(link.href)}
 					<span
@@ -172,14 +165,12 @@
 			</li>
 		{/each}
 
-		<li class="mr-1 -mb-px shrink-0">
+		<!-- Only where the tabs do not all fit. A `...` next to five visible tabs
+		     and one hidden one would be a menu for the sake of having one. -->
+		<li class="mr-1 -mb-px shrink-0 sm:hidden">
 			<Popover.Root bind:open={moreOpen}>
 				<Popover.Trigger
-					class="inline-block bg-background px-2 py-2 text-sm font-semibold text-bleeps hover:underline sm:px-4 sm:text-base {isActive(
-						'/me/',
-					)
-						? 'sm:rounded-t sm:border-t sm:border-r sm:border-l sm:border-bleeps'
-						: ''}"
+					class="inline-block bg-background px-2 py-2 text-sm font-semibold text-bleeps hover:underline"
 					aria-label="More pages"
 				>
 					...
@@ -189,20 +180,17 @@
 					sideOffset={0}
 					class="w-44 gap-0 rounded-none border border-bleeps bg-background p-0"
 				>
-					<!-- What the bar is not already showing: on a phone every page but
-					     the one you are on, on a wider screen the ones with no tab. -->
+					<!-- What the bar is not showing: every page but the one you are on. -->
 					{#each NAV_LINKS as link (link.href)}
-						<a
-							href={route(link.href)}
-							class="px-4 py-2 text-sm font-semibold text-bleeps hover:underline {isActive(
-								link.href,
-							)
-								? 'hidden'
-								: 'block'} {isTab(link.href) ? 'sm:hidden' : 'sm:block'}"
-							onclick={() => (moreOpen = false)}
-						>
-							{link.title}
-						</a>
+						{#if !isActive(link.href)}
+							<a
+								href={route(link.href)}
+								class="block px-4 py-2 text-sm font-semibold text-bleeps hover:underline"
+								onclick={() => (moreOpen = false)}
+							>
+								{link.title}
+							</a>
+						{/if}
 					{/each}
 				</Popover.Content>
 			</Popover.Root>
