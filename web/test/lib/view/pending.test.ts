@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {pendingMelodiesFrom} from '$lib/view/index';
+import {mergePendingMelodies, pendingMelodiesFrom} from '$lib/view/index';
 
 function op(overrides: Record<string, unknown> = {}) {
 	return {
@@ -84,5 +84,114 @@ describe('pendingMelodiesFrom', () => {
 			}),
 		});
 		expect(pending[0].name).toEqual('untitled');
+	});
+});
+
+function opWithTx(
+	name: string,
+	tx: {nonce?: number; broadcastTimestampMs?: number},
+) {
+	return {
+		metadata: {
+			type: 'functionCall',
+			functionName: 'reserveAndMint',
+			args: [name, 16, '0x00', '0x00', '0xabc'],
+			tx,
+		},
+		transactionIntent: {state: undefined},
+	};
+}
+
+describe('pendingMelodiesFrom, when two operations claim one melody', () => {
+	// A melody name is permanently unique on chain (`_nameHashes`), so of two
+	// in-flight mints of one name at most one can ever succeed. Showing both
+	// would promise the user a melody the chain will not deliver.
+
+	it('keeps the higher nonce', () => {
+		const pending = pendingMelodiesFrom({
+			first: opWithTx('a tune', {nonce: 4, broadcastTimestampMs: 2_000}),
+			second: opWithTx('a tune', {nonce: 5, broadcastTimestampMs: 1_000}),
+		});
+		expect(pending).toEqual([{operationID: 'second', name: 'a tune'}]);
+	});
+
+	it('falls back to the later broadcast at the same nonce', () => {
+		// two attempts at one nonce: a replacement. Only one can be mined.
+		const pending = pendingMelodiesFrom({
+			first: opWithTx('a tune', {nonce: 7, broadcastTimestampMs: 1_000}),
+			second: opWithTx('a tune', {nonce: 7, broadcastTimestampMs: 9_000}),
+		});
+		expect(pending).toEqual([{operationID: 'second', name: 'a tune'}]);
+	});
+
+	it('breaks a full tie on the operationID, whichever order they arrive in', () => {
+		const tx = {nonce: 7, broadcastTimestampMs: 1_000};
+		const forwards = pendingMelodiesFrom({
+			aaa: opWithTx('a tune', tx),
+			bbb: opWithTx('a tune', tx),
+		});
+		const backwards = pendingMelodiesFrom({
+			bbb: opWithTx('a tune', tx),
+			aaa: opWithTx('a tune', tx),
+		});
+		expect(forwards).toEqual([{operationID: 'bbb', name: 'a tune'}]);
+		expect(backwards).toEqual(forwards);
+	});
+
+	it('leaves two different melodies alone, newest first', () => {
+		const pending = pendingMelodiesFrom({
+			older: opWithTx('first tune', {nonce: 1, broadcastTimestampMs: 1_000}),
+			newer: opWithTx('second tune', {nonce: 2, broadcastTimestampMs: 2_000}),
+		});
+		expect(pending.map((melody) => melody.name)).toEqual([
+			'second tune',
+			'first tune',
+		]);
+	});
+});
+
+describe('mergePendingMelodies', () => {
+	function indexed(name: string) {
+		return {
+			id: '1',
+			creator: '0xaaa' as `0x${string}`,
+			minted: true,
+			revealed: true,
+			reservedAt: 0,
+			melody: {name, speed: 16, slots: []},
+		};
+	}
+
+	it('drops a pending melody the index already lists', () => {
+		// the indexer can be quicker than the transaction observer's next poll, and
+		// then the same melody is both listed and pending
+		const merged = mergePendingMelodies(
+			[indexed('a tune')],
+			[{operationID: 'one', name: 'a tune'}],
+		);
+		expect(merged).toEqual([]);
+	});
+
+	it('keeps one the index has not caught up with', () => {
+		const merged = mergePendingMelodies(
+			[indexed('another tune')],
+			[{operationID: 'one', name: 'a tune'}],
+		);
+		expect(merged).toEqual([{operationID: 'one', name: 'a tune'}]);
+	});
+
+	it('ignores unrevealed melodies, which have no name to match on', () => {
+		const unrevealed = {
+			id: '2',
+			creator: '0xaaa' as `0x${string}`,
+			minted: false,
+			revealed: false,
+			reservedAt: 0,
+		};
+		const merged = mergePendingMelodies(
+			[unrevealed],
+			[{operationID: 'one', name: 'a tune'}],
+		);
+		expect(merged).toHaveLength(1);
 	});
 });

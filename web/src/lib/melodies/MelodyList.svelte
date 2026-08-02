@@ -5,7 +5,7 @@
 	import {Spinner} from '$lib/shadcn/ui/spinner';
 	import AlertCircleIcon from '@lucide/svelte/icons/alert-circle';
 	import type {MelodyIndexResult} from './index';
-	import type {PendingMelody} from '$lib/view/index';
+	import {mergePendingMelodies, type PendingMelody} from '$lib/view/index';
 
 	type Props = {
 		result: MelodyIndexResult;
@@ -19,11 +19,19 @@
 		pending = [],
 		emptyMessage = 'No melodies yet.',
 	}: Props = $props();
+
+	// The index is authoritative for what exists, so a melody it already lists is
+	// not also shown as pending, however far behind the operation's own state is.
+	const stillPending = $derived(
+		result.step === 'Loaded'
+			? mergePendingMelodies(result.melodies, pending)
+			: pending,
+	);
 </script>
 
-{#if pending.length > 0}
+{#if stillPending.length > 0}
 	<ul class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-		{#each pending as melody (melody.operationID)}
+		{#each stillPending as melody (melody.operationID)}
 			<li class="rounded-lg border border-dashed border-muted p-3 opacity-60">
 				<p class="flex items-center gap-2 text-sm">
 					<Spinner class="size-4" />
@@ -44,7 +52,7 @@
 		<AlertCircleIcon class="size-4" />
 		{result.message}
 	</p>
-{:else if result.melodies.length === 0 && pending.length === 0}
+{:else if result.melodies.length === 0 && stillPending.length === 0}
 	<p class="text-sm text-muted-foreground">{emptyMessage}</p>
 {:else}
 	<ul class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">

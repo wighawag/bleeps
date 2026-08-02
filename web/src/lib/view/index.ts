@@ -2,6 +2,8 @@ import {derived, type Readable} from 'svelte/store';
 import type {BleepsState, OnchainStateStore} from '$lib/onchain/state';
 import type {Schema} from '$lib/account/AccountData';
 import type {FieldReadable} from 'synqable';
+import type {IndexedMelody} from '$lib/melodies/index/types';
+import {bleepsMode, type BleepsMode} from '$lib/sale/mode';
 
 /**
  * The Bleeps world as the user should see it right now.
@@ -15,8 +17,19 @@ import type {FieldReadable} from 'synqable';
 export type BleepsView = BleepsState & {
 	/** How many of the 576 have an owner. */
 	minted: number;
+	/**
+	 * Bleeps this user is buying that the chain has not confirmed yet. Their
+	 * owner is already written into `owners`, so the rest of the app does not
+	 * have to know about them; this is for drawing them as unsettled.
+	 */
+	pendingBleeps: PendingBleep[];
 	/** Melodies this user has submitted that the chain has not confirmed yet. */
 	pendingMelodies: PendingMelody[];
+	/**
+	 * Whether there is a sale to run, worked out from the chain rather than
+	 * configured. See lib/sale/mode.ts.
+	 */
+	mode: BleepsMode;
 };
 
 export type PendingMelody = {
@@ -24,11 +37,36 @@ export type PendingMelody = {
 	name: string;
 };
 
+export type PendingBleep = {
+	operationID: string;
+	/** Token id. */
+	id: number;
+	/** Who it is being bought for. */
+	to: `0x${string}`;
+};
+
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+
 /**
  * Inclusion states that mean the transaction will never land, so its operation
  * must stop counting as pending.
  */
 const DEAD_INCLUSIONS = ['NotFound', 'Dropped'];
+
+/** The shape of an operation this module reads. Deliberately loose: it is fed
+ * from the account-data store, whose entries are only partly populated while a
+ * transaction is being broadcast. */
+type OperationLike = {
+	metadata?: {
+		type?: string;
+		functionName?: string;
+		args?: unknown[];
+		tx?: {nonce?: number; broadcastTimestampMs?: number};
+	};
+	transactionIntent: {state?: {status?: string; inclusion?: string}};
+};
+
+type OperationEntry = {operationID: string; operation: OperationLike};
 
 /**
  * Whether an operation is still awaiting inclusion, i.e. its effect is NOT yet
@@ -39,9 +77,7 @@ const DEAD_INCLUSIONS = ['NotFound', 'Dropped'];
  * mint again would show the melody twice. The tx-observer refreshes onchain state
  * on inclusion, so the handover is immediate.
  */
-function isInFlight(operation: {
-	transactionIntent: {state?: {status?: string; inclusion?: string}};
-}): boolean {
+function isInFlight(operation: OperationLike): boolean {
 	const state = operation.transactionIntent.state;
 	if (!state) {
 		// submitted, nothing known about it yet
@@ -56,26 +92,188 @@ function isInFlight(operation: {
 	return state.inclusion !== 'Included';
 }
 
-/** The melodies this user has submitted and the chain has not caught up with. */
-export function pendingMelodiesFrom(
-	operations: Record<string, any> | undefined,
-): PendingMelody[] {
-	const pending: PendingMelody[] = [];
+/**
+ * The in-flight operations calling one of `functionNames`.
+ *
+ * Same filter as jolly-roger's view: the right kind of call, no failures, and
+ * nothing whose inclusion says it will never land.
+ */
+export function inFlightOperations(
+	operations: Record<string, OperationLike> | undefined,
+	functionNames: string[],
+): OperationEntry[] {
+	const entries: OperationEntry[] = [];
 	for (const operationID of Object.keys(operations ?? {})) {
 		const operation = operations![operationID];
 		if (
 			operation.metadata?.type === 'functionCall' &&
-			operation.metadata.functionName === 'reserveAndMint' &&
+			functionNames.includes(operation.metadata.functionName ?? '') &&
 			isInFlight(operation)
 		) {
-			pending.push({
-				operationID,
-				// args are [name, speed, data1, data2, to]
-				name: String(operation.metadata.args?.[0] ?? 'untitled'),
-			});
+			entries.push({operationID, operation});
 		}
 	}
-	return pending;
+	return entries;
+}
+
+/**
+ * Whether `current` supersedes `existing`, for two operations competing over the
+ * same thing.
+ *
+ * Comparison order, most significant first:
+ *
+ *   1. higher nonce wins: it is the later transaction
+ *   2. same nonce, higher broadcast timestamp wins: it is the later attempt at
+ *      that nonce, and only one of them can ever be mined
+ *   3. same nonce and timestamp, lexicographically greater operationID wins
+ *
+ * The last rule is not a preference, it is what makes the result independent of
+ * the order the operations happen to be iterated in. Without it two operations
+ * that tie would resolve differently from one render to the next.
+ *
+ * A missing nonce or timestamp sorts as 0, so a just-broadcast operation that
+ * has not been populated yet still compares, rather than making the result
+ * NaN-dependent.
+ */
+export function isLaterOperation(
+	current: OperationEntry,
+	existing: OperationEntry,
+): boolean {
+	const currentNonce = current.operation.metadata?.tx?.nonce ?? 0;
+	const existingNonce = existing.operation.metadata?.tx?.nonce ?? 0;
+	if (currentNonce !== existingNonce) {
+		return currentNonce > existingNonce;
+	}
+
+	const currentTime = current.operation.metadata?.tx?.broadcastTimestampMs ?? 0;
+	const existingTime =
+		existing.operation.metadata?.tx?.broadcastTimestampMs ?? 0;
+	if (currentTime !== existingTime) {
+		return currentTime > existingTime;
+	}
+
+	return current.operationID > existing.operationID;
+}
+
+/**
+ * Keep one operation per key, the latest by `isLaterOperation`, newest first.
+ *
+ * Two operations sharing a key are mutually exclusive on chain: exactly one of
+ * them can take effect, so showing both would promise the user something the
+ * chain will not deliver.
+ */
+export function latestPerKey(
+	entries: OperationEntry[],
+	keyOf: (entry: OperationEntry) => string,
+): OperationEntry[] {
+	const latest = new Map<string, OperationEntry>();
+	for (const entry of entries) {
+		const key = keyOf(entry);
+		const existing = latest.get(key);
+		if (!existing || isLaterOperation(entry, existing)) {
+			latest.set(key, entry);
+		}
+	}
+	// newest first, by the same precedence, so the list order is deterministic
+	return [...latest.values()].sort((a, b) => (isLaterOperation(a, b) ? -1 : 1));
+}
+
+/** args of `reserveAndMint` are (name, speed, data1, data2, to). */
+function melodyNameOf(entry: OperationEntry): string {
+	return String(entry.operation.metadata?.args?.[0] ?? 'untitled');
+}
+
+/**
+ * The melodies this user has submitted and the chain has not caught up with.
+ *
+ * Keyed by NAME, because that is the melody's identity as far as the contract is
+ * concerned: `_nameHashes` makes a name permanently unique, so of two in-flight
+ * mints claiming one name at most one can succeed. Two clicks on Mint, or a
+ * resubmission that landed as its own operation, must therefore show up once.
+ */
+export function pendingMelodiesFrom(
+	operations: Record<string, OperationLike> | undefined,
+): PendingMelody[] {
+	const entries = inFlightOperations(operations, ['reserveAndMint']);
+	return latestPerKey(entries, melodyNameOf).map((entry) => ({
+		operationID: entry.operationID,
+		name: melodyNameOf(entry),
+	}));
+}
+
+/**
+ * Pending melodies merged onto what the index returned.
+ *
+ * The index is authoritative for what exists, and it lags: an operation stops
+ * counting as pending the moment it is included, but the indexer only catches up
+ * seconds later. The reverse overlap happens too, whenever the indexer is
+ * quicker than the transaction observer's next poll, and then the same melody is
+ * both listed and pending. The index wins, since it is describing a melody that
+ * demonstrably exists.
+ */
+export function mergePendingMelodies(
+	indexed: readonly IndexedMelody[],
+	pending: readonly PendingMelody[],
+): PendingMelody[] {
+	const indexedNames = new Set(
+		indexed
+			.map((melody) => melody.melody?.name)
+			.filter((name): name is string => !!name),
+	);
+	return pending.filter((melody) => !indexedNames.has(melody.name));
+}
+
+/**
+ * The three sale entry points, which all take (id, to) first. Whichever one a
+ * purchase used, the Bleep being bought and its recipient are in the same place.
+ */
+const MINT_FUNCTIONS = ['mint', 'mintWithPassId', 'mintWithSalePass'];
+
+/**
+ * The Bleeps this user is buying and the chain has not caught up with.
+ *
+ * Keyed by TOKEN ID, because that is what two purchases can collide over: a
+ * Bleep is minted once, so of two in-flight transactions for one id at most one
+ * can succeed, and showing both would draw the same tile twice over.
+ */
+export function pendingBleepsFrom(
+	operations: Record<string, OperationLike> | undefined,
+): PendingBleep[] {
+	const entries = inFlightOperations(operations, MINT_FUNCTIONS);
+	return latestPerKey(entries, (entry) =>
+		String(entry.operation.metadata?.args?.[0]),
+	)
+		.map((entry) => ({
+			operationID: entry.operationID,
+			id: Number(entry.operation.metadata?.args?.[0]),
+			to: (entry.operation.metadata?.args?.[1] ??
+				ZERO_ADDRESS) as `0x${string}`,
+		}))
+		.filter((bleep) => Number.isInteger(bleep.id));
+}
+
+/**
+ * The owners table with this user's in-flight purchases written into it.
+ *
+ * The chain read wins wherever it has an owner: once a Bleep is minted, who owns
+ * it is settled, and a pending transaction claiming otherwise is a transaction
+ * that is about to fail.
+ */
+export function mergePendingBleeps(
+	owners: readonly `0x${string}`[],
+	pending: readonly PendingBleep[],
+): readonly `0x${string}`[] {
+	if (pending.length === 0) {
+		return owners;
+	}
+	const merged = [...owners];
+	for (const bleep of pending) {
+		const onChain = merged[bleep.id];
+		if (onChain === undefined || onChain.toLowerCase() === ZERO_ADDRESS) {
+			merged[bleep.id] = bleep.to;
+		}
+	}
+	return merged;
 }
 
 export type ViewStateValue =
@@ -92,13 +290,13 @@ export type ViewStateStore = {
 	status: Readable<ViewStateStatus>;
 };
 
-const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
-
 export function createViewState(params: {
 	onchainState: OnchainStateStore;
 	operations: FieldReadable<Schema, 'operations'>;
+	/** Whether this deployment has a sale contract at all. */
+	saleDeployed: boolean;
 }): ViewStateStore {
-	const {onchainState, operations} = params;
+	const {onchainState, operations, saleDeployed} = params;
 
 	const store: Readable<ViewStateValue> = derived(
 		[onchainState, operations],
@@ -106,7 +304,13 @@ export function createViewState(params: {
 			if ($onchainState.step === 'Unloaded') {
 				return {step: 'Unloaded'};
 			}
-			const {owners, treasury} = $onchainState;
+			const {treasury} = $onchainState;
+			const operationRecord = $operations as unknown as Record<
+				string,
+				OperationLike
+			>;
+			const pendingBleeps = pendingBleepsFrom(operationRecord);
+			const owners = mergePendingBleeps($onchainState.owners, pendingBleeps);
 			return {
 				step: 'Loaded',
 				bleeps: {
@@ -115,9 +319,9 @@ export function createViewState(params: {
 					minted: owners.filter(
 						(owner: string) => owner.toLowerCase() !== ZERO_ADDRESS,
 					).length,
-					pendingMelodies: pendingMelodiesFrom(
-						$operations as unknown as Record<string, any>,
-					),
+					pendingBleeps,
+					pendingMelodies: pendingMelodiesFrom(operationRecord),
+					mode: bleepsMode({owners, saleDeployed}),
 				},
 			};
 		},

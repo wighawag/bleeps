@@ -44,6 +44,7 @@ import {createBalanceCheckStore} from '$lib/core/transaction/balance-check-store
 import {resolveAppConfig} from './config.js';
 import {startTxObserverLoop} from '$lib/core/tx-observer';
 import {IMPERSONATE_ADDRESSES} from '$lib/dev-accounts.js';
+import {saleDeployment} from '$lib/sale/deployment.js';
 
 export async function createContext(): Promise<{
 	context: Context;
@@ -318,6 +319,11 @@ export async function createContext(): Promise<{
 	const viewState = createViewState({
 		onchainState,
 		operations: accountData.watchField('operations'),
+		// A sale contract is only deployed where a sale can still happen (dev
+		// chains, and mainnet's spent one). Its presence is half of what decides
+		// whether the app runs in mint or browse mode; the other half is whether
+		// anything is left to buy. See lib/sale/mode.ts.
+		saleDeployed: !!saleDeployment(deployments.get()),
 	});
 
 	const balanceCheck = createBalanceCheckStore({
