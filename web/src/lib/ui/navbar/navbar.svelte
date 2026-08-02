@@ -169,15 +169,22 @@
 			</li>
 		{/each}
 
-		<!-- Only where the tabs do not all fit. A `...` next to five visible tabs
-		     and one hidden one would be a menu for the sake of having one. -->
+		<!-- Only where the tabs do not all fit. A `More` next to five visible tabs
+		     and one hidden one would be a menu for the sake of having one.
+
+		     It says `More` rather than `...` because a row of dots is a shrug: it
+		     tells you something is hidden without telling you it is the rest of the
+		     site. The chevron says it opens rather than navigates. -->
 		<li class="mr-1 shrink-0 sm:hidden">
 			<Popover.Root bind:open={moreOpen}>
 				<Popover.Trigger
-					class="inline-block px-2 py-2 text-sm font-semibold text-bleeps hover:underline"
+					class="inline-flex items-center gap-1 px-2 py-2 text-sm font-semibold text-bleeps hover:underline"
 					aria-label="More pages"
 				>
-					...
+					More
+					<ChevronDownIcon
+						class="h-3 w-3 transition-transform {moreOpen ? 'rotate-180' : ''}"
+					/>
 				</Popover.Trigger>
 				<Popover.Content
 					align="start"
