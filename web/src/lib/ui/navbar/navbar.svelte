@@ -5,6 +5,7 @@
 	import {Spinner} from '$lib/shadcn/ui/spinner/index.js';
 	import * as Drawer from '$lib/shadcn/ui/drawer/index.js';
 	import * as Collapsible from '$lib/shadcn/ui/collapsible/index.js';
+	import * as Popover from '$lib/shadcn/ui/popover/index.js';
 	import Address from '../../core/ui/ethereum/Address.svelte';
 	import Badge from '$lib/shadcn/ui/badge/badge.svelte';
 	import {formatBalance} from '$lib/core/utils/format/balance';
@@ -12,20 +13,42 @@
 	import {effectiveGasPrice} from '$lib/core/connection/gasFee';
 	import {FaucetButton, hasFaucet} from '$lib/core/ui/faucet/index.js';
 	import MenuIcon from '@lucide/svelte/icons/menu';
-	import MessageCircleIcon from '@lucide/svelte/icons/message-circle';
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 	import AlertCircleIcon from '@lucide/svelte/icons/circle-alert';
 	import RefreshCwIcon from '@lucide/svelte/icons/refresh-cw';
 	import {page} from '$app/state';
-	import GitIcon from '$lib/icons/GitIcon.svelte';
 
-	let {
-		repoURL,
-		communityURL,
-	}: {
-		repoURL?: string;
-		communityURL?: string;
-	} = $props();
+	/**
+	 * The site's destinations, in order, About last.
+	 *
+	 * More of them than fit on a phone, so the bar shows the tab you are on and
+	 * the rest live behind a `...` tab. They stay in the tab bar, where
+	 * navigation belongs: the button next to it is the WALLET, and it turns into
+	 * an account avatar once you connect, which is the wrong place to hide pages.
+	 */
+	const NAV_LINKS = [
+		{href: '/', title: 'Home'},
+		{href: '/bleeps/', title: 'Bleeps'},
+		{href: '/melodies/', title: 'Melodies'},
+		{href: '/editor/', title: 'Editor'},
+		{href: '/me/', title: 'Yours'},
+		{href: '/about/', title: 'About'},
+	] as const;
+
+	/**
+	 * Which pages the bar has room to show as tabs.
+	 *
+	 * `Yours` is account-scoped and means nothing until a wallet is connected, so
+	 * it is the one that lives under `...` at every width. On a phone the bar
+	 * shows only the page you are on, and `...` holds the rest. Both rules are
+	 * applied in CSS rather than measured, so there is no layout thrash and no
+	 * flash of the wrong set on first paint.
+	 */
+	function isTab(href: string): boolean {
+		return href !== '/me/';
+	}
+
+	let moreOpen = $state(false);
 
 	const {
 		connection,
@@ -109,96 +132,91 @@
 </script>
 
 <!--navbar padding handled by scrollbar-gutter on desktop, needs-gutter-padding class adds padding on touch devices, see app.css-->
-<nav
-	class="needs-gutter-padding sticky top-0 left-0 z-50 flex h-12 w-full items-center justify-between bg-background py-4 shadow-md"
->
-	<div class="m-1 flex h-full items-center space-x-4">
-		<span class="inline-flex items-baseline gap-4">
-			<a
-				href={route('/')}
-				class="rounded px-2 py-1 text-sm transition-colors {isActive('/')
-					? 'bg-primary/20 font-semibold text-primary'
-					: 'text-muted-foreground hover:text-foreground hover:underline'}"
-			>
-				Home
-			</a>
-			<a
-				href={route('/bleeps/')}
-				class="rounded px-2 py-1 text-sm transition-colors {isActive('/bleeps')
-					? 'bg-primary/20 font-semibold text-primary'
-					: 'text-muted-foreground hover:text-foreground hover:underline'}"
-			>
-				Bleeps
-			</a>
-			<a
-				href={route('/melodies/')}
-				class="rounded px-2 py-1 text-sm transition-colors {isActive(
-					'/melodies',
-				)
-					? 'bg-primary/20 font-semibold text-primary'
-					: 'text-muted-foreground hover:text-foreground hover:underline'}"
-			>
-				Melodies
-			</a>
-			<a
-				href={route('/me/')}
-				class="rounded px-2 py-1 text-sm transition-colors {isActive('/me')
-					? 'bg-primary/20 font-semibold text-primary'
-					: 'text-muted-foreground hover:text-foreground hover:underline'}"
-			>
-				Yours
-			</a>
-			<a
-				href={route('/editor/')}
-				class="rounded px-2 py-1 text-sm transition-colors {isActive('/editor')
-					? 'bg-primary/20 font-semibold text-primary'
-					: 'text-muted-foreground hover:text-foreground hover:underline'}"
-			>
-				Editor
-			</a>
-			<a
-				href={route('/about/')}
-				class="rounded px-2 py-1 text-sm transition-colors {isActive('/about')
-					? 'bg-primary/20 font-semibold text-primary'
-					: 'text-muted-foreground hover:text-foreground hover:underline'}"
-			>
-				About
-			</a>
-		</span>
-		<div class="flex items-center space-x-2">
-			{#if repoURL}
-				<a
-					href={repoURL}
-					target="_blank"
-					rel="noopener noreferrer"
-					class="text-muted-foreground hover:text-foreground"
-					aria-label="GitHub"
-				>
-					<GitIcon class="h-5 w-5 fill-white" />
-				</a>
-			{/if}
-			{#if communityURL}
-				<a
-					href={communityURL}
-					target="_blank"
-					rel="noopener noreferrer"
-					class="text-muted-foreground hover:text-foreground"
-					aria-label="Discord"
-				>
-					<MessageCircleIcon class="h-5 w-5" />
-				</a>
-			{/if}
-		</div>
-	</div>
+<!--
+	The tab bar is the pre-template site's: a rule in the Bleeps colour across the
+	whole bar, and the current page drawn as a tab sitting on top of it.
 
-	<div class="relative flex h-full items-center space-x-2">
+	Two things it has to survive that the original did not: six destinations
+	instead of three, and a phone. So the tabs scroll sideways when they do not
+	fit (`min-w-0` is what lets them, without it the row simply pushes everything
+	to its right off screen) and the account cluster never shrinks.
+-->
+<nav
+	class="needs-gutter-padding sticky top-0 left-0 z-50 flex w-full items-end gap-2 border-b border-bleeps bg-background pt-1"
+>
+	<ul class="no-scrollbar flex min-w-0 flex-1 items-end overflow-x-auto">
+		{#each NAV_LINKS as link (link.href)}
+			<!-- On a phone the tabs do not all fit, and a row that scrolls sideways
+			     reads as a mistake rather than an affordance. So the bar keeps the
+			     tab that says where you are and `...` carries the rest. -->
+			<li
+				class="mr-1 -mb-px shrink-0 {isActive(link.href)
+					? 'block'
+					: 'hidden'} {isTab(link.href) ? 'sm:block' : 'sm:hidden'}"
+			>
+				{#if isActive(link.href)}
+					<span
+						class="inline-block rounded-t border-t border-r border-l border-bleeps bg-background px-2 py-2 text-sm font-semibold text-bleeps sm:px-4 sm:text-base"
+						aria-current="page"
+					>
+						{link.title}
+					</span>
+				{:else}
+					<a
+						href={route(link.href)}
+						class="inline-block bg-background px-2 py-2 text-sm font-semibold text-bleeps hover:underline sm:px-4 sm:text-base"
+					>
+						{link.title}
+					</a>
+				{/if}
+			</li>
+		{/each}
+
+		<li class="mr-1 -mb-px shrink-0">
+			<Popover.Root bind:open={moreOpen}>
+				<Popover.Trigger
+					class="inline-block bg-background px-2 py-2 text-sm font-semibold text-bleeps hover:underline sm:px-4 sm:text-base {isActive(
+						'/me/',
+					)
+						? 'sm:rounded-t sm:border-t sm:border-r sm:border-l sm:border-bleeps'
+						: ''}"
+					aria-label="More pages"
+				>
+					...
+				</Popover.Trigger>
+				<Popover.Content
+					align="start"
+					sideOffset={0}
+					class="w-44 gap-0 rounded-none border border-bleeps bg-background p-0"
+				>
+					<!-- What the bar is not already showing: on a phone every page but
+					     the one you are on, on a wider screen the ones with no tab. -->
+					{#each NAV_LINKS as link (link.href)}
+						<a
+							href={route(link.href)}
+							class="px-4 py-2 text-sm font-semibold text-bleeps hover:underline {isActive(
+								link.href,
+							)
+								? 'hidden'
+								: 'block'} {isTab(link.href) ? 'sm:hidden' : 'sm:block'}"
+							onclick={() => (moreOpen = false)}
+						>
+							{link.title}
+						</a>
+					{/each}
+				</Popover.Content>
+			</Popover.Root>
+		</li>
+	</ul>
+
+	<div class="flex shrink-0 items-center space-x-2 pb-1">
 		<!-- Connect Button / Connected Address -->
 		{#if ($connection.step === 'Idle' && $connection.loading) || ($connection.step != 'Idle' && !connection.isTargetStepReached($connection))}
-			<Button disabled class="m-1 flex h-8 items-center justify-center p-0">
+			<Button disabled class="flex h-8 items-center justify-center p-0 px-3">
 				<Spinner /> Connect
 			</Button>
 		{:else if connection.isTargetStepReached($connection)}
-			<div class="m-1 hidden h-8 items-center space-x-2 sm:flex">
+			<div class="hidden h-8 items-center space-x-2 sm:flex">
 				{#if $balanceStatus.error && formattedBalance !== null}
 					<span class="flex items-center gap-1 text-sm text-muted-foreground">
 						<AlertCircleIcon class="h-3 w-3 text-amber-500" />
@@ -219,7 +237,7 @@
 			</div>
 		{:else}
 			<Button
-				class="m-1 flex h-8 items-center justify-center p-0 px-3"
+				class="flex h-8 items-center justify-center p-0 px-3"
 				onclick={() => connection.connect()}
 			>
 				Connect
@@ -228,7 +246,7 @@
 
 		<!-- Drawer Button - Avatar when connected, Menu icon when disconnected -->
 		<button
-			class="relative m-1 flex h-8 w-8 items-center justify-center rounded-md focus:outline-none {$connection.step !==
+			class="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-md focus:outline-none {$connection.step !==
 			'SignedIn'
 				? 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
 				: ''}"
