@@ -1,7 +1,11 @@
 import {readable, type Readable} from 'svelte/store';
 import type {PublicClient} from 'viem';
 import type {TypedDeployments} from '$lib/core/connection/types';
-import {parseTokenURI} from '$lib/bleeps/metadata';
+import {
+	cachedBleepSound,
+	fetchBleepSound,
+	type BleepSound,
+} from '$lib/bleeps/sound';
 
 /**
  * One Bleep's own render, straight from the contract.
@@ -13,6 +17,9 @@ import {parseTokenURI} from '$lib/bleeps/metadata';
  * It is an `eth_call` on a view function, so the cost is the node's problem
  * rather than a user's, but it is still far above a normal read and worth being
  * deliberate about. See docs/adr/0002-melobleeps-tokenuri-gas.md.
+ *
+ * The fetch goes through the same cache the grid plays from, so opening the page
+ * for a Bleep you just heard costs nothing at all.
  */
 export type BleepState =
 	| {step: 'Loading'}
@@ -21,9 +28,17 @@ export type BleepState =
 			name: string;
 			image: string;
 			animationUrl: string;
-			description?: string;
 	  }
 	| {step: 'Failed'; message: string};
+
+function loaded(sound: BleepSound): BleepState {
+	return {
+		step: 'Loaded',
+		name: sound.name,
+		image: sound.image,
+		animationUrl: sound.animationUrl,
+	};
+}
 
 export function createBleepState(params: {
 	/** Undefined for an id that cannot exist, so no call is made. */
@@ -40,27 +55,21 @@ export function createBleepState(params: {
 		});
 	}
 
-	return readable<BleepState>({step: 'Loading'}, (set) => {
+	const already = cachedBleepSound(deployments, id);
+	const initial: BleepState = already ? loaded(already) : {step: 'Loading'};
+
+	return readable<BleepState>(initial, (set) => {
+		if (already) {
+			return;
+		}
 		let live = true;
 
-		publicClient
-			.readContract({
-				...deployments.contracts.Bleeps,
-				functionName: 'tokenURI',
-				args: [BigInt(id)],
-			})
-			.then((tokenURI) => {
+		fetchBleepSound({publicClient, deployments, id})
+			.then((sound) => {
 				if (!live) {
 					return;
 				}
-				const metadata = parseTokenURI(tokenURI as string);
-				set({
-					step: 'Loaded',
-					name: metadata.name,
-					image: metadata.image,
-					animationUrl: metadata.animation_url,
-					description: metadata.description,
-				});
+				set(loaded(sound));
 			})
 			.catch((error: unknown) => {
 				if (!live) {
