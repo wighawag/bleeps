@@ -25,7 +25,7 @@ This guide covers the architecture, patterns, and conventions for contributing t
 ### Key Concepts
 
 1. **Dual-Store Architecture**: Each feature has a main data store + status store (loading/error/lastSuccessfulFetch)
-2. **Context Pattern**: Services initialized via `createContext()` and provided through `AsyncContext.svelte`
+2. **Context Pattern**: Services built synchronously by `createContext()` and provided through `Context.svelte`; construction never awaits and never touches a browser API, so the app prerenders (see `docs/adr/0002-synchronous-ssr-inert-app-context.md`)
 3. **No Globals**: Browser APIs guarded with `typeof window === 'undefined'` checks
 4. **Svelte 5 Runes**: Uses `$state()`, `$derived()`, `$props()` instead of legacy reactive declarations
 
@@ -51,7 +51,8 @@ src/
 │   │       ├── tailwind/     # Tailwind helpers
 │   │       └── web/          # Web utilities
 │   ├── context/              # Svelte context providers
-│   │   ├── AsyncContext.svelte
+│   │   ├── Context.svelte    # provides the context to the tree
+│   │   ├── InitError.svelte  # rendered when the `fatal` store is set
 │   │   └── index.ts          # createContext() factory
 │   ├── onchain/              # On-chain state management
 │   │   ├── onchain-state.ts  # Main state store
@@ -203,18 +204,25 @@ export async function createContext() {
 ```typescript
 // routes/+layout.svelte
 <script lang="ts">
-  import { AsyncContext } from '$lib/context';
-  import type { LayoutData } from './$types';
+  import { createContext } from '$lib/context/index.js';
+  import Context from '$lib/context/Context.svelte';
+  import InitError from '$lib/context/InitError.svelte';
 
-  let { data, children } = $props<{
-    data: LayoutData;
-    children: () => import('svelte').Snippet;
-  }>();
+  let { children } = $props();
+
+  // Synchronous, and safe on the server: every service idles without browser
+  // APIs, and nothing starts IO until start() runs from onMount.
+  const context = createContext();
+  const { fatal } = context.context;
 </script>
 
-<AsyncContext data={data}>
-  {@render children()}
-</AsyncContext>
+{#if $fatal}
+  <InitError message={$fatal} />
+{:else}
+  <Context {context}>
+    {@render children()}
+  </Context>
+{/if}
 ```
 
 ```typescript

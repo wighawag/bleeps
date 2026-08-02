@@ -9,7 +9,8 @@
 	import NavigationProgress from '$lib/components/NavigationProgress.svelte';
 
 	import {createContext} from '$lib/context/index.js';
-	import AsyncContext from '$lib/context/AsyncContext.svelte';
+	import Context from '$lib/context/Context.svelte';
+	import InitError from '$lib/context/InitError.svelte';
 	import Navbar from '$lib/ui/navbar/navbar.svelte';
 	import Footer from '$lib/ui/footer/Footer.svelte';
 	import RpcHealthBanner from '$lib/ui/rpc-health/RpcHealthBanner.svelte';
@@ -22,6 +23,17 @@
 	import {page} from '$app/state';
 
 	let {children} = $props();
+
+	// Built once, synchronously, on the server as well as in the browser: every
+	// service idles when browser APIs are absent, so the page (and its metadata)
+	// prerenders instead of waiting behind a splash. Readiness arrives through
+	// the stores. See ADR-0002.
+	const context = createContext();
+
+	// Set when the app cannot run at all. Env-derived reasons are known at
+	// construction (so the error also prerenders); the `?burner=true` one is
+	// raised from start(), which swaps the app out for the error screen.
+	const {fatal} = context.context;
 
 	// Provide ambient capabilities to core UI components.
 	provideRoute(route);
@@ -38,20 +50,24 @@
 
 <NavigationProgress />
 
-<AsyncContext getContext={createContext}>
-	<Navbar />
-	<OfflineBanner />
-	<NonceCacheBanner />
-	{#if showRpcBanner}
-		<RpcHealthBanner />
-	{/if}
+{#if $fatal}
+	<InitError message={$fatal} />
+{:else}
+	<Context {context}>
+		<Navbar />
+		<OfflineBanner />
+		<NonceCacheBanner />
+		{#if showRpcBanner}
+			<RpcHealthBanner />
+		{/if}
 
-	{@render children()}
+		{@render children()}
 
-	<Footer />
+		<Footer />
 
-	<AcrossPages />
-</AsyncContext>
+		<AcrossPages />
+	</Context>
+{/if}
 
 <Toaster position="bottom-right" richColors closeButton />
 
