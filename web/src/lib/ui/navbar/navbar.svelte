@@ -143,13 +143,17 @@
 			     reads as a mistake rather than an affordance. So the bar keeps the
 			     tab that says where you are and `...` carries the rest. -->
 			<li
-				class="mr-1 -mb-px shrink-0 sm:block {isActive(link.href)
+				class="mr-1 shrink-0 sm:block {isActive(link.href)
 					? 'block'
 					: 'hidden'}"
 			>
 				{#if isActive(link.href)}
+					<!-- The current tab is the ONLY thing that interrupts the rule: it
+					     hangs a pixel below its row and paints its own background over
+					     the line. Every other tab leaves the rule alone, which is what
+					     makes this read as a tab bar rather than a row of boxes. -->
 					<span
-						class="inline-block rounded-t border-t border-r border-l border-bleeps bg-background px-2 py-2 text-sm font-semibold text-bleeps sm:px-4 sm:text-base"
+						class="-mb-px inline-block rounded-t border-t border-r border-l border-bleeps bg-background px-2 py-2 text-sm font-semibold text-bleeps sm:px-4 sm:text-base"
 						aria-current="page"
 					>
 						{link.title}
@@ -157,7 +161,7 @@
 				{:else}
 					<a
 						href={route(link.href)}
-						class="inline-block bg-background px-2 py-2 text-sm font-semibold text-bleeps hover:underline sm:px-4 sm:text-base"
+						class="inline-block px-2 py-2 text-sm font-semibold text-bleeps hover:underline sm:px-4 sm:text-base"
 					>
 						{link.title}
 					</a>
@@ -167,10 +171,10 @@
 
 		<!-- Only where the tabs do not all fit. A `...` next to five visible tabs
 		     and one hidden one would be a menu for the sake of having one. -->
-		<li class="mr-1 -mb-px shrink-0 sm:hidden">
+		<li class="mr-1 shrink-0 sm:hidden">
 			<Popover.Root bind:open={moreOpen}>
 				<Popover.Trigger
-					class="inline-block bg-background px-2 py-2 text-sm font-semibold text-bleeps hover:underline"
+					class="inline-block px-2 py-2 text-sm font-semibold text-bleeps hover:underline"
 					aria-label="More pages"
 				>
 					...
