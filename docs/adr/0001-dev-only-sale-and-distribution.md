@@ -23,9 +23,34 @@ Which scripts run where is declared in `rocketh/config.ts` as four named lists, 
 - `saleTestScripts`: the sale, deployed but untouched, for the sale tests.
 - `testScripts`: no sale and no seeding, because most tests need an unminted contract with the minter role still free.
 
-Crucially the dev chain reaches its state THROUGH the sale rather than by minting into place. `004_dev_seed` has the creator take the two reserved instruments (7 and 8, 128 Bleeps, via `creatorMultiMint`), then buys about fifty more by actually redeeming passes. So the DAO treasury holds real proceeds, the creator holds its real 25%, the pass bitmask has genuinely spent passes in it, and roughly 398 Bleeps are left purchasable so the buying flow is still reachable after the deploy. Half the transferable passes are left unredeemed for the same reason.
+Crucially the dev chain reaches its state THROUGH the sale rather than by minting into place. `004_dev_seed` has the creator take the two reserved instruments (7 and 8, 128 Bleeps, via `creatorMultiMint`) and the rest are bought. So the DAO treasury holds real proceeds and the creator holds its real 25%, rather than either being invented.
+
+How much is bought is the dev sale's MODE, see the revision below.
 
 The pass keys are DERIVED, not random: `devSalePassPrivateKey(i) = keccak256(encodePacked('bleeps dev sale pass', i))`. They are therefore public, which is fine and in fact wanted for a dev replay, and it means the sale is reproducible from the repository alone. The original script generated random keys and persisted them to a dotfile beside the deployment, so a sale could not be rebuilt without that file. This must never be used for a real sale.
+
+## Revision: sold out by default, a live sale on request
+
+Date: 2026-08-01
+
+The seeding originally left about 398 Bleeps unsold, so a dev chain always sat in the middle of a live sale. That is the wrong default. The thing a dev chain should reproduce is what bleeps.art IS, which is sold out: 576 owned, a DAO holding the proceeds, and an app that browses rather than sells. A live sale is the exception, so it is now the thing you opt into:
+
+```
+BLEEPS_DEV_SALE=live pnpm contracts:deploy localhost
+```
+
+The mode is decided when the SALE is deployed, not when the seeding runs, because it changes the sale's times and those are constructor immutables (`deploy/dev-sale-mode.ts`):
+
+- sold out: the whitelist window is already over when the sale is deployed, so the seeding can buy the remaining 448 through the public phase. A pass-gated sell-out is not possible in the first place, since there are about eighty passes and 448 Bleeps.
+- live: the whitelist window opens at deploy time and runs for an hour. Every dev account redeems the pass bound to its address, half the transferable passes are redeemed, and the rest are left to buy by hand, which is what the original seeding did.
+
+The seeding reads the DEPLOYED sale's own times rather than the environment variable, so a seeding run cannot contradict the sale it is seeding.
+
+**The web app is told none of this.** It works out its own mode from two facts: is a sale deployed at all, and does it still have something to sell (`web/src/lib/sale/mode.ts`). Mainnet has a spent sale contract and no unsold Bleeps, so it browses; a dev chain with a live sale mints; and the moment the last Bleep goes, wherever that happens, the app follows. There is no flag to set and none to forget, and the state cannot be described wrongly because it is not described at all.
+
+One consequence worth knowing: selling out costs 448 purchases at 0.1 ETH each. On a local chain that is free and takes seconds. On a funded network it is 44.8 ETH of that network's ether, so `demo` on Sepolia wants `BLEEPS_DEV_SALE=live` unless somebody is feeling rich.
+
+`test/DevSeed.test.ts` pins both end states against the real deploy scripts.
 
 ## Consequences
 

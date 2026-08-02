@@ -9,6 +9,7 @@ import {
 	type SalePassLeaf,
 } from 'bleeps-common';
 import type {Abi_Bleeps} from '../../generated/abis/Bleeps.js';
+import {devSaleMode, devSaleTimes} from '../dev-sale-mode.js';
 
 /**
  * The Bleeps sale, brought back for dev chains only.
@@ -30,6 +31,12 @@ import type {Abi_Bleeps} from '../../generated/abis/Bleeps.js';
  *   the signature is over `keccak(passId, to)`. The pass is a private key, so it
  *   can be handed to somebody as a link and redeemed to any address. The keys
  *   are derived, see `devSalePassPrivateKey`.
+ *
+ * When the sale is deployed sold-out (the default, see ../dev-sale-mode.ts) its
+ * whitelist window is already over, because the seeding that follows has to buy
+ * 448 Bleeps and there are nowhere near that many passes. The passes are still
+ * built into the tree, so the deployment record the app reads is the same shape
+ * in both modes.
  */
 
 /** 0.1 ETH, as on mainnet. */
@@ -54,9 +61,6 @@ const UPTO_INSTRUMENT = 8n;
  */
 const NUM_TRANSFERABLE_PASSES = 64;
 
-/** How long the pass-gated phase lasts on a dev chain, in seconds. */
-const WHITELIST_DURATION = 60 * 60;
-
 export default deployScript(
 	async (env) => {
 		const {deployer, projectCreator} = env.namedAccounts;
@@ -79,9 +83,11 @@ export default deployScript(
 		const leaves: SalePassLeaf[] = [...passKeyLeaves, ...addressBoundLeaves];
 		const tree = new MerkleTree(hashLeaves(leaves));
 
-		const now = Math.floor(Date.now() / 1000);
-		const startTime = now;
-		const whitelistEndTime = now + WHITELIST_DURATION;
+		const mode = devSaleMode(
+			(env.extra as {devSaleMode?: string} | undefined)?.devSaleMode,
+		);
+		const {startTime, whitelistEndTime} = devSaleTimes(mode);
+		env.showMessage(`deploying the dev sale, mode: ${mode}`);
 
 		const sale = await env.deploy(
 			'BleepsInitialSale',

@@ -32,6 +32,11 @@ export function setupSaleFixtures(provider: EthereumProvider) {
 				// depend on whatever was last deployed on this machine.
 				saveDeployments: false,
 				config: {scripts: [...saleTestScripts]},
+				// These tests are about the pass-gated phase, so the sale has to be
+				// deployed with its whitelist window open. Asked for explicitly rather
+				// than left to the default (sold-out, see deploy/dev-sale-mode.ts) or
+				// to whatever BLEEPS_DEV_SALE a shell happens to carry.
+				extra: {devSaleMode: 'live'},
 			});
 
 			const sale = env.get<Abi_BleepsFixedPriceSale>('BleepsInitialSale');
