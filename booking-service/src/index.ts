@@ -49,10 +49,12 @@ export default {
 		const BASE_URL = 'http://127.0.0.1';
 		const id = env.BOOKINGS.idFromName('A');
 		const obj = env.BOOKINGS.get(id);
-		if (trigger.cron === '* * * * *') {
-			console.log('CRON: checkTransactions...');
-			event.waitUntil(obj.fetch(`${BASE_URL}/checkTransactions`));
-		}
+		// There is one trigger (see wrangler.toml), and reaping stale bookings is
+		// what it is for. This used to run only when the cron expression was
+		// exactly '* * * * *', while the deployed one is '*/1 * * * *', so it never
+		// ran at all and bookings accumulated for ever.
+		console.log(`CRON (${trigger.cron}): checkTransactions...`);
+		event.waitUntil(obj.fetch(`${BASE_URL}/checkTransactions`));
 	},
 };
 

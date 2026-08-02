@@ -21,6 +21,11 @@ layout {
 		pane name="common lib" command="pnpm"  {
 			args "common:dev"
 		}
+		// The sale's booking service. Dev-only, and it waits for the sale to be
+		// deployed before it configures itself from that deployment.
+		pane name="booking service" command="pnpm"  {
+			args "booking-service:dev"
+		}
 		
 	}
 

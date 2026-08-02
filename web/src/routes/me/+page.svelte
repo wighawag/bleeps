@@ -37,6 +37,17 @@
 	const pending = $derived(
 		$viewState.step === 'Loaded' ? $viewState.bleeps.pendingMelodies : [],
 	);
+
+	// A Bleep bought seconds ago is already in `owners` (the view merges this
+	// user's in-flight purchases onto the chain read), so it shows up here at
+	// once. Marked unsettled until the chain agrees.
+	const pendingBleeps = $derived(
+		new Set(
+			$viewState.step === 'Loaded'
+				? $viewState.bleeps.pendingBleeps.map((bleep) => bleep.id)
+				: [],
+		),
+	);
 </script>
 
 <DefaultHead title="Yours" />
@@ -80,7 +91,12 @@
 							href={route(`/bleeps/${entry.id}/`)}
 							class="block transition-transform hover:scale-105"
 						>
-							<BleepTile id={entry.id} owner={entry.owner} yours />
+							<BleepTile
+								id={entry.id}
+								owner={entry.owner}
+								yours
+								pending={pendingBleeps.has(entry.id)}
+							/>
 						</a>
 					{/each}
 				</div>

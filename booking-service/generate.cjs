@@ -5,6 +5,12 @@
  * the public-sale timestamp) to validate a booking, and none of that exists
  * until the sale is deployed. So both files are generated, and neither is
  * committed.
+ *
+ * `pnpm dev` waits for the sale to exist, generates once, and then runs
+ * `wrangler dev`. src/contracts.json is inside the worker's source, so wrangler
+ * reloads by itself whenever this rewrites it; what it does NOT do is rerun this
+ * script. Restarting the dev CHAIN therefore means restarting this too, or the
+ * service keeps validating passes against the previous chain's sale.
  */
 const fs = require('fs-extra');
 const path = require('path');

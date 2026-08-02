@@ -6,7 +6,7 @@
 	"description": "Booking service to let users advertise their purchase intent to each other, so two people do not spend gas on the same Bleep",
 	"scripts": {
 		"generate": "ldenv -d localhost node generate.cjs ../contracts/deployments/@@MODE @@",
-		"dev": "ldenv -d localhost pnpm generate @@MODE ~~ wrangler dev --port 8787 ~~ @@",
+		"dev": "ldenv -d localhost wait-on ../contracts/deployments/@@MODE@:@:/BleepsInitialSale.json ~~ pnpm generate @@MODE ~~ wrangler dev --port 8787 ~~ @@",
 		"deploy": "ldenv pnpm generate @@MODE ~~ wrangler deploy ~~ @@",
 		"typescript": "tsc",
 		"format": "prettier --write .",
@@ -22,6 +22,7 @@
 		"prettier": "^3.9.6",
 		"typescript": "~6.0.3",
 		"viem": "^2.55.10",
+		"wait-on": "^9.1.0",
 		"wrangler": "^4.44.1"
 	}
 }

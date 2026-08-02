@@ -3,18 +3,26 @@
 	import {getAppContext, route} from '$lib';
 	import {url} from '$lib/core/utils/web/path';
 	import {Button} from '$lib/shadcn/ui/button';
-	import {NUM_BLEEPS} from '$lib/onchain/state';
+	import SaleCountdown from '$lib/sale/SaleCountdown.svelte';
+	import {saleDeployment} from '$lib/sale/deployment';
 
 	// Content, wording and graphics are the pre-template site's. Only the
 	// plumbing moved.
 	const name = 'Bleeps and The Bleeps DAO';
 
-	const {viewState} = getAppContext();
+	const {viewState, deployments, clock} = getAppContext();
 
 	// The old site hard-coded `soldout = chainName === 'mainnet'` to avoid a
-	// fetch. The owners table is already in memory here, so it can just be true.
-	const allMinted = $derived(
-		$viewState.step === 'Loaded' && $viewState.bleeps.minted >= NUM_BLEEPS,
+	// fetch, and showed the countdown from the sale's deployment record.
+	// The mode is worked out from the chain instead (lib/sale/mode.ts), so a
+	// sold-out sale says so wherever it is, and the countdown is shown only while
+	// there is something to count down to.
+	const sale = saleDeployment(deployments.get());
+	const mintMode = $derived(
+		$viewState.step === 'Loaded' && $viewState.bleeps.mode === 'mint',
+	);
+	const soldOut = $derived(
+		$viewState.step === 'Loaded' && $viewState.bleeps.mode === 'browse',
 	);
 </script>
 
@@ -93,7 +101,7 @@
 </section>
 
 <div class="mx-auto w-full text-center font-black">
-	{#if allMinted}
+	{#if soldOut}
 		<div class="mx-auto h-12 w-80 border-4 border-white pt-2 sm:w-96">
 			<span class="text-bleeps">Sold Out</span>
 		</div>
@@ -101,10 +109,16 @@
 			href="https://opensea.io/collection/bleeps"
 			class="mt-4 inline-block underline">Check on Opensea</a
 		>
+	{:else if mintMode && sale}
+		<SaleCountdown
+			startTime={sale.linkedData.startTime}
+			publicSaleTimestamp={sale.linkedData.publicSaleTimestamp}
+			now={$clock}
+		/>
 	{/if}
 
 	<Button href={route('/bleeps/')} class="mx-auto mt-4 block w-64 font-black">
-		{allMinted ? 'Bleeps' : 'Bleeps Sale'}
+		{mintMode ? 'Bleeps Sale' : 'Bleeps'}
 	</Button>
 
 	<a class="m-8 block text-bleeps underline" href={route('/about/')}
