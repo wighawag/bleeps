@@ -56,7 +56,11 @@
 	{:else}
 		<div class="flex flex-col items-center gap-6">
 			<div class="w-64">
-				<BleepTile {id} {owner} {yours} interactive={false} />
+				<!-- No `yours` ring: this page has room to say who owns it in words,
+				     so ownership is carried by the owner line below rather than by
+				     decorating the tile. The ring is for the sale grid, where there is
+				     no room to write anything. -->
+				<BleepTile {id} {owner} resolveENS interactive={false} />
 			</div>
 
 			<div class="text-center">
@@ -70,7 +74,17 @@
 				{#if isOwned(owner) && owner}
 					<p class="mt-2 flex items-center justify-center gap-1 text-sm">
 						<span class="text-muted-foreground">Owned by</span>
-						<Address value={owner} />
+						<!-- Green when it is the connected account's: the name (or address)
+						     itself is what the reader is checking, so it is what changes. -->
+						<Address
+							value={owner}
+							class={yours
+								? 'font-medium text-green-600 dark:text-green-400'
+								: ''}
+						/>
+						{#if yours}
+							<span class="text-green-600 dark:text-green-400">(you)</span>
+						{/if}
 					</p>
 				{:else if $viewState.step === 'Loaded'}
 					<p class="mt-2 text-sm text-muted-foreground">Not minted.</p>

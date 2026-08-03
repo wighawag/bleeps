@@ -1,18 +1,30 @@
 <script lang="ts">
-	import {truncateHex} from '$lib/core/utils/format/hex';
 	import {
 		colorFromId,
 		hertz,
 		instrumentNameFromId,
 		noteName,
 	} from '$lib/melodies/notes';
+	import {useENS} from '$lib/core/capabilities';
+	import {createENSNameStore} from '$lib/core/ui/ethereum/ens';
+	import {ownerLabel} from './owner-label';
 
 	type Props = {
 		id: number;
 		/** The owner, or the zero address / undefined when unminted. */
 		owner?: string;
-		/** Ring the tile, to pick out the connected account's own Bleeps. */
+		/**
+		 * Ring the tile, to pick out the connected account's own Bleeps in the
+		 * sale grid. Only for views that cannot say it in words: where there is
+		 * room for an owner line, colour that instead.
+		 */
 		yours?: boolean;
+		/**
+		 * Look the owner's ENS name up and write that instead of the address.
+		 * Off by default: the sale draws 576 of these at once and each unresolved
+		 * owner is a reverse lookup against mainnet.
+		 */
+		resolveENS?: boolean;
 		interactive?: boolean;
 		/**
 		 * Where this Bleep is in the play cycle. `loading` is not decoration: the
@@ -30,6 +42,7 @@
 		id,
 		owner,
 		yours = false,
+		resolveENS = false,
 		interactive = true,
 		playState = 'idle',
 		booked = false,
@@ -49,6 +62,16 @@
 	const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 	const isOwned = $derived(!!owner && owner !== ZERO_ADDRESS);
 	const border = $derived(booked ? '#6b7280' : BORDER);
+
+	// Optional capability: without an ENS node the store stays inert and the
+	// tile keeps showing the truncated address.
+	const ens = createENSNameStore(useENS(), {seedFromCache: true});
+	$effect(() => {
+		ens.setAddress(
+			resolveENS && isOwned && owner ? (owner as `0x${string}`) : undefined,
+		);
+	});
+	const ownerText = $derived(ownerLabel(owner, $ens.name));
 
 	const label = $derived(
 		`${instrument} ${note}${isOwned ? ', owned' : ', not minted'}` +
@@ -105,7 +128,7 @@
 			y="465"
 			dominant-baseline="middle"
 			text-anchor="start"
-			style={`fill:${color};font-size:32px;`}>{truncateHex(owner)}</text
+			style={`fill:${color};font-size:32px;`}>{ownerText}</text
 		>
 	{/if}
 

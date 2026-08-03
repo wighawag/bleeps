@@ -94,10 +94,13 @@
 							href={route(`/bleeps/${entry.id}/`)}
 							class="block transition-transform hover:scale-105"
 						>
+							<!-- No `yours` ring here: every tile on this page is yours, so
+							     the ring would say nothing. It is for the sale grid and the
+							     page for one Bleep, where ownership is the question. -->
 							<BleepTile
 								id={entry.id}
 								owner={entry.owner}
-								yours
+								resolveENS
 								pending={pendingBleeps.has(entry.id)}
 							/>
 						</a>
