@@ -120,7 +120,7 @@
 		</header>
 
 		<div class="flex flex-col items-center gap-4">
-			<MelodyCanvas {melody} editable {creator} />
+			<MelodyCanvas {melody} {editor} editable {creator} />
 
 			<div class="flex w-full flex-wrap items-end justify-center gap-3">
 				<label class="flex flex-col gap-1 text-sm">

@@ -13,10 +13,19 @@
 		toCanvas,
 		volumeColor,
 		type Geometry,
+		type MelodyEditor,
 	} from './melody-editor';
 
 	type Props = {
 		melody: Writable<MelodyInfo>;
+		/**
+		 * The editor driving this canvas. Pass one in when something outside the
+		 * canvas also drives it (the instrument picker, the name field): both sides
+		 * have to share ONE editor, or the picker updates a state the painting never
+		 * reads. Omitted, the canvas makes its own, which is all a read-only
+		 * rendering needs.
+		 */
+		editor?: MelodyEditor;
 		editable?: boolean;
 		geometry?: Geometry;
 		nameFontSize?: number;
@@ -27,6 +36,7 @@
 
 	let {
 		melody,
+		editor: providedEditor,
 		editable = false,
 		geometry = DEFAULT_GEOMETRY,
 		nameFontSize = 28,
@@ -40,11 +50,13 @@
 	// changes; geometry and editability are configuration fixed at mount.
 	const editorGeometry = untrack(() => geometry);
 	const isEditable = untrack(() => editable);
-	const editor = untrack(() =>
-		createMelodyEditor(melody, {
-			geometry: editorGeometry,
-			editable: isEditable,
-		}),
+	const editor = untrack(
+		() =>
+			providedEditor ??
+			createMelodyEditor(melody, {
+				geometry: editorGeometry,
+				editable: isEditable,
+			}),
 	);
 
 	const {width, height} = canvasSize(editorGeometry);
