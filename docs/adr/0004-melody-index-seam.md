@@ -24,6 +24,8 @@ The list is polled rather than subscribed, because polling is the one thing ever
 
 `PUBLIC_SUBGRAPH_URL` empty means no index: the melody list says so, and everything else, including composing, previewing and minting, works. An indexer is a convenience for browsing, not a dependency of the app.
 
+That state is a deployment we actually ship, not just a developer's half-configured checkout, so it is its own result step. `Unavailable` is a build with no index at all, which is permanent until one is configured and is rendered as muted text; `Failed` is an index that exists and did not answer, which is rendered as an error. Collapsing the two would tell a visitor to demo.bleeps.art that something is broken when nothing is. The `Unavailable` message names `PUBLIC_SUBGRAPH_URL` only under `dev`, because in production the reader is a visitor who cannot set it and wants to know what still works.
+
 ## Consequences
 
 The index is authoritative for what exists but always lags. A melody just minted is not in it yet, so `viewState` carries `pendingMelodies`, derived from this user's in-flight operations, and the list renders those first and greyed. An operation stops counting as pending the moment it is included, successful or not, because from then on the index is the source of truth and counting both would show the melody twice.

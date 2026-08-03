@@ -1,3 +1,4 @@
+import {dev} from '$app/environment';
 import {readable, type Readable} from 'svelte/store';
 import type {
 	MelodyIndex,
@@ -19,11 +20,15 @@ export function createMelodyList(params: {
 }): Readable<MelodyIndexResult> {
 	const {index, query, refreshInterval = 10_000} = params;
 
+	// No index in this build. Not an error: composing, previewing and minting all
+	// work without one (ADR 0004), so a visitor is told what is missing and what
+	// still works, and only a developer is told which variable turns it on.
 	if (!index) {
 		return readable<MelodyIndexResult>({
-			step: 'Failed',
-			message:
-				'No melody indexer is configured. Set PUBLIC_SUBGRAPH_URL to list melodies.',
+			step: 'Unavailable',
+			message: dev
+				? 'No melody indexer is configured. Set PUBLIC_SUBGRAPH_URL to list melodies.'
+				: 'Browsing melodies is not available on this deployment. Composing, previewing and minting all still work.',
 		});
 	}
 

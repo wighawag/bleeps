@@ -47,6 +47,8 @@
 		<Spinner class="size-4" />
 		Reading the index...
 	</p>
+{:else if result.step === 'Unavailable'}
+	<p class="text-sm text-muted-foreground">{result.message}</p>
 {:else if result.step === 'Failed'}
 	<p class="flex items-center gap-2 text-sm text-destructive">
 		<AlertCircleIcon class="size-4" />

@@ -34,6 +34,14 @@ export type IndexedMelody = {
 export type MelodyIndexResult =
 	| {step: 'Loading'}
 	| {step: 'Loaded'; melodies: IndexedMelody[]}
+	/**
+	 * This build has no index at all, so melodies cannot be browsed and never
+	 * will be until one is configured. Distinct from `Failed` on purpose: it is a
+	 * known, permanent property of the deployment rather than something going
+	 * wrong, so it must not be presented to a visitor as an error.
+	 */
+	| {step: 'Unavailable'; message: string}
+	/** An index exists and did not answer. This one IS an error. */
 	| {step: 'Failed'; message: string};
 
 export type MelodyQuery = {
