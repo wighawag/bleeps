@@ -11,6 +11,9 @@ importers:
 
   .:
     devDependencies:
+      expand-vars:
+        specifier: ^0.1.0
+        version: 0.1.0
       ldenv:
         specifier: ^0.6.0
         version: 0.6.0
@@ -123,6 +126,9 @@ importers:
       ethereum-contracts-test-suite:
         specifier: ^0.2.6
         version: 0.2.6
+      expand-vars:
+        specifier: ^0.1.0
+        version: 0.1.0
       faucet-server:
         specifier: ^0.1.0
         version: 0.1.0(@libsql/core@0.17.4)(hono@4.12.34)(typescript@6.0.3)(zod@3.25.76)
@@ -2601,6 +2607,11 @@ packages:
   execa@5.1.1:
     resolution: {integrity: sha512-8uSpZZocAZRBAPIEINJj3Lo9HyGitllczc27Eh5YYojjMFMn8yHMDMaUHE2Jqfq05D/wucwI4JGURyXt1vchyg==}
     engines: {node: '>=10'}
+
+  expand-vars@0.1.0:
+    resolution: {integrity: sha512-bAtah13rDo+QT79NMuWzKveZxxoUBXhupK5pIQIq5MMm86Ea/rXWVAwD2sCCpox7Xj5LxnF+NXBI9c5jf7WTTw==}
+    engines: {node: '>=18'}
+    hasBin: true
 
   expect-type@1.4.0:
     resolution: {integrity: sha512-KfYbmpRm0VbLjEvVa9yGwCi9GI34xvi7A/HXYWQO65CSD2u3MczUJSuwXKFIxlGsgBQizV9q5J9NHj4VG0n+pA==}
@@ -7119,6 +7130,10 @@ snapshots:
       onetime: 5.1.2
       signal-exit: 3.0.7
       strip-final-newline: 2.0.0
+
+  expand-vars@0.1.0:
+    dependencies:
+      cross-spawn: 7.0.6
 
   expect-type@1.4.0: {}
 

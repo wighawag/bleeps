@@ -34,6 +34,7 @@
 		"as-soon": "^0.1.6",
 		"bleeps-common": "workspace:*",
 		"earl": "^2.0.0",
+		"expand-vars": "^0.1.0",
 		"ethereum-contracts-test-suite": "^0.2.6",
 		"faucet-server": "^0.1.0",
 		"hardhat": "^3.12.0",
@@ -54,7 +55,7 @@
 	"scripts": {
 		"prepare": "set-defaults .vscode && pnpm compile",
 		"---------------------- INTERNAL ----------------------": "",
-		":deploy+export": "ldenv pnpm hardhat --network @@MODE deploy --skip-prompts && ldenv rocketh-export -e @@MODE",
+		":deploy+export": "expand-vars pnpm hardhat --network $MODE deploy --skip-prompts && expand-vars rocketh-export -e $MODE",
 		"---------------------- DEV ---------------------- ": "",
 		"node:local": "ldenv -d localhost hardhat --network local node --hostname 0.0.0.0",
 		"node:purgatory": "purgatory --port 8545 --reset-db --db purgatory.db",
