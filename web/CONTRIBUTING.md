@@ -204,16 +204,16 @@ export async function createContext() {
 ```typescript
 // routes/+layout.svelte
 <script lang="ts">
-  import { createContext } from '$lib/context/index.js';
+  import {createContext} from '$lib/context/index.js';
   import Context from '$lib/context/Context.svelte';
   import InitError from '$lib/context/InitError.svelte';
 
-  let { children } = $props();
+  let {children} = $props();
 
-  // Synchronous, and safe on the server: every service idles without browser
-  // APIs, and nothing starts IO until start() runs from onMount.
+  // Synchronous, and constructible on the server too, so the page (and its
+  // metadata) prerenders instead of waiting behind a splash.
   const context = createContext();
-  const { fatal } = context.context;
+  const {fatal} = context.context;
 </script>
 
 {#if $fatal}
