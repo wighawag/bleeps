@@ -1,5 +1,30 @@
 {
 	"extends": "./.svelte-kit/tsconfig.json",
+	// The generated include list covers src/ and test/ but NOT e2e/, so the e2e
+	// suite was never type-checked. It rotted unnoticed: the connectedPage fixture
+	// referenced an `input` that was never declared, which would have thrown
+	// ReferenceError the moment that branch ran. TypeScript does not MERGE
+	// include, so the generated entries are repeated here verbatim; keep them in
+	// step with .svelte-kit/tsconfig.json if SvelteKit changes them.
+	"include": [
+		".svelte-kit/ambient.d.ts",
+		".svelte-kit/env.d.ts",
+		".svelte-kit/non-ambient.d.ts",
+		".svelte-kit/types/**/$types.d.ts",
+		"vite.config.js",
+		"vite.config.ts",
+		"src/**/*.js",
+		"src/**/*.ts",
+		"src/**/*.svelte",
+		"test/**/*.js",
+		"test/**/*.ts",
+		"test/**/*.svelte",
+		"tests/**/*.js",
+		"tests/**/*.ts",
+		"tests/**/*.svelte",
+		"e2e/**/*.ts",
+		"playwright.config.ts"
+	],
 	"compilerOptions": {
 		"allowJs": true,
 		"checkJs": true,

@@ -268,9 +268,16 @@
 		</li>
 	</ul>
 
+	<!-- `data-connected` is the single authoritative connection signal for e2e.
+	     Inferring it from the balance text below does not work: that span renders
+	     EMPTY while the balance loads and is hidden under the `sm` breakpoint, so
+	     a connected app reads as disconnected. It tracks the same predicate the
+	     branches below use and is always in the DOM. -->
 	<div
 		bind:this={accountElement}
 		class="flex shrink-0 items-center space-x-2 pb-1"
+		data-testid="wallet-status"
+		data-connected={connection.isTargetStepReached($connection)}
 	>
 		<!-- Connect Button / Connected Address -->
 		{#if ($connection.step === 'Idle' && $connection.loading) || ($connection.step != 'Idle' && !connection.isTargetStepReached($connection))}

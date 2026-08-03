@@ -4,20 +4,27 @@ describe('Contracts Page', () => {
 	test('should show contract selection dropdown', async ({page}) => {
 		await page.goto('/contracts');
 
-		// The contract selector should be visible
-		const selector = page
-			.getByRole('combobox')
-			.or(page.locator('[class*="select"]').first());
-		await expect(selector).toBeVisible({timeout: 5000});
+		// Addressed by an explicit hook. The fallback this used to carry matched on
+		// a Tailwind class substring (`[class*="select"]`), which pins the test to
+		// styling rather than to the control, and put `.first()` on only one branch
+		// of the `.or()` - leaving the combined locator free to match both. That
+		// fallback was also the only reason the test passed: the trigger renders as
+		// a plain button, so the `getByRole('combobox')` branch never matched.
+		await expect(page.getByTestId('contract-selector')).toBeVisible({
+			timeout: 5000,
+		});
 	});
 
 	test('should display Bleeps contract by default', async ({page}) => {
 		await page.goto('/contracts');
 
-		// Should show the Bleeps contract (as button or heading)
-		await expect(page.getByText('Bleeps').first()).toBeVisible({
-			timeout: 5000,
-		});
+		// The selected contract's own heading, not merely the string "Bleeps"
+		// somewhere on the page: `getByText('Bleeps').first()` matched the navbar's
+		// tab label, which is hidden, so the assertion failed on an element the test
+		// was never about.
+		await expect(
+			page.getByRole('heading', {name: 'Bleeps', level: 2}),
+		).toBeVisible({timeout: 5000});
 	});
 
 	test('should display contract address', async ({page}) => {
@@ -51,10 +58,19 @@ describe('Contracts Page', () => {
 			page.getByRole('heading', {name: 'View Functions'}),
 		).toBeVisible({timeout: 5000});
 
-		// Should list Bleeps' own view functions
-		await expect(
-			page.getByText('owners').first().or(page.getByText('tokenURI').first()),
-		).toBeVisible({timeout: 5000});
+		// Should list Bleeps' own view functions, addressed by the function name
+		// rather than by page text. Two things were wrong before: the card title
+		// renders "<name> <stateMutability>", so `getByText('owners')` matched
+		// several cards, and `.first()` sat on each BRANCH of the `.or()` instead of
+		// on the combined locator - which still resolves to both and trips strict
+		// mode. `.first()` has to go last.
+		const owners = page.locator(
+			'[data-testid="contract-function"][data-function-name="owners"]',
+		);
+		const tokenURI = page.locator(
+			'[data-testid="contract-function"][data-function-name="tokenURI"]',
+		);
+		await expect(owners.or(tokenURI).first()).toBeVisible({timeout: 5000});
 	});
 
 	test('should display write functions in Write tab', async ({page}) => {
