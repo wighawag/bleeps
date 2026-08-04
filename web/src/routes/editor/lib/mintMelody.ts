@@ -3,10 +3,7 @@ import {
 	InsufficientFundsError,
 	isUserRejectionError,
 } from '$lib/core/transaction';
-import {
-	txErrorDetails,
-	txErrorSummary,
-} from '$lib/core/transaction/tx-error-summary';
+import {txErrorDetails} from '$lib/core/transaction/tx-error-summary';
 import type {Context} from '$lib/context/types';
 import {
 	encodeMelodyToChainData,
@@ -14,12 +11,19 @@ import {
 	type MelodyInfo,
 } from '$lib/melodies/melody';
 import {melodyToken} from '$lib/melodies/deployment';
+import {mintProblemFromError, type MintProblem} from './mint-problem';
 
 export type MintMelodyResult =
 	| {status: 'submitted'}
 	| {status: 'cancelled'}
 	| {status: 'cannot-send'}
-	| {status: 'error'; message: string; details: string};
+	/**
+	 * A failure, already interpreted. `message`/`explanation`/`code` come from
+	 * `mint-problem.ts` so the dialog can say something useful (and offer a rename
+	 * when the name is what was refused); `details` stays the raw error text for
+	 * the details modal.
+	 */
+	| ({status: 'error'; details: string} & MintProblem);
 
 export type MintMelodyDeps = Pick<
 	Context,
@@ -52,7 +56,9 @@ export async function mintMelody(
 	if (nameProblem) {
 		return {
 			status: 'error',
+			code: 'invalid-name',
 			message: 'That name cannot be minted',
+			explanation: nameProblem,
 			details: nameProblem,
 		};
 	}
@@ -60,10 +66,14 @@ export async function mintMelody(
 	// A melody with nothing audible in it would mint a silent token, and the name
 	// it claims is then taken for good (`NAME_ALREADY_TAKEN` is permanent).
 	if (!melody.slots.some((slot) => slot.volume > 0)) {
+		const explanation =
+			'Give at least one slot a volume above zero before minting. A silent melody would still claim its name for good.';
 		return {
 			status: 'error',
+			code: 'silent',
 			message: 'This melody is silent',
-			details: 'Give at least one slot a volume above zero before minting.',
+			explanation,
+			details: explanation,
 		};
 	}
 
@@ -79,11 +89,14 @@ export async function mintMelody(
 		if (!melobleeps) {
 			// Nothing should reach this: the editor is not built where MeloBleeps is
 			// not deployed. Said out loud rather than thrown as `undefined.address`.
+			const explanation =
+				'MeloBleeps is not part of this deployment, so there is nothing to mint with.';
 			return {
 				status: 'error',
+				code: 'not-deployed',
 				message: 'Melodies are not on this chain',
-				details:
-					'MeloBleeps is not part of this deployment, so there is nothing to mint with.',
+				explanation,
+				details: explanation,
 			};
 		}
 
@@ -114,7 +127,7 @@ export async function mintMelody(
 		console.error('Failed to mint melody:', error);
 		return {
 			status: 'error',
-			message: txErrorSummary(error),
+			...mintProblemFromError(error, name),
 			details: txErrorDetails(error),
 		};
 	}

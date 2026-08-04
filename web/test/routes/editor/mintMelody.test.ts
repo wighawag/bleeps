@@ -131,4 +131,39 @@ describe('mintMelody', () => {
 			expect(result.details.length).toBeGreaterThan(0);
 		}
 	});
+
+	it('explains a taken name instead of repeating the revert string', async () => {
+		// The failure a composer actually hits. Surfacing `NAME_ALREADY_TAKEN` says
+		// nothing about what to do; the code lets the dialog offer a rename, and the
+		// trimmed name is quoted back so they know which one collided.
+		const writeContract = vi.fn(async () => {
+			throw new Error('execution reverted: NAME_ALREADY_TAKEN');
+		});
+		const {deps: d} = deps({writeContract});
+
+		const result = await mintMelody(d, audibleMelody());
+
+		expect(result.status).toEqual('error');
+		if (result.status === 'error') {
+			expect(result.code).toEqual('name-taken');
+			expect(result.message).toContain('spaced out');
+			expect(result.message).not.toContain('NAME_ALREADY_TAKEN');
+			expect(result.explanation.length).toBeGreaterThan(0);
+			// the raw text stays available for the details modal
+			expect(result.details).toContain('NAME_ALREADY_TAKEN');
+		}
+	});
+
+	it('codes the pre-flight refusals, so the dialog can tell them apart', async () => {
+		const {deps: d} = deps();
+
+		const silent = await mintMelody(d, emptyMelody());
+		expect(silent.status === 'error' && silent.code).toEqual('silent');
+
+		const bad = emptyMelody();
+		bad.name = 'quote" in it';
+		bad.slots[3] = {note: 20, instrument: 2, volume: 5};
+		const invalid = await mintMelody(d, bad);
+		expect(invalid.status === 'error' && invalid.code).toEqual('invalid-name');
+	});
 });

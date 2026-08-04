@@ -19,7 +19,8 @@
 	import {createMelodyEditor} from '$lib/melodies/melody-editor';
 	import {createMelodyPreview} from './lib/preview';
 	import {melodyFromHash} from './lib/share-link';
-	import {mintMelody} from './lib/mintMelody';
+	import {createMintFlow} from './lib/mint-flow';
+	import MintMelodyDialog from './components/MintMelodyDialog.svelte';
 	import RequiresMelodies from '$lib/melodies/RequiresMelodies.svelte';
 
 	const context = getAppContext();
@@ -78,35 +79,27 @@
 	// will be. Undefined until a wallet is connected.
 	const creator = $derived($account);
 
-	let isMinting = $state(false);
+	// Minting is a dialog rather than a button and a toast. It claims a name on
+	// chain permanently, and the way it usually fails (the name is already taken)
+	// is something the composer has to go and fix, which needs more room than a
+	// corner notification and a place to put the fix. See lib/mint-flow.ts.
+	const mintFlow = createMintFlow({
+		deps: context,
+		onSubmitted: () =>
+			toast.success('Melody submitted', {
+				description: 'It will appear once the transaction is mined.',
+			}),
+		onCannotSend: () => accountCannotSend.show(),
+	});
 
-	async function mint() {
-		if (isMinting) {
-			return;
-		}
-		isMinting = true;
-		try {
-			const result = await mintMelody(context, $melody);
-			if (result.status === 'submitted') {
-				toast.success('Melody submitted', {
-					description: 'It will appear once the transaction is mined.',
-				});
-			} else if (result.status === 'cannot-send') {
-				accountCannotSend.show();
-			} else if (result.status === 'error') {
-				toast.error('Could not mint', {
-					description: result.message,
-					duration: 8000,
-					closeButton: true,
-					action: {
-						label: 'Details',
-						onClick: () => errorDetails.show(result.details),
-					},
-				});
-			}
-		} finally {
-			isMinting = false;
-		}
+	let nameInput = $state<HTMLInputElement | null>(null);
+
+	// Where the dialog hands back to when the name was the problem: the field that
+	// holds the fix, with the old name selected so typing replaces it. The dialog
+	// closes itself first, so this only has to move the cursor.
+	function focusNameField() {
+		nameInput?.focus();
+		nameInput?.select();
 	}
 </script>
 
@@ -132,6 +125,7 @@
 				<label class="flex flex-col gap-1 text-sm">
 					<span class="text-muted-foreground">Name</span>
 					<Input
+						bind:ref={nameInput}
 						value={$melody.name}
 						maxlength={32}
 						oninput={(event) =>
@@ -163,8 +157,11 @@
 					Share
 				</Button>
 
-				<Button onclick={mint} disabled={isMinting}>
-					{#if isMinting}
+				<Button
+					onclick={() => mintFlow.open($melody)}
+					disabled={$mintFlow.step === 'minting'}
+				>
+					{#if $mintFlow.step === 'minting'}
 						<Spinner class="size-4" />
 					{:else}
 						<MusicIcon class="size-4" />
@@ -213,4 +210,10 @@
 			</section>
 		</div>
 	</div>
+
+	<MintMelodyDialog
+		flow={mintFlow}
+		onDetails={(details) => errorDetails.show(details, 'Mint error')}
+		onRename={focusNameField}
+	/>
 </RequiresMelodies>
