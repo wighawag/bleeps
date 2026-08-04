@@ -1,3 +1,4 @@
 - [ ] url in metadata: bleeps.art/bleeps/#tokenId=
 - [ ] other metadata
 - [ ] governor using vote casting and nft set + proof of humanity
+- [ ] real melody burn: MeloBleeps has no `burn` entry point, so the web burn currently `transferFrom`s to a dead address. Add a `burn` (or burnable) function on the contract and switch `lib/melodies/burn.ts` to it.

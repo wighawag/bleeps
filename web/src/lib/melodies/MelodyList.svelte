@@ -1,11 +1,21 @@
 <script lang="ts">
+	import {page} from '$app/state';
 	import {writable} from 'svelte/store';
+	import {toast} from 'svelte-sonner';
 	import MelodyCanvas from './MelodyCanvas.svelte';
 	import Address from '$lib/core/ui/ethereum/Address.svelte';
+	import {Button} from '$lib/shadcn/ui/button';
 	import {Spinner} from '$lib/shadcn/ui/spinner';
 	import AlertCircleIcon from '@lucide/svelte/icons/alert-circle';
+	import PlayIcon from '@lucide/svelte/icons/play';
+	import PauseIcon from '@lucide/svelte/icons/pause';
+	import LoaderCircleIcon from '@lucide/svelte/icons/loader-circle';
+	import FlameIcon from '@lucide/svelte/icons/flame';
 	import type {MelodyIndexResult} from './index';
 	import {mergePendingMelodies, type PendingMelody} from '$lib/view/index';
+	import {getAppContext} from '$lib';
+	import {melodyPlayer, toggleMelodyPlay} from './play';
+	import {allowBurnParam, burnMelody, filterBurned} from './burn';
 
 	type Props = {
 		result: MelodyIndexResult;
@@ -20,6 +30,25 @@
 		emptyMessage = 'No melodies yet.',
 	}: Props = $props();
 
+	const {
+		publicClient,
+		deployments,
+		account,
+		connection,
+		executor,
+		balanceCheck,
+		accountCannotSend,
+		errorDetails,
+	} = getAppContext();
+	const currentDeployments = deployments.get();
+
+	// `?allow-burn` is a global query param (see lib/index.ts), so it survives
+	// navigation once set. Off by default: burning is a maintainer/demo affordance,
+	// not something every visitor should see.
+	const allowBurn = $derived(
+		allowBurnParam(page.url.searchParams.get('allow-burn')),
+	);
+
 	// The index is authoritative for what exists, so a melody it already lists is
 	// not also shown as pending, however far behind the operation's own state is.
 	const stillPending = $derived(
@@ -27,6 +56,60 @@
 			? mergePendingMelodies(result.melodies, pending)
 			: pending,
 	);
+
+	// Burned melodies (owner is the dead address) are filtered out of the view.
+	// Computed from the loaded result so the empty-state check agrees with what
+	// is actually rendered.
+	const visibleMelodies = $derived(
+		result.step === 'Loaded' ? filterBurned(result.melodies) : [],
+	);
+
+	// Whether the connected account owns a given melody. Only an owner can burn,
+	// so the burn button is gated on this rather than shown to everyone.
+	function isOwnedByYou(owner: `0x${string}` | undefined): boolean {
+		return (
+			!!$account && !!owner && owner.toLowerCase() === $account.toLowerCase()
+		);
+	}
+
+	// Track which melody is currently being burned, so a card shows a spinner on
+	// its own button and nothing else does.
+	let burningId = $state<string | undefined>(undefined);
+
+	async function onBurn(indexedId: string, name: string) {
+		if (burningId !== undefined) return;
+		const confirmed = window.confirm(
+			`Burn "${name}"? This sends the melody to a dead address. It cannot be undone.`,
+		);
+		if (!confirmed) return;
+		burningId = indexedId;
+		try {
+			const outcome = await burnMelody(
+				{connection, executor, deployments, balanceCheck},
+				indexedId,
+			);
+			if (outcome.status === 'submitted') {
+				toast.success('Melody burn submitted', {
+					description:
+						'It will leave your account once the transaction is mined.',
+				});
+			} else if (outcome.status === 'cannot-send') {
+				accountCannotSend.show();
+			} else if (outcome.status === 'error') {
+				toast.error('Could not burn', {
+					description: outcome.message,
+					duration: 8000,
+					closeButton: true,
+					action: {
+						label: 'Details',
+						onClick: () => errorDetails.show(outcome.details),
+					},
+				});
+			}
+		} finally {
+			burningId = undefined;
+		}
+	}
 </script>
 
 {#if stillPending.length > 0}
@@ -54,14 +137,51 @@
 		<AlertCircleIcon class="size-4" />
 		{result.message}
 	</p>
-{:else if result.melodies.length === 0 && stillPending.length === 0}
+{:else if visibleMelodies.length === 0 && stillPending.length === 0}
 	<p class="text-sm text-muted-foreground">{emptyMessage}</p>
 {:else}
 	<ul class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-		{#each result.melodies as indexed (indexed.id)}
+		{#each visibleMelodies as indexed (indexed.id)}
 			<li class="flex flex-col items-center gap-2">
 				{#if indexed.melody}
-					<MelodyCanvas melody={writable(indexed.melody)} editable={false} />
+					<div class="relative w-full text-center">
+						<MelodyCanvas melody={writable(indexed.melody)} editable={false} />
+						<button
+							type="button"
+							class="group absolute inset-0 flex items-center justify-center"
+							aria-label={$melodyPlayer.id === indexed.id &&
+							$melodyPlayer.phase === 'playing'
+								? `Pause ${indexed.melody.name}`
+								: `Play ${indexed.melody.name}`}
+							onclick={() =>
+								toggleMelodyPlay({
+									id: indexed.id,
+									melody: indexed.melody!,
+									publicClient,
+									deployments: currentDeployments,
+								})}
+						>
+							<span
+								class="flex size-12 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-sm transition-transform group-hover:scale-110"
+							>
+								{#if $melodyPlayer.id === indexed.id && $melodyPlayer.phase === 'loading'}
+									<LoaderCircleIcon class="size-6 animate-spin" />
+								{:else if $melodyPlayer.id === indexed.id && $melodyPlayer.phase === 'playing'}
+									<PauseIcon class="size-6" />
+								{:else if $melodyPlayer.id === indexed.id && $melodyPlayer.phase === 'error'}
+									<AlertCircleIcon class="size-6" />
+								{:else}
+									<PlayIcon class="size-6" />
+								{/if}
+							</span>
+						</button>
+					</div>
+					{#if $melodyPlayer.id === indexed.id && $melodyPlayer.phase === 'error'}
+						<p class="flex items-center gap-1 text-xs text-destructive">
+							<AlertCircleIcon class="size-3" />
+							{$melodyPlayer.error ?? 'could not play'}
+						</p>
+					{/if}
 				{:else}
 					<div
 						class="flex aspect-square w-full items-center justify-center rounded-lg border border-dashed border-muted text-sm text-muted-foreground"
@@ -69,10 +189,29 @@
 						Reserved, not revealed
 					</div>
 				{/if}
-				<p class="flex items-center gap-1 text-xs">
-					<span class="text-muted-foreground">by</span>
-					<Address value={indexed.creator} />
-				</p>
+				<div class="flex w-full items-center justify-center gap-2">
+					<p class="flex items-center gap-1 text-xs">
+						<span class="text-muted-foreground">by</span>
+						<Address value={indexed.creator} />
+					</p>
+					{#if isOwnedByYou(indexed.owner) && allowBurn}
+						<Button
+							size="sm"
+							variant="destructive"
+							class="h-6 px-2 text-xs"
+							disabled={burningId === indexed.id}
+							onclick={() =>
+								onBurn(indexed.id, indexed.melody?.name ?? `#${indexed.id}`)}
+						>
+							{#if burningId === indexed.id}
+								<LoaderCircleIcon class="size-3 animate-spin" />
+							{:else}
+								<FlameIcon class="size-3" />
+							{/if}
+							Burn
+						</Button>
+					{/if}
+				</div>
 			</li>
 		{/each}
 	</ul>

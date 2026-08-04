@@ -221,7 +221,7 @@ export function decodeMelodyFromString(melodyString: string): MelodyInfo {
 
 /** The share link the editor opens with. Change this one string to retune it. */
 const DEFAULT_EDITOR_MELODY_STRING =
-	'Old_MacDonald_Had_A_Farm~32~qwJYKsCWCrAlgqtpW6rqV2q6ldqt1W6raVurGljqxpY6sKWGrClhqv1X6r9V+q/FfSvlXw==';
+	'Old_MacDonald_Had_A_Farm~24~qwJYKsCWCrAlgqtpW6rqV2q6ldqt1W6raVurGljqxpY6sKWGrClhqv1X6r9V+q/FfSvlXw==';
 
 const DEFAULT_EDITOR_MELODY = decodeMelodyFromString(
 	DEFAULT_EDITOR_MELODY_STRING,
