@@ -11,10 +11,10 @@ import {
 } from '$lib/melodies/melody';
 
 describe('melodyFromHash', () => {
-	it('finds nothing in an empty hash', () => {
-		expect(melodyFromHash('')).toBeUndefined();
-		expect(melodyFromHash('#')).toBeUndefined();
-		expect(melodyFromHash('#something=else')).toBeUndefined();
+	it('reports nothing in an empty hash', () => {
+		expect(melodyFromHash('')).toEqual({status: 'none'});
+		expect(melodyFromHash('#')).toEqual({status: 'none'});
+		expect(melodyFromHash('#something=else')).toEqual({status: 'none'});
 	});
 
 	it('round-trips a melody through a hash', () => {
@@ -24,7 +24,64 @@ describe('melodyFromHash', () => {
 
 		const parsed = melodyFromHash(`#melody=${encodeMelodyToString(melody)}`);
 
-		expect(parsed).toEqual(melody);
+		expect(parsed).toEqual({status: 'ok', melody});
+	});
+
+	it('loads a link whose packed data contains a `+`', () => {
+		// Base64 uses `+` as a real data character, but `URLSearchParams`
+		// reinterprets `+` as a space, silently corrupting such a link. Find a
+		// melody whose packing actually contains a `+` and assert it still loads.
+		const melody = emptyMelody();
+		melody.name = 'untitled';
+		melody.speed = 32;
+		let encoded = encodeMelodyToString(melody);
+		let seed = 1;
+		while (!encoded.includes('+')) {
+			for (let i = 0; i < SLOT_COUNT; i++) {
+				seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+				melody.slots[i] = {
+					note: seed % 64,
+					instrument: (seed >> 3) % 16,
+					volume: (seed >> 7) % 8,
+				};
+			}
+			encoded = encodeMelodyToString(melody);
+		}
+
+		expect(encoded.split('~')[2]).toContain('+');
+
+		const parsed = melodyFromHash(`#melody=${encoded}`);
+
+		expect(parsed).toEqual({status: 'ok', melody});
+	});
+
+	it('keeps every encoded melody round-tripping through a hash', () => {
+		// Any melody may produce a `+`, `/` or `=` in its packing; this guards the
+		// general case rather than a single link.
+		const melody = emptyMelody();
+		melody.name = 'edge';
+		for (let i = 0; i < SLOT_COUNT; i++) {
+			melody.slots[i] = {
+				note: (i * 7) % 64,
+				instrument: (i * 3) % 16,
+				volume: (i * 5) % 8,
+			};
+		}
+
+		const encoded = encodeMelodyToString(melody);
+		const parsed = melodyFromHash(`#melody=${encoded}`);
+
+		expect(parsed).toEqual({status: 'ok', melody});
+	});
+
+	it('reports an error, rather than nothing, for a malformed link', () => {
+		// A present-but-unparseable `melody` param must be distinguishable from an
+		// absent one, so the editor can tell the user their link is broken instead
+		// of silently showing a blank melody.
+		const truncated = '#melody=untitled~32~qwJYKsCWCrAlgqtpW6rqV2q6ldqt1W6r9V+q/FfSvlXw==';
+
+		expect(melodyFromHash(truncated).status).toBe('error');
+		expect(melodyFromHash('#melody=not-a-melody').status).toBe('error');
 	});
 });
 

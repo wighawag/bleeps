@@ -14,15 +14,57 @@ import {
  */
 const PARAM = 'melody';
 
-export function melodyFromHash(hash: string): MelodyInfo | undefined {
-	const params = new URLSearchParams(
+/**
+ * What `melodyFromHash` found in the fragment.
+ *
+ * - `none`: there is no `melody` parameter, so the editor starts empty.
+ * - `ok`: a melody was read and normalised.
+ * - `error`: a `melody` parameter was present but could not be parsed. This is
+ *   distinct from `none` so the editor can tell the user their link is broken
+ *   rather than silently showing a blank melody that looks like lost work.
+ */
+export type MelodyFromHashResult =
+	| {status: 'none'}
+	| {status: 'ok'; melody: MelodyInfo}
+	| {status: 'error'; reason: string};
+
+export function melodyFromHash(hash: string): MelodyFromHashResult {
+	const value = paramFromFragment(
 		hash.startsWith('#') ? hash.slice(1) : hash,
+		PARAM,
 	);
-	const value = params.get(PARAM);
-	if (!value) {
-		return undefined;
+	if (value === undefined) {
+		return {status: 'none'};
 	}
-	return parseMelody(value);
+	const melody = parseMelody(value);
+	if (melody === undefined) {
+		return {
+			status: 'error',
+			reason: 'This link’s melody is malformed or truncated, so it could not be loaded.',
+		};
+	}
+	return {status: 'ok', melody};
+}
+
+/**
+ * Read a single parameter out of a URL fragment without the
+ * `application/x-www-form-urlencoded` rules that `URLSearchParams` applies.
+ *
+ * The packed melody is base64, which uses `+`, `/` and `=` as real data
+ * characters. All three are valid in a URL fragment, and `share()` writes them
+ * raw, but `URLSearchParams.get` reinterprets `+` as a space. A share link whose
+ * packed data happens to contain a `+` would then be silently corrupted and fail
+ * to load. Splitting the fragment ourselves keeps those characters intact, and
+ * matches the writer, which does no percent-encoding of its own.
+ */
+function paramFromFragment(fragment: string, name: string): string | undefined {
+	const prefix = `${name}=`;
+	for (const pair of fragment.split('&')) {
+		if (pair.startsWith(prefix)) {
+			return pair.slice(prefix.length);
+		}
+	}
+	return undefined;
 }
 
 export function parseMelody(value: string): MelodyInfo | undefined {

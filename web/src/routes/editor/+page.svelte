@@ -44,13 +44,19 @@
 	let applyingHash = false;
 
 	function loadFromHash() {
-		const fromHash = melodyFromHash(
+		const result = melodyFromHash(
 			typeof location === 'undefined' ? '' : location.hash,
 		);
-		if (fromHash) {
+		if (result.status === 'ok') {
 			applyingHash = true;
-			melody.set(fromHash);
+			melody.set(result.melody);
 			applyingHash = false;
+		} else if (result.status === 'error') {
+			toast.error('Could not load melody from link', {
+				description: result.reason,
+				duration: 8000,
+				closeButton: true,
+			});
 		}
 	}
 
