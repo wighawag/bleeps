@@ -4,6 +4,7 @@ import {
 	SLOT_COUNT,
 	decodeMelodyFromChainData,
 	decodeMelodyFromString,
+	defaultMelody,
 	emptyMelody,
 	encodeMelodyToChainData,
 	encodeMelodyToString,
@@ -158,6 +159,30 @@ describe('share links', () => {
 
 	it('refuses something that is not a melody string', () => {
 		expect(() => decodeMelodyFromString('nope')).toThrow();
+	});
+});
+
+describe('defaultMelody', () => {
+	it('is not silent, so the editor opens with something to hear', () => {
+		expect(defaultMelody().slots.some((slot) => slot.volume > 0)).toBe(true);
+	});
+
+	it('decodes from its share link and round-trips', () => {
+		const tune = defaultMelody();
+		expect(encodeMelodyToString(tune)).toEqual(
+			'untitled~24~qwJYKsCWCrAlgqtpW6rqV2q6ldqt1W6raVurGljqxpY6sKWGrClhqv1X6r9V+q/FfSvlXw==',
+		);
+		expect(tune.speed).toEqual(24);
+		expect(tune.slots).toHaveLength(SLOT_COUNT);
+	});
+
+	it('returns an independent copy each call', () => {
+		// the editor mutates slots; the cached default must not be affected
+		const a = defaultMelody();
+		const b = defaultMelody();
+		a.slots[0] = {note: 0, instrument: 0, volume: 0};
+		expect(b.slots[0]).not.toEqual(a.slots[0]);
+		expect(defaultMelody().slots[0]).not.toEqual(a.slots[0]);
 	});
 });
 

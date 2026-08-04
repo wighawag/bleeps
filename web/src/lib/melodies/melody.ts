@@ -209,3 +209,28 @@ export function decodeMelodyFromString(melodyString: string): MelodyInfo {
 		slots,
 	};
 }
+
+// ----------------------------------------------------------------------------
+// Default editor state
+//
+// The editor opens with a tune to play with rather than a blank grid, so a
+// first-time visitor hears something immediately. `emptyMelody()` stays the
+// silent fallback used for padding and mint validation; this is only the
+// starting point shown when no link is loaded.
+// ----------------------------------------------------------------------------
+
+/** The share link the editor opens with. Change this one string to retune it. */
+const DEFAULT_EDITOR_MELODY_STRING =
+	'untitled~24~qwJYKsCWCrAlgqtpW6rqV2q6ldqt1W6raVurGljqxpY6sKWGrClhqv1X6r9V+q/FfSvlXw==';
+
+const DEFAULT_EDITOR_MELODY = decodeMelodyFromString(
+	DEFAULT_EDITOR_MELODY_STRING,
+);
+
+export function defaultMelody(): MelodyInfo {
+	return {
+		name: DEFAULT_EDITOR_MELODY.name,
+		speed: DEFAULT_EDITOR_MELODY.speed,
+		slots: DEFAULT_EDITOR_MELODY.slots.map((slot) => ({...slot})),
+	};
+}

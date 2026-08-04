@@ -12,7 +12,7 @@
 	import MelodyCanvas from '$lib/melodies/MelodyCanvas.svelte';
 	import {
 		DEFAULT_SPEED,
-		emptyMelody,
+		defaultMelody,
 		encodeMelodyToString,
 	} from '$lib/melodies/melody';
 	import {instrumentName} from '$lib/melodies/notes';
@@ -27,7 +27,7 @@
 		context;
 	const currentDeployments = deployments.get();
 
-	const melody = writable(emptyMelody());
+	const melody = writable(defaultMelody());
 	const editor = createMelodyEditor(melody);
 	const preview = createMelodyPreview({
 		melody,
