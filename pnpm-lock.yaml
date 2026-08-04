@@ -300,8 +300,8 @@ importers:
         specifier: ^0.8.1
         version: 0.8.1(prettier-plugin-svelte@4.1.1(prettier@3.9.6)(svelte@5.56.8))(prettier@3.9.6)
       pwag:
-        specifier: ^0.7.0
-        version: 0.7.0
+        specifier: ^0.8.0
+        version: 0.8.0
       radiate:
         specifier: ^0.3.2
         version: 0.3.2
@@ -8338,7 +8338,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-  pwag@0.7.0:
+  pwag@0.8.0:
     dependencies:
       commander: 12.1.0
       sharp: 0.35.2
