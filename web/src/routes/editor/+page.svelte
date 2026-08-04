@@ -28,7 +28,23 @@
 		context;
 	const currentDeployments = deployments.get();
 
-	const melody = writable(defaultMelody());
+	// Read the hash BEFORE creating the writable so the melody starts with the
+	// right value. Loading in $effect instead races with the name input: the
+	// shadcn Input uses `bind:value` internally, which reads the DOM value back
+	// into its $bindable prop after mount. If the store is first set to
+	// defaultMelody() and then updated to the hash melody in $effect, the input
+	// can capture the default name from the DOM before the hash melody is
+	// applied, and the field never updates (the melody canvas does, because it
+	// reads the store reactively without bind:value). Reading the hash at init
+	// means there is no second update to lose.
+	const initialFromHash = melodyFromHash(
+		typeof location === 'undefined' ? '' : location.hash,
+	);
+	const melody = writable(
+		initialFromHash.status === 'ok'
+			? initialFromHash.melody
+			: defaultMelody(),
+	);
 	const editor = createMelodyEditor(melody);
 	const preview = createMelodyPreview({
 		melody,
@@ -61,8 +77,17 @@
 		}
 	}
 
+	// The initial hash was already read at component init; this effect exists
+	// only to surface a malformed-hash error as a toast, which cannot run during
+	// SSR (and there is no hash during SSR anyway, so there is nothing to report).
 	$effect(() => {
-		loadFromHash();
+		if (initialFromHash.status === 'error') {
+			toast.error('Could not load melody from link', {
+				description: initialFromHash.reason,
+				duration: 8000,
+				closeButton: true,
+			});
+		}
 	});
 
 	function share() {
