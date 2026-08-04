@@ -170,9 +170,10 @@ describe('defaultMelody', () => {
 	it('decodes from its share link and round-trips', () => {
 		const tune = defaultMelody();
 		expect(encodeMelodyToString(tune)).toEqual(
-			'untitled~24~qwJYKsCWCrAlgqtpW6rqV2q6ldqt1W6raVurGljqxpY6sKWGrClhqv1X6r9V+q/FfSvlXw==',
+			'Old_MacDonald_Had_A_Farm~32~qwJYKsCWCrAlgqtpW6rqV2q6ldqt1W6raVurGljqxpY6sKWGrClhqv1X6r9V+q/FfSvlXw==',
 		);
-		expect(tune.speed).toEqual(24);
+		expect(tune.name).toEqual('Old MacDonald Had A Farm');
+		expect(tune.speed).toEqual(32);
 		expect(tune.slots).toHaveLength(SLOT_COUNT);
 	});
 
