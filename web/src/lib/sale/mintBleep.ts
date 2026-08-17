@@ -30,7 +30,7 @@ export type MintBleepResult =
 
 export type MintBleepDeps = Pick<
 	Context,
-	'connection' | 'executor' | 'balanceCheck'
+	'connection' | 'accountExecutor' | 'accountBalance' | 'balanceCheck'
 >;
 
 export type MintBleepParams = {
@@ -65,7 +65,7 @@ export async function mintBleep(
 	deps: MintBleepDeps,
 	params: MintBleepParams,
 ): Promise<MintBleepResult> {
-	const {connection, executor, balanceCheck} = deps;
+	const {connection, accountExecutor, accountBalance, balanceCheck} = deps;
 	const {id, sale, pass, publicPhase, price, booking} = params;
 
 	if (!publicPhase && !isUsablePass(pass)) {
@@ -82,7 +82,7 @@ export async function mintBleep(
 	try {
 		await connection.ensureConnected();
 
-		const $executor = get(executor);
+		const $executor = get(accountExecutor);
 		if ($executor.status === 'cannot-send') return {status: 'cannot-send'};
 		if ($executor.status !== 'ready') return {status: 'cancelled'};
 		const to = $executor.address;
@@ -145,16 +145,24 @@ export async function mintBleep(
 					}
 			: {functionName: 'mint' as const, args: [id, to]};
 
-		const contractRequest = await balanceCheck.ensureCanAfford({
-			contract: {
-				address: sale.address,
-				abi: sale.abi,
-				functionName: call.functionName,
-				args: call.args,
-				account: $executor.account,
-				value: price,
+		const contractRequest = await balanceCheck.ensureCanAfford(
+			{
+				contract: {
+					address: sale.address,
+					abi: sale.abi,
+					functionName: call.functionName,
+					args: call.args,
+					account: $executor.account,
+					value: price,
+				},
 			},
-		});
+			{
+				// Measured against the account that will actually pay, named so the
+				// check and the sender can never disagree.
+				balance: accountBalance,
+				sender: $executor.address,
+			},
+		);
 
 		const hash = await $executor.client.writeContract(contractRequest);
 

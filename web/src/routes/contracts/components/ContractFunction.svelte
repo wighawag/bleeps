@@ -9,6 +9,7 @@
 		formatOutputJSON,
 	} from '../lib/utils';
 	import {readContractValue, executeContractWrite} from '../lib/contractCall';
+	import {txErrorSummary} from '$lib/core/transaction/tx-error-summary';
 	import {Spinner} from '$lib/shadcn/ui/spinner/index.js';
 	import * as Alert from '$lib/shadcn/ui/alert';
 	import CircleAlertIcon from '@lucide/svelte/icons/circle-alert';
@@ -21,6 +22,7 @@
 	} from '@etherplay/connect';
 	import {route} from '$lib';
 	import type {ExecutorStore} from '$lib/core/connection/executor';
+	import type {BalanceStore} from '$lib/core/connection/balance';
 	import type {AccountCannotSendStore} from '$lib/core/transaction/account-cannot-send-store';
 	import TransactionHash from '$lib/core/ui/ethereum/TransactionHash.svelte';
 	import type {BalanceCheckStore} from '$lib/core/transaction/balance-check-store';
@@ -31,7 +33,8 @@
 		contractAddress: string;
 		connection: AnyConnectionStore<UnderlyingEthereumProvider>;
 		publicClient: PublicClient;
-		executor: ExecutorStore;
+		accountExecutor: ExecutorStore;
+		accountBalance: BalanceStore;
 		accountCannotSend: AccountCannotSendStore;
 		balanceCheck: BalanceCheckStore;
 	}
@@ -42,7 +45,8 @@
 		contractAddress,
 		connection,
 		publicClient,
-		executor,
+		accountExecutor,
+		accountBalance,
 		accountCannotSend,
 		balanceCheck,
 	}: Props = $props();
@@ -95,7 +99,8 @@
 		try {
 			const outcome = await executeContractWrite({
 				connection,
-				executor,
+				accountExecutor,
+				accountBalance,
 				balanceCheck,
 				abiItem,
 				contractAddress,
@@ -109,7 +114,10 @@
 				accountCannotSend.show();
 			}
 		} catch (e: any) {
-			error = e.message || 'Failed to execute transaction';
+			// Summarised rather than shown raw: `e.message` on a viem error is the
+			// whole multi-line dump, and for an account that cannot pay it is the
+			// node's own prose (or viem's misleading category for it).
+			error = txErrorSummary(e);
 			console.error('Error executing transaction:', e);
 		} finally {
 			loading = false;

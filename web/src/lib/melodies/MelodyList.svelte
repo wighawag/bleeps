@@ -35,7 +35,8 @@
 		deployments,
 		account,
 		connection,
-		executor,
+		accountExecutor,
+		accountBalance,
 		balanceCheck,
 		accountCannotSend,
 		errorDetails,
@@ -85,7 +86,13 @@
 		burningId = indexedId;
 		try {
 			const outcome = await burnMelody(
-				{connection, executor, deployments, balanceCheck},
+				{
+					connection,
+					accountExecutor,
+					accountBalance,
+					deployments,
+					balanceCheck,
+				},
 				indexedId,
 			);
 			if (outcome.status === 'submitted') {

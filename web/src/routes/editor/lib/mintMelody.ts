@@ -27,7 +27,11 @@ export type MintMelodyResult =
 
 export type MintMelodyDeps = Pick<
 	Context,
-	'connection' | 'executor' | 'deployments' | 'balanceCheck'
+	| 'connection'
+	| 'accountExecutor'
+	| 'accountBalance'
+	| 'deployments'
+	| 'balanceCheck'
 >;
 
 /**
@@ -48,7 +52,13 @@ export async function mintMelody(
 	deps: MintMelodyDeps,
 	melody: MelodyInfo,
 ): Promise<MintMelodyResult> {
-	const {connection, executor, deployments, balanceCheck} = deps;
+	const {
+		connection,
+		accountExecutor,
+		accountBalance,
+		deployments,
+		balanceCheck,
+	} = deps;
 
 	const name = melody.name.trim();
 
@@ -81,7 +91,7 @@ export async function mintMelody(
 		await connection.ensureConnected();
 		const $deployments = get(deployments);
 
-		const $executor = get(executor);
+		const $executor = get(accountExecutor);
 		if ($executor.status === 'cannot-send') return {status: 'cannot-send'};
 		if ($executor.status !== 'ready') return {status: 'cancelled'};
 
@@ -102,17 +112,25 @@ export async function mintMelody(
 
 		const {data1, data2} = encodeMelodyToChainData(melody);
 
-		const contractRequest = await balanceCheck.ensureCanAfford({
-			contract: {
-				address: melobleeps.address,
-				abi: melobleeps.abi,
-				functionName: 'reserveAndMint',
-				// `address` is the sender as a plain address; `account` may be a viem
-				// Account object, which is not what an `address` argument accepts.
-				args: [name, melody.speed, data1, data2, $executor.address],
-				account: $executor.account,
+		const contractRequest = await balanceCheck.ensureCanAfford(
+			{
+				contract: {
+					address: melobleeps.address,
+					abi: melobleeps.abi,
+					functionName: 'reserveAndMint',
+					// `address` is the sender as a plain address; `account` may be a viem
+					// Account object, which is not what an `address` argument accepts.
+					args: [name, melody.speed, data1, data2, $executor.address],
+					account: $executor.account,
+				},
 			},
-		});
+			{
+				// Measured against the account that will actually pay, named so the
+				// check and the sender can never disagree.
+				balance: accountBalance,
+				sender: $executor.address,
+			},
+		);
 
 		await $executor.client.writeContract(contractRequest);
 		return {status: 'submitted'};

@@ -25,7 +25,8 @@
 		publicClient,
 		deployments,
 		connection,
-		executor,
+		accountExecutor,
+		accountBalance,
 		balanceCheck,
 		accountCannotSend,
 		clock,
@@ -188,7 +189,7 @@
 		minting = true;
 		try {
 			const result = await mintBleep(
-				{connection, executor, balanceCheck},
+				{connection, accountExecutor, accountBalance, balanceCheck},
 				{
 					id,
 					sale,

@@ -34,7 +34,11 @@ function deps(
 		ensureCanAfford,
 		deps: {
 			connection: {ensureConnected: vi.fn(async () => {})},
-			executor: readable(
+			accountBalance: Object.assign(
+				readable({step: 'Loaded', value: 10n ** 18n}),
+				{update: vi.fn(async () => {})},
+			),
+			accountExecutor: readable(
 				status === 'ready'
 					? {
 							status: 'ready',

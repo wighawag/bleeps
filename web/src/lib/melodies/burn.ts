@@ -50,7 +50,11 @@ export type BurnMelodyResult =
 
 export type BurnMelodyDeps = Pick<
 	Context,
-	'connection' | 'executor' | 'deployments' | 'balanceCheck'
+	| 'connection'
+	| 'accountExecutor'
+	| 'accountBalance'
+	| 'deployments'
+	| 'balanceCheck'
 >;
 
 // TODO: replace this transfer-to-a-dead-address with a real burn once
@@ -63,13 +67,19 @@ export async function burnMelody(
 	deps: BurnMelodyDeps,
 	id: string,
 ): Promise<BurnMelodyResult> {
-	const {connection, executor, deployments, balanceCheck} = deps;
+	const {
+		connection,
+		accountExecutor,
+		accountBalance,
+		deployments,
+		balanceCheck,
+	} = deps;
 
 	try {
 		await connection.ensureConnected();
 		const $deployments = get(deployments);
 
-		const $executor = get(executor);
+		const $executor = get(accountExecutor);
 		if ($executor.status === 'cannot-send') return {status: 'cannot-send'};
 		if ($executor.status !== 'ready') return {status: 'cancelled'};
 
@@ -83,15 +93,23 @@ export async function burnMelody(
 			};
 		}
 
-		const contractRequest = await balanceCheck.ensureCanAfford({
-			contract: {
-				address: melobleeps.address,
-				abi: melobleeps.abi,
-				functionName: 'transferFrom',
-				args: [$executor.address, BURN_ADDRESS, BigInt(id)],
-				account: $executor.account,
+		const contractRequest = await balanceCheck.ensureCanAfford(
+			{
+				contract: {
+					address: melobleeps.address,
+					abi: melobleeps.abi,
+					functionName: 'transferFrom',
+					args: [$executor.address, BURN_ADDRESS, BigInt(id)],
+					account: $executor.account,
+				},
 			},
-		});
+			{
+				// Measured against the account that will actually pay, named so the
+				// check and the sender can never disagree.
+				balance: accountBalance,
+				sender: $executor.address,
+			},
+		);
 
 		await $executor.client.writeContract(contractRequest);
 		return {status: 'submitted'};

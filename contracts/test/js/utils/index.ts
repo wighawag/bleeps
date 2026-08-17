@@ -1,14 +1,14 @@
 import type {EthereumProvider} from 'hardhat/types/providers';
 import {parseEventLogs, type Abi} from 'viem';
-import {loadAndExecuteDeploymentsFromFiles} from '../../rocketh/environment.js';
-import {testScripts} from '../../rocketh/config.js';
-import type {Abi_Bleeps} from '../../generated/abis/Bleeps.js';
-import type {Abi_BleepsDAOAccount} from '../../generated/abis/BleepsDAOAccount.js';
-import type {Abi_BleepsDAOGovernor} from '../../generated/abis/BleepsDAOGovernor.js';
-import type {Abi_MeloBleeps} from '../../generated/abis/MeloBleeps.js';
-import type {Abi_MeloBleepsAuctions} from '../../generated/abis/MeloBleepsAuctions.js';
-import type {Abi_MeloBleepsTokenURI} from '../../generated/abis/MeloBleepsTokenURI.js';
-import type {Abi_OpenSeaProxyRegistryMock} from '../../generated/abis/OpenSeaProxyRegistryMock.js';
+import {loadAndExecuteDeploymentsFromFiles} from '../../../rocketh/environment.js';
+import {testScripts} from '../../../rocketh/config.js';
+import type {Abi_Bleeps} from '../../../generated/abis/Bleeps.js';
+import type {Abi_BleepsDAOAccount} from '../../../generated/abis/BleepsDAOAccount.js';
+import type {Abi_BleepsDAOGovernor} from '../../../generated/abis/BleepsDAOGovernor.js';
+import type {Abi_MeloBleeps} from '../../../generated/abis/MeloBleeps.js';
+import type {Abi_MeloBleepsAuctions} from '../../../generated/abis/MeloBleepsAuctions.js';
+import type {Abi_MeloBleepsTokenURI} from '../../../generated/abis/MeloBleepsTokenURI.js';
+import type {Abi_OpenSeaProxyRegistryMock} from '../../../generated/abis/OpenSeaProxyRegistryMock.js';
 
 /**
  * Deploy everything the tests need: the real deploy scripts plus the dev mocks,

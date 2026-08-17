@@ -77,7 +77,7 @@ export type ReplacementResult =
 	| {status: 'submitted'}
 	| {status: 'cancelled'}
 	/**
-	 * The current executor account differs from the account that sent the
+	 * The current accountExecutor account differs from the account that sent the
 	 * original tx. Replacements reuse the original nonce, and nonces are
 	 * per-account, so sending from another account would not replace anything.
 	 */
@@ -95,21 +95,21 @@ export function wrongAccountMessage(expected: `0x${string}`): string {
 
 /**
  * A replacement (resubmit/cancel) must be sent from the same account as the
- * original tx. Returns the ready executor when it matches, or a
+ * original tx. Returns the ready accountExecutor when it matches, or a
  * ReplacementResult to bail out with.
  *
- * A not-ready executor is reported as an `error` (not `cancelled`): the user
+ * A not-ready accountExecutor is reported as an `error` (not `cancelled`): the user
  * explicitly clicked resubmit/cancel, so silently doing nothing would look
  * like a dead button. `cancelled` stays reserved for deliberate dismissal.
  */
 function requireSameAccountExecutor(
-	executor: Context['executor'],
+	accountExecutor: Context['accountExecutor'],
 	originalFrom: `0x${string}`,
 ):
-	| {ok: true; executor: Extract<ExecutorState, {status: 'ready'}>}
+	| {ok: true; accountExecutor: Extract<ExecutorState, {status: 'ready'}>}
 	| {ok: false; result: ReplacementResult} {
-	const $executor = get(executor);
-	if ($executor.status !== 'ready') {
+	const $accountExecutor = get(accountExecutor);
+	if ($accountExecutor.status !== 'ready') {
 		return {
 			ok: false,
 			result: {
@@ -119,16 +119,19 @@ function requireSameAccountExecutor(
 			},
 		};
 	}
-	if ($executor.address.toLowerCase() !== originalFrom.toLowerCase()) {
+	if ($accountExecutor.address.toLowerCase() !== originalFrom.toLowerCase()) {
 		return {
 			ok: false,
 			result: {status: 'wrong-account', expected: originalFrom},
 		};
 	}
-	return {ok: true, executor: $executor};
+	return {ok: true, accountExecutor: $accountExecutor};
 }
 
-type ResubmitDeps = Pick<Context, 'executor' | 'deployments' | 'balanceCheck'>;
+type ResubmitDeps = Pick<
+	Context,
+	'accountExecutor' | 'deployments' | 'balanceCheck' | 'accountBalance'
+>;
 
 /**
  * Resubmit a stuck operation with a new gas price, reusing the original nonce
@@ -142,24 +145,30 @@ export async function resubmitOperation(
 		gasPrice: GasPrice;
 	},
 ): Promise<ReplacementResult> {
-	const {executor, deployments, balanceCheck} = deps;
+	const {accountExecutor, deployments, balanceCheck, accountBalance} = deps;
 	const {operation, operationKey, gasPrice} = params;
 	const $deployments = get(deployments);
 	const originalTx = operation.metadata.tx;
 
-	const guarded = requireSameAccountExecutor(executor, originalTx.from);
+	const guarded = requireSameAccountExecutor(accountExecutor, originalTx.from);
 	if (!guarded.ok) return guarded.result;
-	const $executor = guarded.executor;
+	const $accountExecutor = guarded.accountExecutor;
 
 	try {
-		const txRequest = await balanceCheck.ensureCanAfford({
-			transaction: {
-				account: $executor.account,
-				to: originalTx.to as `0x${string}`,
-				data: originalTx.data,
-				value: originalTx.value,
+		const txRequest = await balanceCheck.ensureCanAfford(
+			{
+				transaction: {
+					account: $accountExecutor.account,
+					to: originalTx.to as `0x${string}`,
+					data: originalTx.data,
+					value: originalTx.value,
+				},
 			},
-		});
+			// Measured against the account that is actually replacing the transaction,
+			// which requireSameAccountExecutor has just established is the one that
+			// sent the original.
+			{balance: accountBalance, sender: $accountExecutor.address},
+		);
 
 		// operationId links this resubmit to the existing operation.
 		const resubmitMetadata: ExtendedTransactionMetadata = {
@@ -175,7 +184,7 @@ export async function resubmitOperation(
 			);
 		}
 
-		await $executor.client.sendTransaction({
+		await $accountExecutor.client.sendTransaction({
 			...txRequest,
 			chain: $deployments.chain,
 			nonce: originalTx.nonce,
@@ -198,7 +207,11 @@ export async function resubmitOperation(
 
 type CancelDeps = Pick<
 	Context,
-	'executor' | 'deployments' | 'balanceCheck' | 'gasFee'
+	| 'accountExecutor'
+	| 'deployments'
+	| 'balanceCheck'
+	| 'gasFee'
+	| 'accountBalance'
 >;
 
 /**
@@ -209,14 +222,15 @@ export async function cancelOperation(
 	deps: CancelDeps,
 	params: {operation: OnchainOperation},
 ): Promise<ReplacementResult> {
-	const {executor, deployments, balanceCheck, gasFee} = deps;
+	const {accountExecutor, deployments, balanceCheck, gasFee, accountBalance} =
+		deps;
 	const {operation} = params;
 	const $deployments = get(deployments);
 	const originalTx = operation.metadata.tx;
 
-	const guarded = requireSameAccountExecutor(executor, originalTx.from);
+	const guarded = requireSameAccountExecutor(accountExecutor, originalTx.from);
 	if (!guarded.ok) return guarded.result;
-	const $executor = guarded.executor;
+	const $accountExecutor = guarded.accountExecutor;
 
 	try {
 		const gasFeeValue = get(gasFee);
@@ -227,13 +241,16 @@ export async function cancelOperation(
 			fastPrice,
 		);
 
-		const txRequest = await balanceCheck.ensureCanAfford({
-			transaction: {
-				account: $executor.account,
-				to: originalTx.from,
-				value: 0n,
+		const txRequest = await balanceCheck.ensureCanAfford(
+			{
+				transaction: {
+					account: $accountExecutor.account,
+					to: originalTx.from,
+					value: 0n,
+				},
 			},
-		});
+			{balance: accountBalance, sender: $accountExecutor.address},
+		);
 
 		if (originalTx.chainId && originalTx.chainId !== $deployments.chain.id) {
 			throw new Error(
@@ -241,7 +258,7 @@ export async function cancelOperation(
 			);
 		}
 
-		await $executor.client.sendTransaction({
+		await $accountExecutor.client.sendTransaction({
 			...txRequest,
 			chain: $deployments.chain,
 			nonce: originalTx.nonce,

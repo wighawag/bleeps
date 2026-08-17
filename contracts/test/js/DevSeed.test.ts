@@ -1,10 +1,10 @@
 import {expect} from 'earl';
 import {describe, it} from 'node:test';
 import {network} from 'hardhat';
-import {loadAndExecuteDeploymentsFromFiles} from '../rocketh/environment.js';
-import {devScripts} from '../rocketh/config.js';
-import type {Abi_Bleeps} from '../generated/abis/Bleeps.js';
-import type {Abi_BleepsFixedPriceSale} from '../generated/abis/BleepsFixedPriceSale.js';
+import {loadAndExecuteDeploymentsFromFiles} from '../../rocketh/environment.js';
+import {devScripts} from '../../rocketh/config.js';
+import type {Abi_Bleeps} from '../../generated/abis/Bleeps.js';
+import type {Abi_BleepsFixedPriceSale} from '../../generated/abis/BleepsFixedPriceSale.js';
 
 /**
  * What a dev chain looks like after `deploy/004_dev_seed`.

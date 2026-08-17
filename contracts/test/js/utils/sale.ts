@@ -8,10 +8,10 @@ import {
 	type Hash,
 	type SalePassLeaf,
 } from 'bleeps-common';
-import {loadAndExecuteDeploymentsFromFiles} from '../../rocketh/environment.js';
-import {saleTestScripts} from '../../rocketh/config.js';
-import type {Abi_Bleeps} from '../../generated/abis/Bleeps.js';
-import type {Abi_BleepsFixedPriceSale} from '../../generated/abis/BleepsFixedPriceSale.js';
+import {loadAndExecuteDeploymentsFromFiles} from '../../../rocketh/environment.js';
+import {saleTestScripts} from '../../../rocketh/config.js';
+import type {Abi_Bleeps} from '../../../generated/abis/Bleeps.js';
+import type {Abi_BleepsFixedPriceSale} from '../../../generated/abis/BleepsFixedPriceSale.js';
 
 export type SaleLinkedData = {
 	leaves: SalePassLeaf[];
