@@ -14,15 +14,15 @@
 	},
 	"author": "wighawag <wighawag@gmail.com>",
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20260101.0",
+		"@cloudflare/workers-types": "^5.20260819.1",
 		"bleeps-common": "workspace:*",
-		"fs-extra": "^11.2.0",
-		"handlebars": "^4.7.8",
+		"fs-extra": "^11.4.0",
+		"handlebars": "^4.7.9",
 		"ldenv": "^0.6.0",
 		"prettier": "^3.9.6",
 		"typescript": "~6.0.3",
-		"viem": "^2.55.10",
+		"viem": "^2.55.19",
 		"wait-on": "^9.1.0",
-		"wrangler": "^4.44.1"
+		"wrangler": "^4.124.0"
 	}
 }
