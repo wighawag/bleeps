@@ -6,10 +6,13 @@ import type {
 import {get} from 'svelte/store';
 import type {BalanceCheckStore} from '$lib/core/transaction/balance-check-store';
 import type {ExecutorStore} from '$lib/core/connection/executor';
-import {InsufficientFundsError} from '$lib/core/transaction';
+import type {BalanceStore} from '$lib/core/connection/balance';
+import {
+	InsufficientFundsError,
+	isStoppedWaitingError,
+} from '$lib/core/transaction';
 import {isUserRejectionError} from '$lib/core/transaction/user-rejection';
 import {connectionRefusal} from '$lib/core/connection/refusal';
-import type {BalanceStore} from '$lib/core/connection/balance';
 import {convertInputValues} from './utils';
 
 /**
@@ -56,9 +59,13 @@ export type ExecuteContractWriteResult =
  */
 export async function executeContractWrite(params: {
 	connection: AnyConnectionStore<UnderlyingEthereumProvider>;
-	accountExecutor: ExecutorStore;
-	/** Balance of the account that executor sends from, which is what pays. */
-	accountBalance: BalanceStore;
+	/**
+	 * Which account to send from. The contracts page is a developer tool for
+	 * calling arbitrary functions, so the caller names the executor rather than
+	 * this guessing one, and passes the balance that executor spends.
+	 */
+	executor: ExecutorStore;
+	balance: BalanceStore;
 	balanceCheck: BalanceCheckStore;
 	abiItem: AbiFunction;
 	contractAddress: string;
@@ -66,8 +73,8 @@ export async function executeContractWrite(params: {
 }): Promise<ExecuteContractWriteResult> {
 	const {
 		connection,
-		accountExecutor,
-		accountBalance,
+		executor,
+		balance,
 		balanceCheck,
 		abiItem,
 		contractAddress,
@@ -94,9 +101,9 @@ export async function executeContractWrite(params: {
 		throw e;
 	}
 
-	const $accountExecutor = get(accountExecutor);
-	if ($accountExecutor.status === 'cannot-send') return {status: 'cannot-send'};
-	if ($accountExecutor.status !== 'ready') return {status: 'cancelled'};
+	const $executor = get(executor);
+	if ($executor.status === 'cannot-send') return {status: 'cannot-send'};
+	if ($executor.status !== 'ready') return {status: 'cancelled'};
 
 	try {
 		const contractRequest = await balanceCheck.ensureCanAfford(
@@ -106,19 +113,23 @@ export async function executeContractWrite(params: {
 					abi: [abiItem],
 					functionName: abiItem.name,
 					args: args as any,
-					account: $accountExecutor.account,
+					account: $executor.account,
 				},
 			},
-			{balance: accountBalance, sender: $accountExecutor.address},
+			{balance, sender: $executor.address},
 		);
 
-		const hash = await $accountExecutor.client.writeContract(contractRequest);
+		const hash = await $executor.client.writeContract(contractRequest);
 		return {status: 'submitted', transactionHash: hash};
 	} catch (e) {
 		if (e instanceof InsufficientFundsError) {
 			// User dismissed the funds modal - silently cancel.
 			return {status: 'cancelled'};
 		}
+		// The user stopped waiting for a wallet that had not answered. The request
+		// is still with it and may still be sent, so this is not a failure to
+		// report: it just releases this call. See StoppedWaitingError.
+		if (isStoppedWaitingError(e)) return {status: 'cancelled'};
 		throw e;
 	}
 }

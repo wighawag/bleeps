@@ -16,8 +16,27 @@
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 	import AlertCircleIcon from '@lucide/svelte/icons/circle-alert';
 	import RefreshCwIcon from '@lucide/svelte/icons/refresh-cw';
-	import {page} from '$app/state';
 	import {NAV_LINKS} from '$lib/navigation';
+	import {navbarMenuPrompt} from './overlays';
+
+	let {
+		currentPath,
+	}: {
+		/**
+		 * The path being shown, as a GETTER so reading it here tracks the caller's
+		 * reactive source. Passed in rather than read from the router, so the navbar
+		 * does not name the framework (src/lib/kit/README.md), and so it still
+		 * highlights the right link during SSR, when the navigation service is
+		 * deliberately inert.
+		 *
+		 * `repoURL` and `communityURL`, which upstream also declares here, are
+		 * deliberately absent: this bar is a measured tab row with no room for the
+		 * two icon links, and Bleeps already publishes its repository, Discord and
+		 * Twitter from the footer (see lib/mainnet.ts). Declaring props this
+		 * component then ignores would be a false contract.
+		 */
+		currentPath: () => string;
+	} = $props();
 
 	/**
 	 * Which destinations exist is decided by what this build was built against
@@ -77,10 +96,22 @@
 		return () => observer.disconnect();
 	});
 
-	const {connection, accountData, accountBalance, gasFee, clock, deployments} =
-		getAppContext();
+	const {
+		connection,
+		accountData,
+		accountBalance,
+		gasFee,
+		clock,
+		deployments,
+		overlays,
+	} = getAppContext();
 
-	let showMenu = $state(false);
+	// The drawer closes itself on any navigation, and the back gesture closes it,
+	// because it is a registered view overlay. Nav links below therefore carry no
+	// close handler of their own.
+	const menu = overlays.use(navbarMenuPrompt);
+	$effect(() => menu.registerRenderer());
+
 	let accountsOpen = $state(false);
 
 	let hasMultipleAccounts = $derived(
@@ -124,15 +155,16 @@
 	});
 
 	function toggleMenu() {
-		showMenu = !showMenu;
+		if ($menu.open) menu.close();
+		else menu.open();
 	}
 
 	function isActive(path: string): boolean {
-		const currentPath = String(page.url.pathname);
+		const here = currentPath();
 		if (path === '/') {
-			return currentPath === '/';
+			return here === '/';
 		}
-		return currentPath.startsWith(path);
+		return here.startsWith(path);
 	}
 </script>
 
@@ -319,9 +351,21 @@
 			{/if}
 		</button>
 	</div>
-	<Drawer.Root bind:open={showMenu} direction="right">
-		<Drawer.Portal to="#--layer-drawer" />
-		<Drawer.Content class="select-text **:select-text">
+	<Drawer.Root
+		open={$menu.open}
+		onOpenChange={(open) => {
+			if (!open) menu.close();
+		}}
+		direction="right"
+	>
+		<!-- The portal target belongs on Content, which supplies its own portal; a
+		     bare `<Drawer.Portal to="..." />` sibling has no children and silently
+		     does nothing, which is what once put this drawer on top of every modal.
+		     See the layer block in app.css. -->
+		<Drawer.Content
+			class="select-text **:select-text"
+			portalProps={{to: '#--layer-drawer'}}
+		>
 			{#if connection.isTargetStepReached($connection)}
 				<!-- Account Section -->
 				<div class="flex flex-col gap-2 px-4 pt-4">
@@ -393,7 +437,7 @@
 						variant="destructive"
 						onclick={() => {
 							connection.disconnect();
-							showMenu = false;
+							menu.close();
 						}}
 					>
 						Disconnect
@@ -449,7 +493,6 @@
 					<a
 						href={route('/transactions/')}
 						class="{buttonVariants({variant: 'outline'})} justify-between"
-						onclick={() => (showMenu = false)}
 					>
 						<span>Your Transactions</span>
 						{#if transactionCount > 0}
@@ -497,14 +540,12 @@
 				<a
 					href={route('/contracts/')}
 					class={buttonVariants({variant: 'outline'})}
-					onclick={() => (showMenu = false)}
 				>
 					Contracts
 				</a>
 				<a
 					href={route('/explorer/')}
 					class={buttonVariants({variant: 'outline'})}
-					onclick={() => (showMenu = false)}
 				>
 					Explorer
 				</a>

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import DefaultHead from '$lib/metadata/DefaultHead.svelte';
-	import {url} from '$lib/core/utils/web/path';
+	import {url} from '$lib/kit/paths';
 	import {getAppContext} from '$lib';
 	import BleepTile from '$lib/bleeps/BleepTile.svelte';
 	import {route} from '$lib';

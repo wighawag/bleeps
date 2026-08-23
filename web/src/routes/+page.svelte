@@ -1,7 +1,7 @@
 <script lang="ts">
 	import DefaultHead from '$lib/metadata/DefaultHead.svelte';
 	import {getAppContext, route} from '$lib';
-	import {url} from '$lib/core/utils/web/path';
+	import {url} from '$lib/kit/paths';
 	import {Button} from '$lib/shadcn/ui/button';
 	import SaleCountdown from '$lib/sale/SaleCountdown.svelte';
 	import {saleDeployment} from '$lib/sale/deployment';

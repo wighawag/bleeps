@@ -1,9 +1,12 @@
 <script lang="ts">
 	import * as Modal from '$lib/core/ui/modal/index.js';
-	import {Button} from '$lib/shadcn/ui/button/index.js';
+	import {Button} from '$lib/core/ui/button';
 	import AlertTriangleIcon from '@lucide/svelte/icons/alert-triangle';
 	import WrenchIcon from '@lucide/svelte/icons/wrench';
-	import {dev} from '$app/environment';
+	// `import.meta.env.DEV` rather than SvelteKit's `dev`: it says the same thing,
+	// comes from the bundler instead of the framework, and keeps this component
+	// (which is core, and reusable) free of `$app/*`. See src/lib/kit/README.md.
+	const dev = import.meta.env.DEV;
 	import {getAppContext} from '$lib';
 
 	const {accountCannotSend} = getAppContext();

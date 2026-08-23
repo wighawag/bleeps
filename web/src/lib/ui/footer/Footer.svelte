@@ -1,5 +1,5 @@
 <script lang="ts">
-	import {url} from '$lib/core/utils/web/path';
+	import {url} from '$lib/kit/paths';
 	import {
 		DISCORD_URL,
 		MAINNET_CONTRACTS,
