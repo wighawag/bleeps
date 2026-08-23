@@ -18,46 +18,39 @@ import {execFileSync} from 'node:child_process';
  * `src/routes/**` is exempt by definition: routes ARE the framework's surface,
  * and a different framework would replace them wholesale.
  *
- * KNOWN_LEAKS is where an import that has not moved yet has to justify itself,
- * in a list a reviewer reads. It exists rather than being deleted because a
- * leak with a stated reason and an expiry is worth more than one that fails a
- * build and gets worked around.
+ * KNOWN_LEAKS is empty, and that is the point: every `$app/*` import outside
+ * the adapter now has to justify itself here, in a list a reviewer reads. It
+ * exists rather than being deleted because a leak with a stated reason and an
+ * expiry is worth more than one that fails a build and gets worked around.
  */
 /**
- * Two entries, both Bleeps' own, both older than this rule.
+ * Empty here, and it stays that way.
  *
- * The rule arrived from jolly-roger with the context split and found them; it
- * did not create them. Neither is in `core/`, which arrives framework-free, and
- * neither has a fix that is a matter of moving an import:
+ * It was briefly not. When this rule arrived from jolly-roger with the context
+ * split it found two of Bleeps' own files, both older than the rule, and both
+ * turned out to be reading something the app already had:
  *
- * - `MelodyList.svelte` reads ONE query param. The framework-free answer is the
- *   navigation capability, which is deliberately inert until `$lib/kit` attaches
- *   a driver in the browser (ADR-0004), so the param would read as absent during
- *   SSR and until hydration. That is a behaviour change to the gate on a
- *   DESTRUCTIVE action (burn), and it wants an e2e run to land safely.
- * - `RequiresMelodies.svelte` redirects on mount where MeloBleeps is not
- *   deployed. `NavigationService` covers history and location, not route
- *   changes: it has `replaceLocation`, which is shallow, and no `goto`. Fixing
- *   this properly means widening the capability, which is upstream's call, not a
- *   fork's.
+ * - `MelodyList.svelte` read `?allow-burn` from `page.url`, when `allow-burn` is
+ *   a global query param DECLARED in `lib/index.ts` and already parsed by the
+ *   route handler there. It was a second reader of one value, so it now reads
+ *   the first, like `dev` and `burnerOverride` do.
+ * - `RequiresMelodies.svelte` sent visitors home with `goto` in `onMount` on
+ *   builds without MeloBleeps. A routing decision belongs on the routing
+ *   surface, so it moved into each route's `+page.ts` load, where it also runs
+ *   before the empty page paints. The component keeps its render guard.
  *
- * `template-svelte` carries a third kind of entry, `src/lib/Head.svelte`, for a
- * component that reads `page.url.pathname` to build its canonical URL. This repo
- * does not have that file: the same component lives at `core/metadata/Head.svelte`
- * and takes its location from the `documentLocation` CAPABILITY instead, which is
+ * That is the rule doing its job rather than the list doing it: neither fix
+ * needed new API, and neither would have been found by reading.
+ *
+ * `template-svelte` carries one entry, `src/lib/Head.svelte`, for a component
+ * that reads `page.url.pathname` to build its canonical URL. This repo does not
+ * have that file: the same component lives at `core/metadata/Head.svelte` and
+ * takes its location from the `documentLocation` CAPABILITY instead, which is
  * the fix that entry names. The stale-entry check below is what caught the
  * inherited entry when the root's version merged down, which is the mechanism
  * working: a debt list that travels between repos has to be re-earned in each.
  */
-const KNOWN_LEAKS: Record<string, string> = {
-	'src/lib/melodies/MelodyList.svelte':
-		"reads the `allow-burn` query param from `page.url`. Moving it to the " +
-		'navigation capability changes when the value is readable (inert until a ' +
-		'driver attaches), and it gates a burn, so it needs an e2e run.',
-	'src/lib/melodies/RequiresMelodies.svelte':
-		'redirects to home on builds without MeloBleeps. Needs a route-level ' +
-		'navigate, which `NavigationService` does not expose yet.',
-};
+const KNOWN_LEAKS: Record<string, string> = {};
 
 const root = new URL('..', import.meta.url).pathname;
 

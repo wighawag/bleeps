@@ -1,5 +1,4 @@
 <script lang="ts">
-	import {page} from '$app/state';
 	import {writable} from 'svelte/store';
 	import {toast} from 'svelte-sonner';
 	import MelodyCanvas from './MelodyCanvas.svelte';
@@ -13,7 +12,7 @@
 	import FlameIcon from '@lucide/svelte/icons/flame';
 	import type {MelodyIndexResult} from './index';
 	import {mergePendingMelodies, type PendingMelody} from '$lib/view/index';
-	import {getAppContext} from '$lib';
+	import {getAppContext, params} from '$lib';
 	import {melodyPlayer, toggleMelodyPlay} from './play';
 	import {allowBurnParam, burnMelody, filterBurned} from './burn';
 
@@ -43,12 +42,16 @@
 	} = getAppContext();
 	const currentDeployments = deployments.get();
 
-	// `?allow-burn` is a global query param (see lib/index.ts), so it survives
-	// navigation once set. Off by default: burning is a maintainer/demo affordance,
-	// not something every visitor should see.
-	const allowBurn = $derived(
-		allowBurnParam(page.url.searchParams.get('allow-burn')),
-	);
+	// `?allow-burn` is a global query param DECLARED IN lib/index.ts, so it is
+	// already parsed there and survives navigation once set. Read from that
+	// handler rather than from `page.url`, which would be a second reader of the
+	// same value and the only reason this component named the framework at all
+	// (see test/framework-boundary.test.ts). `dev` and `burnerOverride` are
+	// resolved from the same snapshot, for the same reason.
+	//
+	// Off by default: burning is a maintainer/demo affordance, not something
+	// every visitor should see.
+	const allowBurn = allowBurnParam(params['allow-burn']);
 
 	// The index is authoritative for what exists, so a melody it already lists is
 	// not also shown as pending, however far behind the operation's own state is.
