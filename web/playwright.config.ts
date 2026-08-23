@@ -62,7 +62,21 @@ export default defineConfig({
 	retries: env.CI ? 2 : 0,
 
 	// Limit workers on CI
-	workers: env.CI ? 1 : undefined,
+	//
+	// AND LOCALLY, which is a change from the template's `undefined` (Playwright's
+	// default is half the cores, so 8 on a 16-core machine). Every worker boots a
+	// full app against the ONE hardhat node this run starts, and Bleeps' pages
+	// poll the chain considerably harder than the template's demo does: the sale
+	// state, the melody index, the token reads. At 8 the node becomes the
+	// bottleneck and the assertions that wait on a chain round-trip start timing
+	// out - the in-flight notice first, because it is only shown once a seeded
+	// record has been RECONCILED against the account's nonce.
+	//
+	// Measured, not guessed: the full suite is green at `--workers=1` and failed
+	// one to three of those cases at the default. This is a property of this app's
+	// read volume, not of the machine, so it belongs in this repo's config rather
+	// than upstream.
+	workers: env.CI ? 1 : 4,
 
 	// Reporter to use
 	reporter: [
