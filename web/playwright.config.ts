@@ -63,19 +63,21 @@ export default defineConfig({
 
 	// Limit workers on CI
 	//
-	// AND LOCALLY, which is a change from the template's `undefined` (Playwright's
-	// default is half the cores, so 8 on a 16-core machine). Every worker boots a
-	// full app against the ONE hardhat node this run starts, and Bleeps' pages
-	// poll the chain considerably harder than the template's demo does: the sale
-	// state, the melody index, the token reads. At 8 the node becomes the
-	// bottleneck and the assertions that wait on a chain round-trip start timing
-	// out - the in-flight notice first, because it is only shown once a seeded
-	// record has been RECONCILED against the account's nonce.
+	// AND LOCALLY, where the template leaves it at Playwright's default of half
+	// the cores (8 here). Every worker boots a full app against the ONE hardhat
+	// node the run starts, and Bleeps reads the chain far harder than the
+	// template's demo does: the sale state, the melody index, the token reads.
+	// At 8 the node saturates and a nonce read that costs ~10ms unloaded takes
+	// longer than the ledger's 15s deadline.
 	//
-	// Measured, not guessed: the full suite is green at `--workers=1` and failed
-	// one to three of those cases at the default. This is a property of this app's
-	// read volume, not of the machine, so it belongs in this repo's config rather
-	// than upstream.
+	// WHAT THAT LOOKS LIKE NOW IS CORRECT, which is the point: the in-flight
+	// notice appears and says it cannot reach the chain, and the watcher retries.
+	// It used to hang for ever instead, and capping this file was how that was
+	// first worked around - wrongly. The hang is fixed upstream (an unbounded
+	// read in reconcileOnce); what is left here is honest capacity, and the
+	// suites assert the wording for a chain they CAN reach.
+	//
+	// Measured: green at 1 and at 4, marginal at 8.
 	workers: env.CI ? 1 : 4,
 
 	// Reporter to use
