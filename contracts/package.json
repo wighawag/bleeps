@@ -59,7 +59,7 @@
 	"scripts": {
 		"prepare": "set-defaults .vscode && pnpm compile",
 		"---------------------- INTERNAL ----------------------": "",
-		":deploy+export": "expand-vars pnpm hardhat --network $MODE deploy --skip-prompts && expand-vars rocketh-export -e $MODE --ts ../web/src/lib/deployments.ts",
+		":deploy:dev+export": "expand-vars pnpm hardhat --network $MODE deploy --no-compile --skip-prompts && expand-vars rocketh-export -e $MODE",
 		"---------------------- DEV ---------------------- ": "",
 		"node:local": "ldenv -d localhost hardhat --network local node --hostname 0.0.0.0",
 		"node:purgatory": "purgatory --port 8545 --reset-db --db purgatory.db",
@@ -68,7 +68,7 @@
 		"compile:watch": "as-soon -w src pnpm compile",
 		"fork:execute": "ldenv tsx @=HARDHAT_FORK=@@MODE @@",
 		"fork:deploy": "ldenv pnpm @=HARDHAT_FORK=@@MODE compile --build-profile production ~~ pnpm hardhat --network fork deploy --report-gas-used ~~ @@",
-		"deploy:dev": "ldenv -d localhost pnpm :deploy+export @@",
+		"deploy:dev": "ldenv -d localhost pnpm :deploy:dev+export @@",
 		"deploy:watch": "wait-on ./generated && ldenv -m localhost pnpm as-soon -w generated -w deploy pnpm run deploy:dev @@MODE @@",
 		"test": "hardhat test",
 		"test:watch": "wait-on ./generated && as-soon -w generated -w test hardhat test --no-compile",
