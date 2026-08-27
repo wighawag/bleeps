@@ -201,8 +201,13 @@
 	and the tab row can (`min-w-0`), so the wallet cannot be pushed off the edge,
 	and the tabs fold into `More` when they do not fit.
 -->
+<!-- `data-app-navbar` is the shell's contract, not decoration: it names the
+     element that IS the fixed chrome, whatever tag an app chooses for it. See
+     the `navbar` prop in core/ui/AppShell.svelte. A descendant that replaces
+     this file keeps the attribute on its own root. -->
 <nav
 	bind:this={navElement}
+	data-app-navbar
 	class="needs-gutter-padding fixed top-0 left-0 z-50 flex h-[var(--navbar-height)] w-full items-end gap-2 border-b border-bleeps bg-background pt-1"
 >
 	<!-- Every tab, laid out but not shown, so the width they WOULD take can be
