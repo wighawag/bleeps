@@ -96,7 +96,11 @@
 	});
 </script>
 
-<Modal.Root openWhen={id !== undefined} onCancel={onclose}>
+<!-- A page's own view overlay: it is open because the user picked a bleep. The
+     system layer is for modals raised by domain state, which have to be able to
+     cover this one. Stated rather than defaulted; `layer` has no default, so
+     that a modal which must cover another cannot forget to say so. -->
+<Modal.Root layer="modal" openWhen={id !== undefined} onCancel={onclose}>
 	{#if id !== undefined}
 		<Modal.Title>
 			{instrumentNameFromId(id)}

@@ -46,7 +46,12 @@
 	);
 </script>
 
+<!-- A page's own view overlay: the user started a mint from the editor. The
+     system layer is for modals raised by domain state (the wallet-action and
+     insufficient-funds modals this mint can raise), which have to cover this
+     one. -->
 <Modal.Root
+	layer="modal"
 	openWhen={flowState.step !== 'closed'}
 	onCancel={dismissable ? () => flow.close() : undefined}
 	focusOnClose={handBackToName
