@@ -78,7 +78,8 @@ describe('melodyFromHash', () => {
 		// A present-but-unparseable `melody` param must be distinguishable from an
 		// absent one, so the editor can tell the user their link is broken instead
 		// of silently showing a blank melody.
-		const truncated = '#melody=untitled~32~qwJYKsCWCrAlgqtpW6rqV2q6ldqt1W6r9V+q/FfSvlXw==';
+		const truncated =
+			'#melody=untitled~32~qwJYKsCWCrAlgqtpW6rqV2q6ldqt1W6r9V+q/FfSvlXw==';
 
 		expect(melodyFromHash(truncated).status).toBe('error');
 		expect(melodyFromHash('#melody=not-a-melody').status).toBe('error');

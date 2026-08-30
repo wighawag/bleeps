@@ -41,9 +41,7 @@
 		typeof location === 'undefined' ? '' : location.hash,
 	);
 	const melody = writable(
-		initialFromHash.status === 'ok'
-			? initialFromHash.melody
-			: defaultMelody(),
+		initialFromHash.status === 'ok' ? initialFromHash.melody : defaultMelody(),
 	);
 	const editor = createMelodyEditor(melody);
 	const preview = createMelodyPreview({

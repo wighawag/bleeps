@@ -40,7 +40,8 @@ export function melodyFromHash(hash: string): MelodyFromHashResult {
 	if (melody === undefined) {
 		return {
 			status: 'error',
-			reason: 'This link’s melody is malformed or truncated, so it could not be loaded.',
+			reason:
+				'This link’s melody is malformed or truncated, so it could not be loaded.',
 		};
 	}
 	return {status: 'ok', melody};
