@@ -304,21 +304,36 @@ describe('Stopping waiting for the wallet', () => {
 
 		// And wallet state is rebuilt under the request, which IS the transition.
 		//
-		// `unlock()` HERE, where the template uses `ensureConnected()`, and the
-		// difference is this app's target step rather than a preference. Upstream's
-		// locked-wallet reconnect fires only when `step === 'WalletConnected'`; this
-		// app targets `SignedIn` (mode.ts), so at rest its step is `SignedIn` and
-		// `ensureConnected()` sees the target already reached and resolves WITHOUT
-		// reconnecting, leaving the wallet locked. Inherited unchanged, this test
-		// waited 30s for a status that was never coming.
+		// `unlock()`, because it is the ONE route into that rebuild that every app
+		// in this tree actually has. What is being pinned is the rebuild, not the
+		// call that causes it, so the call should be the one no app has to override.
 		//
-		// `unlock()` is the right call for this app anyway: it is what the modal now
-		// offers, it prompts the wallet and rebuilds wallet state, and it keeps the
-		// step, the account and the request where re-running the flow rebuilds all
-		// three. The template's stronger case, a rebuild that lands on NO wallet at
-		// all, is the next test, which is inherited unchanged because `connect()`
-		// behaves the same whatever the target step is.
-		await page.evaluate(() => (globalThis as any).context.connection.unlock());
+		// This used to be a bare `ensureConnected()`, and that only worked here by
+		// accident of configuration. `ensureConnected` promises the app's TARGET
+		// step, and upstream treats a locked wallet as failing that target only when
+		// the target is `WalletConnected` (ADR-0002): a SIGNED-IN app acts through
+		// its session account, which a locked wallet does not invalidate, so there
+		// the call correctly finds the target already reached and reconnects
+		// nothing. Every descendant that signs in therefore inherited a test that
+		// waited 30 seconds for a status that was never coming - which `bleeps` and
+		// `mandalas` each diagnosed and patched locally, in the same way, because
+		// the template gave them no version that worked.
+		//
+		// Naming a wallet mechanism instead (`ensureConnected('WalletConnected',
+		// {type: 'wallet', address})`) does force the reconnect, and is wrong for a
+		// different reason: from a signed-in state it routes through `connect()` and
+		// opens the WALLET PICKER, which nobody in this test is there to answer. The
+		// picker is the next test's subject, not this one's.
+		//
+		// `unlock()` is what this app puts in front of the user in exactly this
+		// state (see `walletPromptCopy`: "Your wallet is locked ... Unlock it to see
+		// the request"), it rebuilds wallet state under the parked request, and it
+		// keeps the step, the account and the wallet where re-running the flow would
+		// rebuild all three. The next test still drives `connect()`, so the harsher
+		// rebuild - the one that lands on NO wallet at all - stays covered.
+		await page.evaluate(() =>
+			(globalThis as any).context.connection.unlock(),
+		);
 		await expect
 			.poll(() => walletStatus(page), {timeout: 30_000})
 			.toBe('connected');
