@@ -61,9 +61,15 @@ type OperationLike = {
 		type?: string;
 		functionName?: string;
 		args?: unknown[];
-		tx?: {nonce?: number; broadcastTimestampMs?: number};
 	};
-	transactionIntent: {state?: {status?: string; inclusion?: string}};
+	/**
+	 * The dispatch facts, one entry per broadcast. `nonce` and the broadcast
+	 * time are PER ATTEMPT: a replacement is a second attempt at the same slot,
+	 * and the record no longer keeps a single copy of either.
+	 */
+	attempts?: {nonce?: number; broadcastTimestampMs?: number}[];
+	/** Observer-owned, and no longer nested under a stored intent. */
+	state?: {outcome?: string; inclusion?: string};
 };
 
 type OperationEntry = {operationID: string; operation: OperationLike};
@@ -78,12 +84,12 @@ type OperationEntry = {operationID: string; operation: OperationLike};
  * on inclusion, so the handover is immediate.
  */
 function isInFlight(operation: OperationLike): boolean {
-	const state = operation.transactionIntent.state;
+	const state = operation.state;
 	if (!state) {
 		// submitted, nothing known about it yet
 		return true;
 	}
-	if (state.status === 'Failure') {
+	if (state.outcome === 'Failure') {
 		return false;
 	}
 	if (state.inclusion && DEAD_INCLUSIONS.includes(state.inclusion)) {
@@ -139,15 +145,20 @@ export function isLaterOperation(
 	current: OperationEntry,
 	existing: OperationEntry,
 ): boolean {
-	const currentNonce = current.operation.metadata?.tx?.nonce ?? 0;
-	const existingNonce = existing.operation.metadata?.tx?.nonce ?? 0;
+	// The FIRST attempt of each: the dispatch that claimed the nonce and the
+	// moment the user acted. A later attempt is the same call re-sent at a higher
+	// price, so letting it move the operation would reorder two operations on the
+	// strength of one being harder to get mined.
+	const currentNonce = current.operation.attempts?.[0]?.nonce ?? 0;
+	const existingNonce = existing.operation.attempts?.[0]?.nonce ?? 0;
 	if (currentNonce !== existingNonce) {
 		return currentNonce > existingNonce;
 	}
 
-	const currentTime = current.operation.metadata?.tx?.broadcastTimestampMs ?? 0;
+	const currentTime =
+		current.operation.attempts?.[0]?.broadcastTimestampMs ?? 0;
 	const existingTime =
-		existing.operation.metadata?.tx?.broadcastTimestampMs ?? 0;
+		existing.operation.attempts?.[0]?.broadcastTimestampMs ?? 0;
 	if (currentTime !== existingTime) {
 		return currentTime > existingTime;
 	}

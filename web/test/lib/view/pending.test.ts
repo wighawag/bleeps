@@ -8,7 +8,7 @@ function op(overrides: Record<string, unknown> = {}) {
 			functionName: 'reserveAndMint',
 			args: ['a tune', 16, '0x00', '0x00', '0xabc'],
 		},
-		transactionIntent: {state: undefined},
+		state: undefined,
 		...overrides,
 	};
 }
@@ -23,7 +23,7 @@ describe('pendingMelodiesFrom', () => {
 
 	it('keeps counting it while it sits in the mempool', () => {
 		const pending = pendingMelodiesFrom({
-			one: op({transactionIntent: {state: {inclusion: 'InMemPool'}}}),
+			one: op({state: {inclusion: 'InMemPool'}}),
 		});
 		expect(pending).toHaveLength(1);
 	});
@@ -33,7 +33,7 @@ describe('pendingMelodiesFrom', () => {
 		// show the melody twice until the operation is pruned
 		const pending = pendingMelodiesFrom({
 			one: op({
-				transactionIntent: {state: {inclusion: 'Included', status: 'Success'}},
+				state: {inclusion: 'Included', outcome: 'Success'},
 			}),
 		});
 		expect(pending).toEqual([]);
@@ -42,7 +42,7 @@ describe('pendingMelodiesFrom', () => {
 	it('stops counting an included failure too', () => {
 		const pending = pendingMelodiesFrom({
 			one: op({
-				transactionIntent: {state: {inclusion: 'Included', status: 'Failure'}},
+				state: {inclusion: 'Included', outcome: 'Failure'},
 			}),
 		});
 		expect(pending).toEqual([]);
@@ -52,7 +52,7 @@ describe('pendingMelodiesFrom', () => {
 		for (const inclusion of ['NotFound', 'Dropped']) {
 			expect(
 				pendingMelodiesFrom({
-					one: op({transactionIntent: {state: {inclusion}}}),
+					one: op({state: {inclusion}}),
 				}),
 			).toEqual([]);
 		}
@@ -96,9 +96,11 @@ function opWithTx(
 			type: 'functionCall',
 			functionName: 'reserveAndMint',
 			args: [name, 16, '0x00', '0x00', '0xabc'],
-			tx,
 		},
-		transactionIntent: {state: undefined},
+		// One entry per broadcast: the nonce and the broadcast time are per
+		// ATTEMPT now, and ordering reads the first of them.
+		attempts: [tx],
+		state: undefined,
 	};
 }
 

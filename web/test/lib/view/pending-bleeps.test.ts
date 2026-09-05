@@ -9,8 +9,8 @@ function mint(
 	overrides: {
 		functionName?: string;
 		args?: unknown[];
-		tx?: {nonce?: number; broadcastTimestampMs?: number};
-		state?: {status?: string; inclusion?: string};
+		attempts?: {nonce?: number; broadcastTimestampMs?: number}[];
+		state?: {outcome?: string; inclusion?: string};
 	} = {},
 ) {
 	return {
@@ -19,9 +19,11 @@ function mint(
 			functionName: overrides.functionName ?? 'mintWithPassId',
 			// every sale entry point takes (id, to) first
 			args: overrides.args ?? [12, BUYER, 3n, []],
-			tx: overrides.tx,
 		},
-		transactionIntent: {state: overrides.state},
+		// Per ATTEMPT now: nonce and broadcast time describe one broadcast, and
+		// an operation can hold several.
+		attempts: overrides.attempts,
+		state: overrides.state,
 	};
 }
 
@@ -37,7 +39,7 @@ describe('pendingBleepsFrom', () => {
 	it('stops counting one the chain has taken', () => {
 		expect(
 			pendingBleepsFrom({
-				one: mint({state: {inclusion: 'Included', status: 'Success'}}),
+				one: mint({state: {inclusion: 'Included', outcome: 'Success'}}),
 			}),
 		).toEqual([]);
 	});
@@ -55,16 +57,16 @@ describe('pendingBleepsFrom', () => {
 		// a Bleep is minted once, so of two in-flight purchases at most one can
 		// succeed: showing both would draw the tile twice
 		const pending = pendingBleepsFrom({
-			first: mint({tx: {nonce: 3, broadcastTimestampMs: 1_000}}),
-			second: mint({tx: {nonce: 4, broadcastTimestampMs: 500}}),
+			first: mint({attempts: [{nonce: 3, broadcastTimestampMs: 1_000}]}),
+			second: mint({attempts: [{nonce: 4, broadcastTimestampMs: 500}]}),
 		});
 		expect(pending).toEqual([{operationID: 'second', id: 12, to: BUYER}]);
 	});
 
 	it('keeps purchases of different Bleeps apart', () => {
 		const pending = pendingBleepsFrom({
-			one: mint({args: [12, BUYER], tx: {nonce: 1}}),
-			two: mint({args: [13, BUYER], tx: {nonce: 2}}),
+			one: mint({args: [12, BUYER], attempts: [{nonce: 1}]}),
+			two: mint({args: [13, BUYER], attempts: [{nonce: 2}]}),
 		});
 		expect(pending.map((bleep) => bleep.id)).toEqual([13, 12]);
 	});
