@@ -111,7 +111,16 @@ WEB_DIR="$WORKTREE_DIR/web"
 # instead of reporting the result.
 NODE_PID=""
 NODE_PGID=""
-NODE_LOG="${TMPDIR:-/tmp}/bleeps-e2e-node.log"
+# Named after the REPO, like WORKTREE_DIR below, because this template is the
+# root of a tree of variants that are checked out side by side. A fixed name
+# means every one of them writes its chain's log over every other one's, so the
+# log consulted after a failure belongs to whichever repo ran last - which is
+# the opposite of what it is for, and worthless the moment two runs overlap.
+#
+# Derived rather than spelled out, which for this repo is the same
+# `bleeps-e2e-node.log` it named by hand before, and one less thing for the next
+# variant to remember to change.
+NODE_LOG="${TMPDIR:-/tmp}/$(basename "$REPO_DIR")-e2e-node.log"
 
 # Cleanup function to kill background processes
 #
