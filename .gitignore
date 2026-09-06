@@ -11,3 +11,6 @@ node_modules/
 tmp/
 
 bleeps.code-workspace
+.kilo/
+# Scratch space for subagent runs (artifacts, transcripts). Never committed.
+.pi-subagents/
