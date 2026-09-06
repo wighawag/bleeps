@@ -20,3 +20,14 @@
 # it and becomes cargo cult.
 #
 # This template omits nothing - it is where the files come from.
+
+web/e2e/tests/sending-indicator.e2e.ts
+# The template's sending-indicator suite, deleted here long before this list
+# existed, and re-decided by hand at every cascade since because nothing
+# recorded why.
+#
+# It asserts an ORDER and a FLOOR on the two rungs that explain a dispatch in
+# flight (a wordless pulse immediately, a sentence only once the send drags).
+# This app does not present that pair, so the suite has nothing to stand in.
+# The escape-hatch suite, which shares the stalling-wallet fixture, IS carried
+# here and passes: the fixture is wanted, this suite is not.
