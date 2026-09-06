@@ -1,5 +1,24 @@
 import {test, expect, describe} from '../fixtures/test';
 
+/**
+ * THE APP'S NAME COMES FROM THE APP, not from a literal here.
+ *
+ * LITERALS HERE ON PURPOSE, unlike the template. `routes/+page.svelte` in this
+ * repo does not read `web-config.json`: it declares its own
+ * `const name = 'Bleeps and The Bleeps DAO'`, which is longer than the
+ * `web-config.json` `name` ("Bleeps") the template's version reads. So the
+ * literal below IS this app's single fact, and importing the config would
+ * assert a name this page never renders.
+ *
+ * `routes/+page.svelte` renders `src/web-config.json`'s `name` as both the
+ * icon's `alt` and the hero heading, so that file is the single fact and this
+ * suite reads the same one. Spelling "Jolly Roger" out instead made these tests
+ * assert the TEMPLATE's identity rather than the app's, which is invisible for
+ * as long as a descendant keeps the inherited name and breaks the moment one
+ * does the first thing anybody does with a template: rename it. `reveal-or-die`
+ * renamed itself and inherited two failures that had nothing to do with its
+ * home page, which rendered perfectly.
+ */
 describe('Home Page', () => {
 	test('should display the icon', async ({page}) => {
 		await page.goto('/');
