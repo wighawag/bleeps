@@ -17,7 +17,20 @@
 # FORMAT. One path per line, relative to the repo root. `#` starts a comment.
 # Give every entry a reason: the next person's question is never "which file",
 # it is "why", and an unexplained list is how a deletion outlives the reason for
-# it and becomes cargo cult.
+# it and becomes cargo cult. A DIRECTORY entry covers everything under it, which
+# is usually what you want: a whole replaced directory rather than forty files.
+#
+# AND IT IS CHECKED NOW, which is the only reason to trust it. Three guards, all
+# pointing different ways:
+#
+#   web/test/offshoot-omissions.test.ts   every LISTED path is still absent
+#   scripts/check-omissions.mjs           every ABSENT path is listed (needs the stem)
+#   scripts/apply-omissions.sh            re-drop them all, and run both checks
+#
+# ENTRIES ARE STEM-RELATIVE. What belongs here is what THIS repo drops from ITS
+# stem, jolly-roger `main`. Upstream's own list names three paths IT drops from
+# template-svelte-shadcn; those are absent from jolly-roger `main` too, so they are
+# not in our stem, cannot be omissions here, and are deliberately not copied down.
 #
 
 web/e2e/tests/sending-indicator.e2e.ts
@@ -38,11 +51,10 @@ web/e2e/tests/sending-indicator.e2e.ts
 # deliberate?", at the only moment anyone asks - mid-merge, by whoever is least
 # likely to know.
 #
-# THE CHECK IS `scripts/check-omissions.mjs` IN JOLLY-ROGER, and it is not here
-# yet: it arrives with the next cascade from the stem. Until then the way to
-# re-run this audit is by hand -
+# THE CHECK HAS SINCE ARRIVED, in the same cascade that brought the guard into
+# this repo, so the audit above is now re-runnable here:
 #   git fetch stem main && node scripts/check-omissions.mjs FETCH_HEAD
-# - which will work the moment that file lands. Every list in this tree was
+# and `apply-omissions.sh` runs it for you during a merge. Every list in this tree was
 # incomplete when it was first measured (jolly-roger 0 of 3,
 # template-commit-reveal 2 of 17, reveal-or-die 4 of 52, this one 1 of 21,
 # mandalas 2 of 24), so the number is not a comment on this repo.
