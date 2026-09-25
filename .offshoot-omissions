@@ -19,7 +19,6 @@
 # it is "why", and an unexplained list is how a deletion outlives the reason for
 # it and becomes cargo cult.
 #
-# This template omits nothing - it is where the files come from.
 
 web/e2e/tests/sending-indicator.e2e.ts
 # The template's sending-indicator suite, deleted here long before this list
@@ -31,3 +30,85 @@ web/e2e/tests/sending-indicator.e2e.ts
 # This app does not present that pair, so the suite has nothing to stand in.
 # The escape-hatch suite, which shares the stalling-wallet fixture, IS carried
 # here and passes: the fixture is wanted, this suite is not.
+
+# ===========================================================================
+# THE TWENTY BELOW were all missing until 2026-09-25, when this list was checked
+# against the stem for the first time and held 1 of 21. Nothing was broken by
+# their absence; what was missing was the ANSWER to "was this deletion
+# deliberate?", at the only moment anyone asks - mid-merge, by whoever is least
+# likely to know.
+#
+# THE CHECK IS `scripts/check-omissions.mjs` IN JOLLY-ROGER, and it is not here
+# yet: it arrives with the next cascade from the stem. Until then the way to
+# re-run this audit is by hand -
+#   git fetch stem main && node scripts/check-omissions.mjs FETCH_HEAD
+# - which will work the moment that file lands. Every list in this tree was
+# incomplete when it was first measured (jolly-roger 0 of 3,
+# template-commit-reveal 2 of 17, reveal-or-die 4 of 52, this one 1 of 21,
+# mandalas 2 of 24), so the number is not a comment on this repo.
+
+# ---------------------------------------------------------------------------
+# THE TEMPLATE'S DEMO APP, which this repo replaced with its own. jolly-roger
+# ships a greetings demo - one string per account, posted from `/demo` through
+# `GreetingsRegistry` - and this repo ships Bleeps: `web/src/routes/bleeps/` over
+# `contracts/src/bleeps/`. None of the demo's parts has anything left to be part OF.
+web/src/routes/demo
+web/test/routes/demo
+web/e2e/tests/demo.e2e.ts
+contracts/src/GreetingsRegistry
+contracts/deploy/001_deploy_greetings_registry.ts
+contracts/scripts/setMessage.ts
+contracts/test/js/GreetingsRegistry.test.ts
+
+# The demo's Solidity test, and with it the whole `contracts/test/solidity/` tree:
+# this repo's contract suites are all TypeScript (`contracts/test/js/Bleeps*.test.ts`).
+contracts/test/solidity
+
+# Which is also what `remappings.txt` existed for. It maps `forge-std/` and `src/`
+# for forge, and with no Solidity tests there is nothing to resolve.
+contracts/remappings.txt
+
+# ---------------------------------------------------------------------------
+# DEPLOYMENT RECORDS FOR A CONTRACT THIS REPO DOES NOT HAVE, on a network it has
+# not deployed to. These are jolly-roger's `GreetingsRegistry` on sepolia; this
+# repo's records are `contracts/deployments/demo/` and describe Bleeps.
+#
+# NOTE WHAT HAPPENS IF THAT CHANGES, because it is designed rather than
+# accidental: deploy this app to sepolia and `.chain` comes back, so
+# `offshoot-omissions.test.ts` fails and tells you to remove this entry. That is
+# the right prompt at the right time - the entry means "we do not carry the
+# template's sepolia records", not "nothing may ever live here".
+contracts/deployments/sepolia
+
+# ---------------------------------------------------------------------------
+# THE TEMPLATE'S PENDING-OPERATION SURFACES, both of which reach their subject
+# through a greeting: the e2e drives `/demo` to get a transaction in flight, and
+# the unit test merges pending operations over the demo's `Message` shape. The
+# app-level machinery they cover (the operations ledger, the in-flight surfaces)
+# is inherited and still here; what could not survive is the transaction they
+# used to make.
+web/e2e/tests/pending-operation.e2e.ts
+web/test/lib/view/pending-operations.test.ts
+
+# ---------------------------------------------------------------------------
+# THE EXECUTABLE COMMENT ABOUT WALLET-ACCOUNT CLAIMS, which has nothing to track
+# here. Upstream it reads every e2e file for `test.use({walletAccountIndex: N})`
+# and fails on a repeated or out-of-range claim; in this repo no suite in
+# `web/e2e/tests/` claims an index at all - only the fixtures that define the
+# option mention it - so there are no claims to police.
+#
+# WORTH RE-DERIVING RATHER THAN TRUSTING, if this repo grows a second
+# transaction-sending suite: the failure it prevents is two suites racing one
+# nonce, which surfaces as an unrelated test failing on a transaction that never
+# appeared. Taking the file back is cheaper than diagnosing that.
+web/test/e2e-account-claims.test.ts
+
+# ---------------------------------------------------------------------------
+# AND ONE THAT IS A GAP RATHER THAN A REPLACEMENT, said plainly because a list
+# that claims coverage it does not have is worse than one that admits a hole.
+# `contracts/tsconfig.json` here includes only `deploy`, `generated` and
+# `hardhat.config.ts`, so with the scripts tsconfig gone this repo's OWN
+# `contracts/scripts/verify-deployed-bytecode.ts` is covered by no tsconfig and is
+# not typechecked. The reason it was deleted is not recorded anywhere and could not
+# be recovered; what is true today is the sentence above.
+contracts/scripts/tsconfig.json
