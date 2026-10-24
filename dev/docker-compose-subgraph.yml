@@ -56,6 +56,17 @@ services:
       - ipfs-data:/data/ipfs
     command:
       ['--offline', 'daemon', '--migrate=true', '--agent-version-suffix=docker']
+    # The image's HEALTHCHECK (`ipfs dag stat ...`) runs as ROOT and opens the
+    # repo itself when no daemon holds it yet, creating /data/ipfs/repo.lock
+    # owned by root. The daemon runs as `ipfs`, so if the check wins that race
+    # the daemon dies with `lock /data/ipfs/repo.lock: permission denied` and
+    # graph-node then panics with "not a valid IPFS server". Docker runs the
+    # first check after the 30s interval, by which time the daemon holds the
+    # lock; podman runs it about a second after start, inside `ipfs init`, so it
+    # loses whenever init is slow (a cold start pulling images). Nothing here
+    # depends on ipfs health (depends_on only orders startup), so disable it.
+    healthcheck:
+      disable: true
 
   postgres:
     image: postgres:14

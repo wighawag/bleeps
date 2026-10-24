@@ -46,11 +46,17 @@ npx pnpm add -g pnpm
 You might be able to switch to `yarn` but will most likely have to configure it to fix hoisting issues.
 If you decide to use `yarn` you ll have to remove the script "preinstall" that by default force the use of `pnpm`
 
-#### docker and docker-compose
+#### a container runtime with compose (docker or podman)
 
-`docker` and `docker-compose` are used to setup the external services (an ethereum node, an ipfs node and a [subgraph](https://thegraph.com) node)
+A compose runtime is used to set up the external services (a [subgraph](https://thegraph.com) node and the ipfs node and postgres it needs), defined in `dev/docker-compose-subgraph.yml`.
 
-If you prefer (or do not have access to docker/docker-compose) you can run them independently.
+The scripts call `dev/compose.sh`, which picks the runtime for you:
+
+1. `$COMPOSE` if set, used verbatim (e.g. `COMPOSE="podman compose"`, `COMPOSE=podman-compose`).
+2. otherwise `docker compose` if `docker` is installed.
+3. otherwise `podman compose` if `podman` is installed. Podman needs a compose provider on PATH (the `docker-compose` binary, or `podman-compose`); it runs it against the rootless podman socket, so no Docker daemon is required.
+
+If you prefer (or do not have access to a container runtime) you can run the services independently.
 
 ### intall dependencies :
 
@@ -220,11 +226,11 @@ If no network are specified it will fetch from the env variable `NETWORK_NAME`. 
 
 `pnpm stop`
 
-This stop the docker services running
+This stop the container services running
 <br/><br/>
 
 `pnpm externals`
-This spawn docker services: an ethereum node, an IPFS node and a subgraph node
+This spawn container services (via `dev/compose.sh`, docker or podman): an IPFS node, postgres and a subgraph node
 <br/><br/>
 
 `pnpm dev`
