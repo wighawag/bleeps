@@ -4,7 +4,23 @@ packages:
   - 'subgraph'
   - 'booking-service'
   - 'web'
+
+# pnpm settings live in this file, not in package.json's "pnpm" field: pnpm 10
+# reads them from either place, pnpm 11 only from here (it ignores the field and
+# warns about it). esbuild's install script only checks its platform binary.
 onlyBuiltDependencies:
   - esbuild
   - workerd
   - sharp
+
+overrides:
+  # '-' removes utf-8-validate (an optional native addon of ws) from the tree.
+  # Moved here unchanged from package.json, where it carried no explanation.
+  'utf-8-validate': '-'
+  # cookie@<0.7.0 (GHSA-pxg6-pf52-xh8x, low): @sveltejs/kit declares cookie ^0.6.0
+  # and 2.70.2 is the latest release, so there is no upstream version to bump to;
+  # the usual fix-at-source route does not exist yet. Not reachable here in any
+  # case: web is adapter-static so there is no server runtime, and cookie appears
+  # in zero files of the built client bundle. Range key rather than a bare name,
+  # so it disarms itself once SvelteKit moves past 0.6.x: delete it then.
+  'cookie@<0.7.0': '^0.7.0'
