@@ -40,9 +40,6 @@ const KNOWN_STALE: {[environment: string]: {[name: string]: string}} = {
 		BleepsInitialSale:
 			'deployed before Bleeps.sol / ERC721Base were edited; sale is over',
 	},
-	rinkeby: {
-		'*': 'rinkeby has been shut down; deployments kept only as a record',
-	},
 };
 
 /** Environments to check. Dev deployments are regenerated, so are not checked. */
