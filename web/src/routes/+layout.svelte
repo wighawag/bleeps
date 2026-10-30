@@ -37,6 +37,7 @@
 	import {chromeFor} from '$lib/ui/chrome';
 	import {LAYERS} from '$lib/core/ui/layers';
 	import KitNavigation from '$lib/kit/KitNavigation.svelte';
+	import {ModeWatcher} from 'mode-watcher';
 	import {navigating, page} from '$app/state';
 
 	let {children} = $props();
@@ -73,6 +74,9 @@
 	// and all ENS-aware components stay inert).
 	if (PUBLIC_ENS_NODE_URL) provideENS(createENSService());
 </script>
+
+<!-- dark on <html>, and color-scheme with it: see the template's layout -->
+<ModeWatcher defaultMode="dark" />
 
 {#if $fatal}
 	<InitError message={$fatal} />
