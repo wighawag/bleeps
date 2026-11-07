@@ -1,4 +1,5 @@
 import {writable, get} from 'svelte/store';
+import {isInsufficientFundsFailure} from './insufficient-funds-failure';
 import type {BalanceStore} from '$lib/core/connection/balance';
 import type {GasFeeStore, GasPrice} from '$lib/core/connection/gasFee';
 import type {
@@ -31,6 +32,9 @@ export type BalanceCheckState =
 	  };
 
 export type GasSpeed = 'slow' | 'average' | 'fast';
+
+/** How old a gas price may be before a transaction refreshes it (ms). */
+export const MAX_GAS_PRICE_AGE_MS = 30_000;
 
 export interface EnsureCanAffordOptions {
 	gasSpeed?: GasSpeed;
@@ -196,10 +200,23 @@ export function createBalanceCheckStore({
 	// the whole connection flow and then die on "Gas fee not loaded", a race the
 	// user can neither see nor retry their way out of. This mirrors what
 	// `checkBalanceAndShowModal` already does for the balance.
+	//
+	// A loaded value that is OLD is refreshed too. The poller runs every ten
+	// minutes, so without this a page opened just after a local deploy priced
+	// every transaction for ten minutes at the deploy's tips: rocketh deploys
+	// with a ~99 gwei tip, the 20-block fee history averaged that to ~60 gwei,
+	// and every transaction was budgeted (and charged) 60 times what the chain
+	// asked: for a 4M gas call, ~0.24 ETH where 0.004 was right. A local signer
+	// topped up for a few actions ran dry after one. A failed refresh keeps
+	// the cached value rather than failing the send: an old price beats none.
 	async function getGasPrice(speed: GasSpeed): Promise<GasPrice> {
 		let gasFeeValue = get(gasFee);
-		if (gasFeeValue.step !== 'Loaded') {
-			gasFeeValue = await gasFee.update();
+		const fetchedAt = get(gasFee.status).lastSuccessfulFetch;
+		const stale =
+			fetchedAt === undefined || Date.now() - fetchedAt > MAX_GAS_PRICE_AGE_MS;
+		if (gasFeeValue.step !== 'Loaded' || stale) {
+			const refreshed = await gasFee.update();
+			if (refreshed.step === 'Loaded') gasFeeValue = refreshed;
 		}
 		if (gasFeeValue.step !== 'Loaded') {
 			// Waiting is not pretending: if the chain still will not price gas, the
@@ -324,29 +341,51 @@ export function createBalanceCheckStore({
 
 			const {maxFeePerGas, maxPriorityFeePerGas} = await getGasPrice(gasSpeed);
 
-			let gasEstimate: bigint;
-			let value: bigint = 0n;
-
-			if ('contract' in options) {
-				const contract = options.contract;
-				gasEstimate = await publicClient.estimateContractGas({
-					address: contract.address,
-					abi: contract.abi,
-					functionName: contract.functionName,
-					args: contract.args,
-					account: contract.account,
-					value: contract.value,
-				});
-				value = contract.value ?? 0n;
-			} else {
+			const value: bigint =
+				('contract' in options
+					? options.contract.value
+					: options.transaction.value) ?? 0n;
+			const estimate = (): Promise<bigint> => {
+				if ('contract' in options) {
+					const contract = options.contract;
+					return publicClient.estimateContractGas({
+						address: contract.address,
+						abi: contract.abi,
+						functionName: contract.functionName,
+						args: contract.args,
+						account: contract.account,
+						value: contract.value,
+					});
+				}
 				const transaction = options.transaction;
-				gasEstimate = await publicClient.estimateGas({
+				return publicClient.estimateGas({
 					to: transaction.to,
 					data: transaction.data,
 					value: transaction.value,
 					account: transaction.account,
 				});
-				value = transaction.value ?? 0n;
+			};
+
+			let gasEstimate: bigint;
+			try {
+				gasEstimate = await estimate();
+			} catch (error) {
+				// THE SAME SHORTFALL, FOUND ONE STEP EARLIER. geth (a LAN box's
+				// chain) checks the sender's balance while estimating, and refuses
+				// the estimate itself for an account that cannot cover the value;
+				// hardhat estimates anyway. Unhandled, an empty player creating a
+				// match was told "not enough funds" with no "Get ETH" in sight. So
+				// the dialog is shown for at least the value plus a plain
+				// transfer's gas, and once that much is there the estimate is asked
+				// again; the check below then covers the real gas.
+				if (!isInsufficientFundsFailure(error)) throw error;
+				await checkBalanceAndShowModal(
+					balance,
+					sender,
+					value + maxFeePerGas * 21_000n,
+				);
+				startEstimating();
+				gasEstimate = await estimate();
 			}
 
 			// Worst-case cost uses maxFeePerGas (the ceiling actually charged).

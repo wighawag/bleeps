@@ -3,14 +3,14 @@ import {readable, writable, get} from 'svelte/store';
 import {createBalanceCheckStore} from '$lib/core/transaction/balance-check-store';
 import type {BalanceStore} from '$lib/core/connection/balance';
 import type {GasFeeStore, GasPriceEstimates} from '$lib/core/connection/gasFee';
-import type {PublicClient} from 'viem';
+import {BaseError, InsufficientFundsError, type PublicClient} from 'viem';
 
 const ADDR = '0xaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaA' as const;
 
 function fakeBalance(value: bigint): BalanceStore {
 	return {
 		subscribe: readable({step: 'Loaded', value} as const).subscribe,
-		status: readable({loading: false}).subscribe as any,
+		status: readable({loading: false}),
 		update: async () => ({step: 'Loaded', value}) as any,
 	} as unknown as BalanceStore;
 }
@@ -18,7 +18,7 @@ function fakeBalance(value: bigint): BalanceStore {
 function fakeGasFee(estimate: GasPriceEstimates): GasFeeStore {
 	return {
 		subscribe: readable({step: 'Loaded', ...estimate} as const).subscribe,
-		status: readable({loading: false}).subscribe as any,
+		status: readable({loading: false}),
 		update: async () => ({step: 'Loaded', ...estimate}) as any,
 	} as unknown as GasFeeStore;
 }
@@ -53,7 +53,7 @@ function lazyGasFee(estimate: GasPriceEstimates, options: {loads: boolean}) {
 	return {
 		store: {
 			subscribe: value.subscribe,
-			status: readable({loading: false}).subscribe as any,
+			status: readable({loading: false}),
 			update,
 		} as unknown as GasFeeStore,
 		update,
@@ -194,6 +194,84 @@ describe('balanceCheck.ensureCanAfford', () => {
 
 		expect(gas.update).toHaveBeenCalled();
 	});
+
+	it('offers the dialog when the NODE refuses to estimate for want of funds (geth), then estimates again', async () => {
+		// geth checks the sender's balance while estimating; hardhat does not. An
+		// empty account sending value was told "not enough funds" with no remedy.
+		const estimateContractGas = vi
+			.fn()
+			.mockRejectedValueOnce(
+				new InsufficientFundsError({
+					cause: new BaseError('insufficient funds for transfer'),
+				}),
+			)
+			.mockResolvedValueOnce(50_000n);
+		const publicClient = {estimateContractGas} as unknown as PublicClient;
+		// Empty, until the faucet answers.
+		let held = 0n;
+		const value = writable({step: 'Loaded', value: held} as const);
+		const balance = {
+			subscribe: value.subscribe,
+			status: readable({loading: false}),
+			update: async () => ({step: 'Loaded', value: held}) as any,
+		} as unknown as BalanceStore;
+		const store = createBalanceCheckStore({
+			publicClient,
+			gasFee: fakeGasFee(estimate),
+		});
+
+		const pending = store.ensureCanAfford(
+			{
+				contract: {
+					address: ADDR,
+					abi: [],
+					functionName: 'create',
+					args: [],
+					account: ADDR,
+					value: 10n ** 16n,
+				},
+			},
+			{balance, sender: ADDR},
+		);
+
+		await vi.waitFor(() => expect(get(store).step).toBe('insufficient'));
+		const shown = get(store) as any;
+		expect(shown.estimatedCost).toBeGreaterThanOrEqual(10n ** 16n);
+		held = 10n ** 18n;
+		value.set({step: 'Loaded', value: held});
+		shown.onContinue();
+
+		const request = await pending;
+		expect(estimateContractGas).toHaveBeenCalledTimes(2);
+		expect(request.gas).toBe(50_000n);
+	});
+
+	it('still fails on an estimate that is refused for another reason', async () => {
+		const publicClient = {
+			estimateContractGas: vi.fn(async () => {
+				throw new BaseError('execution reverted: NotYourTurn');
+			}),
+		} as unknown as PublicClient;
+		const store = createBalanceCheckStore({
+			publicClient,
+			gasFee: fakeGasFee(estimate),
+		});
+		await expect(
+			store.ensureCanAfford(
+				{
+					contract: {
+						address: ADDR,
+						abi: [],
+						functionName: 'act',
+						args: [],
+						account: ADDR,
+					},
+				},
+				{balance: fakeBalance(0n), sender: ADDR},
+			),
+		).rejects.toThrow(/NotYourTurn/);
+		expect(get(store).step).not.toBe('insufficient');
+	});
 });
 
 /**
@@ -286,5 +364,84 @@ describe('balanceCheck.markFundingRequested', () => {
 		});
 		store.markFundingRequested(ADDR);
 		expect(get(store).step).toBe('idle');
+	});
+});
+
+describe('the gas price a transaction is priced at', () => {
+	// The bug: the poller refreshes every ten minutes, and a page opened just
+	// after a local deploy kept the deploy's ~60 gwei tips for all of them, so
+	// every transaction was budgeted at 60 times what the chain asked, and a
+	// local signer's top-up ran dry after one move.
+	const deployTips: GasPriceEstimates = {
+		...estimate,
+		fast: {
+			maxFeePerGas: 60_000_000_000n,
+			maxPriorityFeePerGas: 59_000_000_000n,
+		},
+	};
+
+	function cachedGasFee(
+		cached: GasPriceEstimates,
+		fetchedAt: number,
+		refresh: () => Promise<unknown>,
+	) {
+		const update = vi.fn(refresh);
+		return {
+			store: {
+				subscribe: readable({step: 'Loaded', ...cached}).subscribe,
+				status: readable({loading: false, lastSuccessfulFetch: fetchedAt}),
+				update,
+			} as unknown as GasFeeStore,
+			update,
+		};
+	}
+
+	async function price(gasFee: GasFeeStore) {
+		const store = createBalanceCheckStore({
+			publicClient: {
+				estimateContractGas: vi.fn(async () => 21_000n),
+			} as unknown as PublicClient,
+			gasFee,
+		});
+		return store.ensureCanAfford(
+			{
+				contract: {
+					address: ADDR,
+					abi: [],
+					functionName: 'setMessage',
+					args: ['hi'],
+					account: ADDR,
+				},
+			},
+			{balance: fakeBalance(10n ** 18n), sender: ADDR},
+		);
+	}
+
+	it('refreshes an old price before using it', async () => {
+		const gas = cachedGasFee(deployTips, Date.now() - 5 * 60_000, async () => ({
+			step: 'Loaded',
+			...estimate,
+		}));
+		const request = await price(gas.store);
+		expect(gas.update).toHaveBeenCalled();
+		expect(request.maxFeePerGas).toBe(estimate.fast.maxFeePerGas);
+	});
+
+	it('uses a recent price as it is', async () => {
+		const gas = cachedGasFee(estimate, Date.now(), async () => {
+			throw new Error('not expected');
+		});
+		const request = await price(gas.store);
+		expect(gas.update).not.toHaveBeenCalled();
+		expect(request.maxFeePerGas).toBe(estimate.fast.maxFeePerGas);
+	});
+
+	it('keeps the old price when the refresh fails, rather than failing the send', async () => {
+		const gas = cachedGasFee(estimate, Date.now() - 5 * 60_000, async () => ({
+			step: 'Unloaded',
+		}));
+		const request = await price(gas.store);
+		expect(gas.update).toHaveBeenCalled();
+		expect(request.maxFeePerGas).toBe(estimate.fast.maxFeePerGas);
 	});
 });

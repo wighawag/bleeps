@@ -37,3 +37,8 @@ for tests: `pnpm test`
 - **`web/src/lib/index.ts` is where the app is composed**, which is why it may import both `./kit/*` and the environment. Anything that composes THIS app belongs there rather than in `core/`.
 
 - The two boundary tests and this section are INHERITED from `template-svelte`, the root of this template tree, where they are also enforced. A change to either that is meaningful for a sibling belongs there rather than here, or every sibling silently misses it.
+
+## Contracts
+
+- **Deploy every contract with `deterministic: true`, and give every other transaction of a deploy script a `guard`** (`execute(..., {guard: {kind: 'call', functionName, args, equals}})`). The LAN package (`nix build .#lan`, see "On a LAN box, with no internet" in README.md) replays the deploy on a box's chain: it needs addresses that depend only on the init code, and a guard to know whether a setup call already happened. The LAN build fails otherwise (no contract test checks it any more, so run `nix build git+file://$PWD#lan` after changing a deploy script). Under CREATE2 a constructor's `msg.sender` is the factory, so never use it as the deployer.
+- **The LAN package is built by ethereum-lan-node** (`lib.mkRockethGame`, called from `flake.nix`): change how it builds THERE, not here. A game's specifics go in `nix/game.nix`. Keep the two hooks it needs from this repo: `path: process.env.SOLC_PATH` in `contracts/hardhat.config.ts`, and `withGuardRecording` in `contracts/rocketh/deploy.ts`. Build with `nix build git+file://$PWD#lan` (git add new files first), never a `path:` flake reference.

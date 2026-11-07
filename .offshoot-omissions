@@ -132,3 +132,15 @@ web/test/e2e-account-claims.test.ts
 # not typechecked. The reason it was deleted is not recorded anywhere and could not
 # be recovered; what is true today is the sentence above.
 contracts/scripts/tsconfig.json
+
+# ---------------------------------------------------------------------------
+# THE LAN PACKAGE (`nix build .#lan`, ethereum-lan-node's lib.mkRockethGame).
+# Bleeps are sold out on mainnet and their contracts already deployed, so a
+# playable offline LAN box has nothing to offer here, and these three files are
+# all the package needs from a repo. The two hooks it also uses
+# (`SOLC_PATH` in hardhat.config.ts, `withGuardRecording` in rocketh/deploy.ts)
+# stay: they are inert unless the LAN build switches them on, and deploy.ts is
+# shared with the template.
+flake.nix
+flake.lock
+nix/game.nix

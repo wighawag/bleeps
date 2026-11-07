@@ -49,6 +49,15 @@ const target = join(root, 'web', 'src', 'lib', 'deployments.ts');
 const deploymentsDir = join(root, 'contracts', 'deployments');
 /** The throwaway deploy's environment: see `contracts/scripts/deploy-ephemeral.ts`. */
 const EPHEMERAL = 'ephemeral';
+/**
+ * Records that are never offered, besides the throwaway deploy's own: `lan` is
+ * what the LAN build's deploy (ethereum-lan-node, nix/rocketh-game/build/
+ * deploy.ts) leaves behind when run by hand in this repo (the Nix build runs
+ * it in a throwaway copy). Those name a LAN box's chain,
+ * which nobody develops against, and exporting them made unit tests fail in
+ * duel-in-the-dark (2026-11-04) for no reason the failures named.
+ */
+const NEVER_OFFERED = new Set([EPHEMERAL, 'lan']);
 
 if (existsSync(target)) process.exit(0);
 
@@ -82,7 +91,7 @@ const networks = existsSync(deploymentsDir)
 	? readdirSync(deploymentsDir)
 			.filter(
 				(name) =>
-					name !== EPHEMERAL &&
+					!NEVER_OFFERED.has(name) &&
 					statSync(join(deploymentsDir, name)).isDirectory(),
 			)
 			.sort((a, b) => {
