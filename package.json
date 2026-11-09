@@ -4,6 +4,9 @@
 	"description": "Bleeps",
 	"private": true,
 	"type": "module",
+	"lan": {
+		"pnpmDepsHash": "sha256-u0xELFbGJ3NawTADvsSPgmuX8uNc5EVLddWWEmNEh40="
+	},
 	"packageManager": "pnpm@10.28.1",
 	"devDependencies": {
 		"expand-vars": "^0.1.0",
@@ -14,7 +17,7 @@
 	},
 	"scripts": {
 		"preinstall": "npx only-allow pnpm",
-	"prepare": "node scripts/ensure-deployments.mjs",
+		"prepare": "node scripts/ensure-deployments.mjs",
 		"cleandep": "rm -rf node_modules && pnpm -r exec rm -rf node_modules",
 		"---------------------- FORMAT ----------------------": "",
 		"format": "pnpm -r format",

@@ -136,11 +136,13 @@ contracts/scripts/tsconfig.json
 # ---------------------------------------------------------------------------
 # THE LAN PACKAGE (`nix build .#lan`, ethereum-lan-node's lib.mkRockethGame).
 # Bleeps are sold out on mainnet and their contracts already deployed, so a
-# playable offline LAN box has nothing to offer here, and these three files are
-# all the package needs from a repo. The two hooks it also uses
+# playable offline LAN box has nothing to offer here, and these two files are
+# what turns the package on. What else it uses stays: the two hooks
 # (`SOLC_PATH` in hardhat.config.ts, `withGuardRecording` in rocketh/deploy.ts)
-# stay: they are inert unless the LAN build switches them on, and deploy.ts is
-# shared with the template.
+# are inert unless the LAN build switches them on, and deploy.ts is shared
+# with the template. So does the "lan" field of package.json, at the
+# template's values: it is inert without the flake, and left untouched it
+# merges cleanly when the template's pnpm hash changes, which deleting it would
+# turn into a conflict on every lockfile change.
 flake.nix
 flake.lock
-nix/game.nix
