@@ -1,5 +1,6 @@
 import type {Page} from '@playwright/test';
 import {test, expect, describe} from '../fixtures/test';
+import {MAIN_PAGE} from '../routes';
 
 /**
  * The behaviour ADR-0004 (`work` branch) exists to guarantee, driven
@@ -75,11 +76,7 @@ describe('View overlays and navigation', () => {
 	test('the back gesture closes it instead of leaving the page', async ({
 		page,
 	}) => {
-		// A route this build actually serves. It used to be `/demo/`, inherited
-		// from the template, which Bleeps does not have: the test still PASSED,
-		// because a 404 page is a page and the drawer still opened on it. A test
-		// that passes on a 404 is not testing what it says it is.
-		await page.goto('/bleeps/');
+		await page.goto(MAIN_PAGE.route);
 		await openDrawer(page);
 		const urlWithOverlayOpen = page.url();
 

@@ -8,10 +8,12 @@
 		params,
 		route,
 		sendingIndicator,
+		blockExplorer,
 	} from '$lib';
 	import {
 		provideRoute,
 		provideENS,
+		provideBlockExplorer,
 		provideDocumentLocation,
 	} from '$lib/core/capabilities';
 	import NotificationOverlay from '$lib/core/notifications/NotificationOverlay.svelte';
@@ -73,6 +75,7 @@
 	// PUBLIC_ENS_NODE_URL disables ENS entirely (useENS() then returns undefined
 	// and all ENS-aware components stay inert).
 	if (PUBLIC_ENS_NODE_URL) provideENS(createENSService());
+	provideBlockExplorer(blockExplorer);
 </script>
 
 <!-- dark on <html>, and color-scheme with it: see the template's layout -->

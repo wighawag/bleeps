@@ -31,7 +31,7 @@ import type {CoreServices} from './core.js';
  * The framework imports `$app-specific`, so an app whose half lives elsewhere (a
  * game keeps it beside its own code) points the alias there and no framework
  * file is edited. What the alias must provide is what this module exports:
- * `createAppContext`, `AppMembers` and `operationScope`.
+ * `createAppContext`, `AppMembers`, `operationScope` and `MAIN_PAGE`.
  */
 export function createAppContext(core: CoreServices): AppMembers {
 	const {publicClient, deployments, accountData, chainFetchGate} = core;
@@ -62,6 +62,21 @@ export function createAppContext(core: CoreServices): AppMembers {
 	// core neither uses it nor puts it in the context.
 	return {onchainState, viewState};
 }
+
+/**
+ * THE APP'S MAIN PAGE, named once for the inherited chrome that links to it:
+ * the navbar's link (`name`) and the home page's button (`homeLink`), both to
+ * `route`. Here it is the Bleeps page (this app's navbar and home page are
+ * its own, and name it themselves). A descendant renames or moves its main
+ * page HERE, in its own `$app-specific` module, and edits no shared file. The
+ * e2e suites name the same page in `MAIN_PAGE` of `web/e2e/routes.ts`; a
+ * descendant changes both.
+ */
+export const MAIN_PAGE = {
+	name: 'Bleeps',
+	route: '/bleeps/',
+	homeLink: 'Bleeps',
+} as const;
 
 /**
  * What this app adds to the app context. `Context` (see `./types.ts`) is the
