@@ -12,13 +12,17 @@
 	import {countPendingOperations} from '$lib/view/operation';
 	import {createSendingPulse} from '$lib/ui/in-flight/sending';
 	import {effectiveGasPrice} from '$lib/core/connection/gasFee';
-	import {FaucetButton, hasFaucet} from '$lib/core/ui/faucet/index.js';
+	import {FaucetButton, faucetConfigured} from '$lib/core/ui/faucet/index.js';
+	import {useFaucet} from '$lib/core/capabilities';
 	import MenuIcon from '@lucide/svelte/icons/menu';
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 	import AlertCircleIcon from '@lucide/svelte/icons/circle-alert';
 	import RefreshCwIcon from '@lucide/svelte/icons/refresh-cw';
 	import {NAV_LINKS} from '$lib/navigation';
 	import {navbarMenuPrompt} from './overlays';
+
+	// Offered only when the app provides a faucet with an API or a link.
+	const hasFaucet = faucetConfigured(useFaucet());
 
 	let {
 		currentPath,

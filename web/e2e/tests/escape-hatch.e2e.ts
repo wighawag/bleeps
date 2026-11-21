@@ -2,15 +2,14 @@ import type {Page} from '@playwright/test';
 import {test, expect, describe} from '../fixtures/test';
 import {
 	approveHeldTransaction,
-	executeButton,
 	installStallingWallet,
 	isHoldingTransaction,
 	lockStallingWallet,
 	sendAndStall as stallARequest,
 	sentHashes,
 	STALLING_WALLET_NAME,
-	writeForm,
 } from '../fixtures/stalling-wallet';
+import {executeButton, writeArgs, writeInput} from '../fixtures/contracts-page';
 
 /**
  * The escape hatch, driven through the window it exists for (ADR-0004, `work`).
@@ -27,49 +26,12 @@ import {
  * It is driven with a stalling wallet rather than the burner because the burner
  * answers instantly and is suppressed from the wallet-action prompt entirely, so
  * none of this is reachable with it. See e2e/fixtures/stalling-wallet.ts.
- *
- * DRIVEN THROUGH /contracts IN THIS APP, not the demo page. The template drives
- * `/demo/` and its GreetingsRegistry, which this app replaced and does not
- * deploy, so the inherited walk found no form and this whole suite was deleted
- * here rather than adapted (4d09f4a1). The behaviour it covers is real in this
- * app and was left uncovered, which the deletion commit said out loud and named
- * as a task; this is that task. The code under test is the same
- * (`core/connection/wallet-activity.ts`), reached the way THIS app reaches it:
- * the Write tab on `/contracts` calls the ACCOUNT executor, which goes to the
- * user's wallet.
- *
- * The write is `setApprovalForAll`, chosen because it cannot revert and needs no
- * token, sale or minter role. See e2e/fixtures/stalling-wallet.ts for why that
- * is load-bearing rather than incidental.
  */
 describe('Stopping waiting for the wallet', () => {
 	// Sends transactions, from the stalling wallet's own account rather than a
 	// burner one (see STALLING_WALLET_ACCOUNT), so it races nothing. Serial
 	// anyway: `fullyParallel` applies to tests, and these share one account.
 	describe.configure({mode: 'serial'});
-
-	// SLOW BY NATURE IN THIS APP, so the budget is tripled rather than the run
-	// being made quieter.
-	//
-	// Every test here walks the whole way to a wallet holding a transaction:
-	// load `/contracts` (which in this app renders several large contracts and
-	// reads them), connect, then send. That is the heaviest walk in the
-	// suite, it is almost entirely chain round-trips, and it shares ONE hardhat
-	// node with every other worker (see the workers note in
-	// playwright.config.ts, which caps them for the same reason).
-	//
-	// Measured: with both stalling-wallet suites doing real work - which they
-	// only started doing once the sending indicator's suite was fixed - whichever
-	// of the two met the node at a bad moment ran past the default two minutes,
-	// sitting on "Executing..." with the send waiting on RPC. At 4 workers that
-	// was the escape hatch, at 3 the sending indicator: the signature of
-	// contention rather than of a stuck app. Both pass alone and with the suite
-	// narrowed.
-	//
-	// A budget is the right lever here because nothing being measured is a
-	// duration: this suite asserts an ORDER (pulse before words) and a floor
-	// (words not before their delay), both of which stay true on a slow box.
-	test.slow();
 
 	const nodeUrl =
 		(globalThis as any).process.env.E2E_RPC_URL ||
@@ -79,21 +41,6 @@ describe('Stopping waiting for the wallet', () => {
 	// from `$connection.step`, so they sit in the layer above ordinary modals.
 	const dialog = (page: Page, hasText: string | RegExp) =>
 		page.locator('#--layer-system [role="dialog"]', {hasText});
-
-	/**
-	 * One distinctive address per test, so each proves its OWN input survived.
-	 * They are never sent anywhere: every call here is held by a wallet that does
-	 * not answer, so these are only ever bytes in a form.
-	 */
-	const ADDRESSES = {
-		copy: '0x0000000000000000000000000000000000000011',
-		reconnect: '0x0000000000000000000000000000000000000015',
-		noWallet: '0x0000000000000000000000000000000000000016',
-		locked: '0x0000000000000000000000000000000000000017',
-		staysConnected: '0x0000000000000000000000000000000000000012',
-		released: '0x0000000000000000000000000000000000000013',
-		approvedLater: '0x0000000000000000000000000000000000000014',
-	} as const;
 
 	/**
 	 * The modal that says the wallet is holding a transaction.
@@ -156,20 +103,15 @@ describe('Stopping waiting for the wallet', () => {
 	 * Send, leave the wallet holding it, and check the app says so.
 	 *
 	 * The walk itself is `sendAndStall` in the fixture, shared with the sending
-	 * indicator's suite. In THIS app it drives `/contracts` and `setApprovalForAll`
-	 * rather than the demo page and `setMessage`, because the template's
-	 * GreetingsRegistry is not deployed here at all.
-	 *
-	 * Stated once, in the fixture, so that a second suite needing the same window
-	 * inherits it rather than restating it.
-	 *
-	 * What stays here is the ASSERTION, which is this suite's subject rather than
-	 * its setup: the modal is the thing that offers the escape hatch, so every
-	 * test below starts from it being on screen.
+	 * indicator's suite: the main page's write on /contracts, which reaches the
+	 * wallet on every node (see the fixture). What stays here is the ASSERTION,
+	 * which is this suite's subject rather than its setup: the modal is the thing
+	 * that offers the escape hatch, so every test below starts from it being on
+	 * screen.
 	 */
-	async function sendAndStall(page: Page, player: string) {
+	async function sendAndStall(page: Page, message: string) {
 		await installStallingWallet(page, {nodeUrl});
-		await stallARequest(page, {input: player});
+		await stallARequest(page, {input: message});
 		await expect(waitingModal(page)).toBeVisible({
 			timeout: 30_000,
 		});
@@ -186,7 +128,7 @@ describe('Stopping waiting for the wallet', () => {
 	}
 
 	test('tells the truth, and never offers to cancel', async ({page}) => {
-		await sendAndStall(page, ADDRESSES.copy);
+		await sendAndStall(page, 'escape hatch copy');
 
 		await waitingModal(page)
 			.getByRole('button', {name: 'Stop waiting'})
@@ -209,11 +151,12 @@ describe('Stopping waiting for the wallet', () => {
 	test('releases the modal WITHOUT disconnecting the account', async ({
 		page,
 	}) => {
-		await sendAndStall(page, ADDRESSES.staysConnected);
+		await sendAndStall(page, 'stop waiting stays connected');
 		// Captured rather than named, for the same reason as the locked test below:
-		// which step a connected app rests on is its TARGET step. The claim here is
-		// that stopping waiting moves NOTHING, and comparing against what it was
-		// says that directly instead of encoding one app's answer.
+		// which step a connected app rests on is its TARGET step, `WalletConnected`
+		// in the template and `SignedIn` in a descendant that signs in. The claim
+		// here is that stopping waiting moves NOTHING, and comparing against what it
+		// was says that directly instead of encoding one app's answer.
 		const stepBefore = await page.evaluate(
 			() =>
 				(globalThis as any).get((globalThis as any).context.connection).step,
@@ -243,10 +186,8 @@ describe('Stopping waiting for the wallet', () => {
 		// Reported from real use: the modal went, and the button stayed disabled and
 		// spinning. The page was awaiting a promise that a wallet is under no
 		// obligation to settle, so no amount of waiting would have fixed it.
-		// A distinctive but harmless amount, so the assertion below that it is
-		// still there is actually about this test's input.
-		const player = ADDRESSES.released;
-		await sendAndStall(page, player);
+		const message = 'submit button released';
+		await sendAndStall(page, message);
 
 		// The label, not the `disabled` attribute: this control stays clickable on
 		// purpose (see ContractFunction.svelte) and reports being busy in words. What
@@ -260,9 +201,7 @@ describe('Stopping waiting for the wallet', () => {
 		await expect(execute).toHaveText(/^execute$/i, {timeout: 15_000});
 		// And what they typed is still there. They have not been told anything
 		// happened, so taking their text away would be the app deciding it did.
-		await expect(writeForm(page).getByPlaceholder('0x...').first()).toHaveValue(
-			player,
-		);
+		await expect(writeInput(page)).toHaveValue(writeArgs(message)[0]);
 		// Released without withdrawing anything: the wallet still has the request.
 		expect(await isHoldingTransaction(page)).toBe(true);
 	});
@@ -290,7 +229,7 @@ describe('Stopping waiting for the wallet', () => {
 		// which would hold all three up on its own and hide an upstream regression
 		// completely. So the library's list is read directly too: that number is the
 		// one that was 0.
-		await sendAndStall(page, ADDRESSES.reconnect);
+		await sendAndStall(page, 'reconnect under a parked transaction');
 
 		expect(await pendingRequestCount(page)).toBe(1);
 		await expect(escapeHatch(page)).toBeVisible();
@@ -303,7 +242,7 @@ describe('Stopping waiting for the wallet', () => {
 			.poll(() => walletStatus(page), {timeout: 15_000})
 			.toBe('locked');
 
-		// And wallet state is rebuilt under the request, which IS the transition.
+		// And the flow is raised again, which IS the transition.
 		//
 		// `unlock()`, because it is the ONE route through this transition that every
 		// app in this tree actually has.
@@ -409,7 +348,7 @@ describe('Stopping waiting for the wallet', () => {
 		// reachable in this app today, since the navbar's Connect button is
 		// `connection.connect()`. What made it look destructive was this hole, not the
 		// asymmetry: the teardown also erased the announcement. Now it costs a click.
-		await sendAndStall(page, ADDRESSES.noWallet);
+		await sendAndStall(page, 'announced with no wallet in state');
 		expect(await pendingRequestCount(page)).toBe(1);
 
 		await lockStallingWallet(page);
@@ -517,11 +456,12 @@ describe('Stopping waiting for the wallet', () => {
 		// `step: 'WalletConnected'`, so every `isTargetStepReached` branch rendered a
 		// wallet that was refusing everything as a working one, and the app's only
 		// suggestion was to give up.
-		await sendAndStall(page, ADDRESSES.locked);
+		await sendAndStall(page, 'locked while holding it');
 		// Captured rather than named. The claim is that `unlock()` KEEPS the step
 		// where re-running the flow would rebuild it, and which step that is depends
-		// on the app's target: `SignedIn` here, `WalletConnected` in the template.
-		// This app is the sibling that found the hard-coded version.
+		// on the app's target (`WalletConnected` here, `SignedIn` in a descendant
+		// that signs in). Hard-coding it made this fail in a sibling for a reason
+		// that had nothing to do with locking.
 		const stepBeforeLock = await page.evaluate(
 			() =>
 				(globalThis as any).get((globalThis as any).context.connection).step,
@@ -600,7 +540,8 @@ describe('Stopping waiting for the wallet', () => {
 	}) => {
 		// The promise the escape hatch makes, kept: "if you approve it later, it
 		// will still be sent". The app has to still be there to notice.
-		await sendAndStall(page, ADDRESSES.approvedLater);
+		const message = 'approved after stopping';
+		await sendAndStall(page, message);
 		await stopWaiting(page);
 
 		await approveHeldTransaction(page);

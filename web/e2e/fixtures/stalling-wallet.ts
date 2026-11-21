@@ -1,4 +1,5 @@
 import {expect, type Page} from '@playwright/test';
+import {sendWrite, WRITE_FUNCTION} from './contracts-page';
 
 /**
  * A wallet that HOLDS a transaction request until the test lets it go.
@@ -291,17 +292,11 @@ export function walletWaitingOn(
  * Exported next to the walk that sends it, because it is the same fact: change
  * which write the walk drives and this changes with it. A suite that asserts the
  * app named what it is sending (the sending notice does) reads it from here
- * rather than repeating a literal - `setMessage` is the template's
- * GreetingsRegistry, and a descendant that does not deploy it inherited an
- * assertion for a function it never calls, which is this app: it sends
- * `setApprovalForAll`, and the inherited literal made a passing notice look like
- * a broken one.
- *
- * The same name as {@link WRITE_FUNCTION} below, minus the mutability the
- * contracts page prints beside it, because the sending notice shows the function
- * and the contracts page shows the signature.
+ * rather than repeating a literal: a descendant that does not deploy the
+ * template's GreetingsRegistry inherited an assertion for a `setMessage` it
+ * never calls. It is the main page's write (`MAIN_PAGE.write` of `../routes`).
  */
-export const STALLED_SEND_NAME = 'setApprovalForAll';
+export const STALLED_SEND_NAME = WRITE_FUNCTION;
 
 /**
  * Get this app to hand the stalling wallet a transaction, and leave it holding
@@ -313,14 +308,19 @@ export const STALLED_SEND_NAME = 'setApprovalForAll';
  * sending indicator), and both used to open-code the same walk: pick the page,
  * fill it, submit, choose the wallet, wait. That is the shape `e2e/routes.ts`
  * exists to prevent, and it rotted the same way: a descendant that sends through
- * a LOCAL SIGNER has no wallet in the demo page's Send at all, so the walk has
+ * a LOCAL SIGNER has no wallet in the demo page's Send at all, so the walk had
  * to change, and when only one of the two copies was adapted the other spent
  * thirty seconds waiting for a wallet that was never going to be asked. It did
  * not look like a stale test either; it looked like the indicator was broken.
  *
- * So a descendant overrides THIS function and inherits both suites. What it must
- * end up in is the only part that is fixed: a wallet holding a request, with
- * nothing else on screen waiting on the test.
+ * So the walk goes THROUGH /contracts, the main page's write
+ * (`fixtures/contracts-page.ts`), on every node: the ACCOUNT executor, which
+ * `/contracts` calls directly, is the one route that reaches the user's wallet
+ * whether or not the app also posts through a local signer, which makes it the
+ * shortest route to a wallet that has a transaction and is not answering. A node
+ * whose contract differs sets `MAIN_PAGE.write` and inherits both suites. What
+ * the walk must end up in is the only part that is fixed: a wallet holding a
+ * request, with nothing else on screen waiting on the test.
  *
  * The two tolerances below are here for the same reason, and both are inert in
  * this app:
@@ -349,121 +349,25 @@ export async function sendAndStall(
 		 * input survived. Optional, and that is the interface working rather than
 		 * a convenience.
 		 *
-		 * WHAT IT IS HAS TO BE THE APP'S BUSINESS, not the caller's. This app fills
-		 * `setApprovalForAll`'s OPERATOR argument, so a caller that passes something
-		 * must pass an address. A suite that hardcoded a greeting there would fill an
-		 * invalid field, so the form never submits and nothing reaches the wallet,
-		 * which is the same failure this whole helper exists to stop, one layer in. A
-		 * suite that does not care omits it and gets whatever this app can send.
+		 * WHAT IT BECOMES IS THE APP'S BUSINESS, not the caller's: it is a LABEL,
+		 * turned into the write's arguments by `MAIN_PAGE.write.args`. A
+		 * descendant's write once took an ADDRESS, and a suite that hardcoded
+		 * 'sending indicator' there filled an invalid field, so the form never
+		 * submitted and nothing ever reached the wallet - the same failure this
+		 * whole helper exists to stop, one layer in. A suite that does not care
+		 * omits it.
 		 */
 		input?: string;
 	},
 ): Promise<void> {
-	// THROUGH /contracts AND A WRITE THIS APP CAN ACTUALLY MAKE, which is the
-	// override the template's version was written to receive.
-	//
-	// THE PAGE. The template drives `/demo/` and its GreetingsRegistry, which this
-	// app replaced and does not deploy, so the inherited walk never found a form.
-	// That is why this suite was deleted here rather than adapted (4d09f4a1).
-	// `/contracts` is still here, its Write tab calls the ACCOUNT executor, and
-	// that goes to the user's wallet, which is the window this fixture exists to
-	// stand in.
-	//
-	// THE FUNCTION. `setApprovalForAll(address operator, bool approved)`, on Bleeps
-	// like every ERC721. Chosen because it CANNOT REVERT and needs nothing set up
-	// first: no token, no sale, no minter role. That matters more than it looks. A
-	// call the node can see will fail dies in GAS ESTIMATION, which happens before
-	// `eth_sendTransaction`, so the wallet is never asked and there is no held
-	// request to stop waiting for. `transferFrom`, which contracts.e2e.ts asserts
-	// on for the same "needs no role" reason, would revert here because this
-	// account owns no token.
-	//
-	// Revoking (`false`) rather than granting, so the call is harmless whoever it
-	// names, and it is never mined anyway: the wallet parks it.
-	//
-	// Stated HERE rather than in a suite, because the suite is inherited and a
-	// suite that restates it goes stale on its own.
-	await page.goto('/contracts');
-
-	// This page's write only reaches a wallet once the app has hydrated;
-	// clicking through before that opens the connect modal instead of
-	// dispatching, and then there is no held transaction to stop waiting for.
-	//
-	// THE WEAK WAIT ON PURPOSE, not `waitForAppReady`. `data-connected` is FALSE
-	// here and stays false - nothing is connected yet, and this walk is what
-	// connects it, by choosing the stalling wallet below. All that is needed is
-	// that the navbar has an OPINION, i.e. it hydrated. Waiting for the
-	// connection to settle instead (which is what waitForAppReady is for, and
-	// what the offline tests genuinely need) costs this walk the whole
-	// connection round trip up front, and under a full parallel run against one
-	// node that pushed the first test of the escape-hatch suite past its
-	// two-minute budget while the app sat there saying "Executing...".
-	await expect(page.locator('[data-testid="wallet-status"]')).toHaveAttribute(
-		'data-connected',
-		/true|false/,
-		{timeout: 30_000},
-	);
-
-	const writeTab = page.getByRole('tab', {name: 'Write'});
-	await expect(writeTab).toBeVisible({timeout: 30_000});
-	await writeTab.click();
-
-	await expect(page.getByText(WRITE_FUNCTION)).toBeVisible({timeout: 30_000});
-
-	// BOTH inputs. Filling only one leaves the other undefined and viem throws
-	// before anything reaches the wallet, so there is never a held transaction.
-	await writeForm(page)
-		.getByPlaceholder('0x...')
-		.first()
-		// The zero address when a caller does not care: approving nothing, revoked.
-		.fill(options?.input ?? '0x0000000000000000000000000000000000000000');
-	// A `bool` is a <select>, not a text input, so this is `selectOption` rather
-	// than `fill`. `getInputPlaceholder` returns 'Select true/false' for bool and
-	// is never reached: `FunctionInputs.svelte` branches to a <select> before it,
-	// so a fixture written against that placeholder waits for an element that does
-	// not exist and dies six minutes later on a timeout that says nothing.
-	await writeForm(page).locator('select').first().selectOption('false');
-	await executeButton(page).click();
+	await sendWrite(page, options?.input);
 
 	await chooseStallingWallet(page);
 
 	// The wallet now has the transaction and is not answering, which is the state
-	// a user gets stuck in. `waitUntilHolding` also clicks through "Confirm sign
-	// in", which THIS app always shows: the flow parks at WalletConnected until
-	// the user says yes, and skipping it leaves the connection there forever with
-	// no request ever reaching the wallet.
+	// a user gets stuck in.
 	await waitUntilHolding(page);
 }
-
-/**
- * The write this fixture drives, named once.
- *
- * `setApprovalForAll`, for the reasons in `sendAndStall` above. The
- * suites import it rather than restating it, because a suite that asserts on a
- * form has to be looking at the form that was actually filled.
- */
-export const WRITE_FUNCTION = 'setApprovalForAll nonpayable';
-
-/**
- * The write form `sendAndStall` drives, and its submit control.
- *
- * Exported because a suite asserts on the very control this clicked (that it
- * says "Executing..." and stops saying it), and two definitions of the same
- * locator is one definition too many.
- *
- * The submit control is matched on the STEM, so it is the same locator whether
- * it reads "Execute" or "Executing...". `/execute/i` matches only the first of
- * those, since "executing" does not contain "execute", and a test then reads as
- * though the button had vanished at exactly the moment it was busy.
- */
-export const writeForm = (page: Page) =>
-	page
-		.locator('[class*="card"], [class*="function"]')
-		.filter({has: page.getByText(WRITE_FUNCTION)})
-		.first();
-
-export const executeButton = (page: Page) =>
-	writeForm(page).locator('button', {hasText: /execut/i});
 
 /**
  * Pick this wallet out of however the app is offering wallets today.
