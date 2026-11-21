@@ -1,13 +1,13 @@
 # The stem's files this node carries MODIFIED, each with the reason it differs.
 #
 # WHAT THIS IS FOR. `.offshoot-omissions` lists what this repo does not carry
-# from its stem; this lists what it carries and changes. Everything else is the
-# stem's byte for byte or this repo's own, so a diff against the stem reads as:
-# the additions, the omissions (listed there) and these. A modified file is a
-# conflict on every cascade that touches it, so each one here is a cost paid on
-# purpose, and the reason says what it buys. A cascade reviewer meeting one of
-# these files knows the node's side is a decision; meeting any other modified
-# file, it is drift.
+# from its stem (jolly-roger `main`); this lists what it carries and changes.
+# Everything else is the stem's byte for byte or this repo's own, so a diff
+# against the stem reads as: the additions, the omissions (listed there) and
+# these. A modified file is a conflict on every cascade that touches it, so
+# each one here is a cost paid on purpose, and the reason says what it buys. A
+# cascade reviewer meeting one of these files knows the node's side is a
+# decision; meeting any other modified file, it is drift.
 #
 # AND IT IS CHECKED, by `scripts/check-divergences.mjs` (the tree's one copy,
 # from template-svelte), run by `web/test/offshoot-divergences.test.ts` and by
@@ -30,40 +30,60 @@
 # writes one it carries this file unchanged and the check says it has none.
 
 # The repo's identity, documents and workspace
-README.md                                              jolly-roger's README: the wallet-connected template with its contracts, the LAN package and how a descendant builds on it
-AGENTS.md                                              the repo's rules for agents: Svelte conventions plus the contracts' deploy rules and the LAN package's
-package.json                                           the monorepo of web and contracts: their scripts, the dev stack, the e2e and LAN settings ("lan", "e2e")
-pnpm-lock.yaml                                         the lockfile of this workspace's own dependencies (contracts, viem, @etherplay/connect, ...)
-pnpm-workspace.yaml                                    the contracts package in the workspace, and the cookie override for SvelteKit's vulnerable range
-.gitignore                                             the contracts', the LAN build's and the e2e's generated files
-.offshoot-omissions                                    jolly-roger's own omissions from template-svelte-shadcn (Head.svelte moved, the svg icon, the dev layouts)
+#
+# THIS REPO'S LIST IS ITS OWN. Its stem repo keeps a list too, and a cascade
+# that changes it conflicts here: keep this side, always (the stem's entries
+# describe the stem, not this repo), as `.offshoot-omissions` says of omissions.
+#
+# ONE SECTION, with no marker: this repo has one branch, `main`, fed from
+# jolly-roger `main`.
 
-# The web package's configuration
-web/package.json                                       the web app's dependencies (viem, @etherplay/connect, the account-data stack) and its scripts
-web/.env                                               the chain's public variables: the node URL, the URL handed to wallets, ENS, the explorer's block index
-web/.gitignore                                         the generated deployments module, yalc, and the e2e outputs as this app's playwright writes them
-web/.prettierignore                                    the vendored shadcn components are not reformatted
-web/README.md                                          the web app's README: the wallet-connected app, what already exists, how to switch the logs on
-web/svelte.config.js                                   the `$app-specific` alias, the slot an app on this template is composed through
-web/vite.config.ts                                     the two vitest projects (server and browser) run one after the other, workers capped, the dev host
-web/playwright.config.ts                               the e2e runs a local chain, deploys the contracts and drives a wallet, so its config starts them
-web/src/web-config.json                                the brand: Jolly Roger's name, description, URLs and identity links
-web/src/app.html                                       dark mode by default, and the named-logs console script that reads ?debug, documented where it is inlined
-web/src/app.d.ts                                       PageData's optional surfaceChrome and the shallow-routing overlay state, typed for the layout that reads them
-web/src/app.css                                        the stable scrollbar gutter, sonner's toast style and the navbar's height, beside the stem's layers with jolly-roger's notes on them (its debug surfaces, ADR-0004, the modal tests)
-web/static/_redirects                                  the explorer's dynamic routes rewritten for unique-origin IPFS gateways, before the 404 fallback
+# The repo's identity, documents and workspace
+README.md                                                  Bleeps' README: the project, its contracts on mainnet and how to run it
+.gitignore                                                 the editor settings generated from their defaults, and the workspace file
+.offshoot-omissions                                        this app's own omissions: the greetings demo and its contract, the suites that send a greeting
+package.json                                               Bleeps' workspace scripts: the common library, the subgraph, the booking service, the bytecode check
+pnpm-lock.yaml                                             the lockfile of Bleeps' own packages and dependencies
+pnpm-workspace.yaml                                        Bleeps' packages in the workspace: the common library, the subgraph, the booking service, workerd
+dev/zellij.kdl                                             the dev layout for Bleeps' services, compiling once before the node starts
+scripts/run-e2e-tests.sh                                   the e2e stack for Bleeps' services, its node's process group stopped whole
 
-# The app shell and its composition
-web/src/lib/index.ts                                   where this app is composed: the wallet connection, the account stores, the logs, the dispatch indicator
-web/src/lib/kit/README.md                              the adapter's scope as it stands here, its claims narrowed to what is true
-web/src/routes/+layout.svelte                          the shell: the chrome as a list a descendant extends, the app's context, a surface's own chrome, and sonner, the striped update banner and the sending notice in the stem's layers
-web/src/routes/+layout.ts                              the version logged at start and the named-logs init logger, beside the stem's service-worker toggle
-web/src/routes/+page.svelte                            jolly-roger's home page, its button to the app's main page (`MAIN_PAGE` of `$app-specific`), through the kit's paths and the shadcn button
-web/src/routes/+error.svelte                           the error page in the shadcn style and clamped to the viewport like the rest of the app
-web/test/framework-boundary.test.ts                    the boundary rule stated as inherited from template-svelte, with this repo's ADR-0004 and its own leak list
+# The contracts: Bleeps, frozen as deployed
+contracts/.env                                             the demo (Sepolia) deployment's variables, the faucet's
+contracts/.prettierignore                                  the frozen Solidity and the data snapshots are not reformatted
+contracts/hardhat.config.ts                                the compiler settings that reproduce the mainnet deployment (solc 0.8.9, its optimizer and evm version)
+contracts/package.json                                     Bleeps' names, OpenZeppelin as deployed, the common library, the bytecode check
+contracts/rocketh/config.ts                                the deployed roles (mainnet and the demo's), the sale's and the DAO's settings
+contracts/slippy.config.js                                 the frozen contracts exempt from rules they can never satisfy
+contracts/test/js/utils/index.ts                           the fixtures deploy Bleeps, its DAO and its sale
 
-# The root's format helpers, widened
-web/src/lib/core/utils/format/index.ts                 the web3 formatters (balance, gas, value, on viem) beside the root's hex, json and error ones
+# The web package
+web/.env                                                   the melody indexer's and the booking service's URLs
+web/.env.localhost                                         the local chain's URL handed to the wallet, in the notation the app resolves
+web/package.json                                           Bleeps' name and the common library
+web/tsconfig.json                                          the e2e suite type-checked too, the generated include list repeated
+web/playwright.config.ts                                   workers capped locally: Bleeps reads the one node far harder than the demo
+web/src/web-config.json                                    the brand: Bleeps' name, description, URLs and identity links
+web/static/icon.svg                                        Bleeps' mark
+web/static/preview.png                                     Bleeps' social preview
+web/src/app.css                                            the Bleeps accent colour
+web/src/lib/index.ts                                       the `allow-burn` query param kept on links
+web/src/lib/context/app.ts                                 THIS app: Bleeps' chain reads and view model, the sale's deployment
+web/src/lib/context/config.ts                              no message limit: there are no greetings
+web/src/lib/context/index.ts                               the context's doc names Bleeps as the app half
+web/src/lib/onchain/state.ts                               the Bleeps world as read from the chain, instead of the greetings
+web/src/lib/view/index.ts                                  the Bleeps view model: the bleeps, their melodies, the sale's mode
+web/src/lib/ui/navbar/navbar.svelte                        Bleeps' navigation links and menus, the account drawer kept
+web/src/routes/+layout.svelte                              the footer, and the condition bars as entries of ui/chrome.ts
+web/src/routes/+page.svelte                                Bleeps' home page: the sale, the bleeps and the DAO
+web/src/routes/contracts/+page.svelte                      a stable hook on the contract selector, whose name changes with the selection
+web/src/routes/contracts/components/ContractFunction.svelte  a stable hook on each function's card, whose title carries its mutability
 
-# The e2e
-web/e2e/tests/service-worker-gateway.e2e.ts            the gateway navigation retried: it races the worker's clients.claim(), which Chromium can abort
+# The e2e and the unit tests
+web/e2e/routes.ts                                          `MAIN_PAGE` is /bleeps/ and its contract Bleeps, its write `delegate` with an address made from the label
+web/e2e/fixtures/test.ts                                   no greeting to submit and no waitForTransaction (nothing honest to wait on yet), the connection read from the app
+web/e2e/tests/home.e2e.ts                                  the home page's title as a literal: this app's home declares its own
+web/e2e/tests/contracts.e2e.ts                             Bleeps' own suite: the contract by its heading, the functions by their hooks, no write (see fixtures/test.ts)
+web/test/framework-boundary.test.ts                        the two Bleeps files the rule found when it arrived, and what they read now
+web/test/lib/context/config.test.ts                        no message limit to assert
+web/test/lib/onchain/state.test.ts                         the Bleeps world's reads instead of the greetings'

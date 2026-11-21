@@ -12,7 +12,7 @@ import {setupHardhatDeploy} from 'hardhat-deploy/helpers';
 import * as artifacts from '../generated/artifacts/index.js';
 export {artifacts};
 
-// useful for tests and scripts, uses file-system
+// useful for test and scripts, uses file-system
 const {loadAndExecuteDeploymentsFromFiles, loadEnvironmentFromFiles} =
 	setupEnvironmentFromFiles<Extensions, Accounts, Data>(extensions);
 const {loadEnvironmentFromHardhat} = setupHardhatDeploy<
