@@ -76,8 +76,6 @@ web/src/lib/view/index.ts                                  the Bleeps view model
 web/src/lib/ui/navbar/navbar.svelte                        Bleeps' navigation links and menus, the account drawer kept
 web/src/routes/+layout.svelte                              the footer, and the condition bars as entries of ui/chrome.ts
 web/src/routes/+page.svelte                                Bleeps' home page: the sale, the bleeps and the DAO
-web/src/routes/contracts/+page.svelte                      a stable hook on the contract selector, whose name changes with the selection
-web/src/routes/contracts/components/ContractFunction.svelte  a stable hook on each function's card, whose title carries its mutability
 
 # The e2e and the unit tests
 web/e2e/routes.ts                                          `MAIN_PAGE` is /bleeps/ and its contract Bleeps, its write `delegate` with an address made from the label
