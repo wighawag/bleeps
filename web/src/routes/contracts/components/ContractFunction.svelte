@@ -136,10 +136,11 @@
 	}
 </script>
 
-<!-- `data-function-name` is the stable hook e2e uses to assert a given function
-     is listed. The card TITLE also contains the stateMutability badge, so its
-     text is "owners view", and matching on the visible text alone made
-     `getByText('owners')` ambiguous with every other card. -->
+<!-- `data-function-name` is the stable hook e2e uses to find a given function's
+     card (web/e2e/fixtures/contracts-page.ts). The card TITLE also contains the
+     stateMutability badge, so its text is "owners view", and matching on the
+     visible text alone made `getByText('owners')` ambiguous with every other
+     card. -->
 <Card.Root
 	class="border-2"
 	data-testid="contract-function"
