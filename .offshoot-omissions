@@ -101,27 +101,12 @@ contracts/remappings.txt
 contracts/deployments/sepolia
 
 # ---------------------------------------------------------------------------
-# THE TEMPLATE'S PENDING-OPERATION SURFACES, both of which reach their subject
-# through a greeting: the e2e drives `/demo` to get a transaction in flight, and
-# the unit test merges pending operations over the demo's `Message` shape. The
-# app-level machinery they cover (the operations ledger, the in-flight surfaces)
-# is inherited and still here; what could not survive is the transaction they
-# used to make.
-web/e2e/tests/pending-operation.e2e.ts
+# THE TEMPLATE'S PENDING-OPERATIONS UNIT TEST, which merges pending operations
+# over the greetings demo's `Message` shape, a demo this app does not carry. The
+# app-level machinery it covers (the operations ledger, the in-flight surfaces)
+# is inherited and still here, and the e2e `pending-operation.e2e.ts` (carried
+# again since K4d: its send goes through `/contracts` on every node) drives it.
 web/test/lib/view/pending-operations.test.ts
-
-# ---------------------------------------------------------------------------
-# THE EXECUTABLE COMMENT ABOUT WALLET-ACCOUNT CLAIMS, which has nothing to track
-# here. Upstream it reads every e2e file for `test.use({walletAccountIndex: N})`
-# and fails on a repeated or out-of-range claim; in this repo no suite in
-# `web/e2e/tests/` claims an index at all - only the fixtures that define the
-# option mention it - so there are no claims to police.
-#
-# WORTH RE-DERIVING RATHER THAN TRUSTING, if this repo grows a second
-# transaction-sending suite: the failure it prevents is two suites racing one
-# nonce, which surfaces as an unrelated test failing on a transaction that never
-# appeared. Taking the file back is cheaper than diagnosing that.
-web/test/e2e-account-claims.test.ts
 
 # ---------------------------------------------------------------------------
 # AND ONE THAT IS A GAP RATHER THAN A REPLACEMENT, said plainly because a list
