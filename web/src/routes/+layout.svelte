@@ -107,13 +107,13 @@
 			{#snippet navbar()}
 				<SurfaceNavbar navbar={surface.navbar}>
 					{#snippet appNavbar()}
-					<!-- The framework's answers, handed to components that must not ask for
+						<!-- The framework's answers, handed to components that must not ask for
 					     themselves. Getters, so reading them inside those components tracks
 					     `page`/`navigating` as if they had. See src/lib/kit/README.md. -->
-					<!-- No `repoURL` / `communityURL`: Bleeps' bar is a measured tab row with
+						<!-- No `repoURL` / `communityURL`: Bleeps' bar is a measured tab row with
 					     no room for the two icon links upstream puts here, and the repository,
 					     Discord and Twitter links live in the footer instead (lib/mainnet.ts). -->
-					<Navbar currentPath={() => page.url.pathname} />
+						<Navbar currentPath={() => page.url.pathname} />
 					{/snippet}
 				</SurfaceNavbar>
 			{/snippet}
